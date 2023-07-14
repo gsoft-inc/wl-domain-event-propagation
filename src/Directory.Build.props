@@ -3,7 +3,7 @@
     <Copyright>Copyright © Workleap $([System.DateTime]::UtcNow.ToString(yyyy))</Copyright>
     <Authors>Workleap</Authors>
     <Owners>Workleap</Owners>
-    <PackageProjectUrl>https://github.com/gsoft-inc/workleap-domain-event-propagation</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/gsoft-inc/wl-domain-event-propagation</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <LangVersion>10</LangVersion>
