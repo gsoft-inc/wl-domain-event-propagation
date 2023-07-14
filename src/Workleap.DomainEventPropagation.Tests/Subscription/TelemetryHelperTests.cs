@@ -23,7 +23,7 @@ public class TelemetryHelperTests
         Assert.NotNull(decoratedTestEventData);
         Assert.NotNull(deserializedTelemetryCorrelationId);
         Assert.Equal(telemetryCorrelationId, deserializedTelemetryCorrelationId);
-        Assert.True(decoratedTestEventData.Contains(testEvent.Text));
+        Assert.Contains(testEvent.Text, decoratedTestEventData);
     }
 
     [Fact]
@@ -32,7 +32,7 @@ public class TelemetryHelperTests
         var decoratedTestEventDataNull = TelemetryHelper.AddOperationTelemetryCorrelationIdToSerializedObject(null, Guid.NewGuid().ToString());
         var decoratedTestEventDataEmpty = TelemetryHelper.AddOperationTelemetryCorrelationIdToSerializedObject(string.Empty, Guid.NewGuid().ToString());
 
-        Assert.Equal(null, decoratedTestEventDataNull);
+        Assert.Null(decoratedTestEventDataNull);
         Assert.Equal(string.Empty, decoratedTestEventDataEmpty);
     }
 
