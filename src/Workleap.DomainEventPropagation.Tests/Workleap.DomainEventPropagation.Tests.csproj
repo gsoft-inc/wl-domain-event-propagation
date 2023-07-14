@@ -4,7 +4,7 @@
       All excluded warnings below are related to the ported code 
       that shall be fixed or voided when the implementation is stable
     -->
-    <NoWarn>CS8602,CS8618,SA1000,SA1101,SA1201,SA1413,$(NoWarn)</NoWarn>
+    <NoWarn>CS8600,CS8602,CS8604,CS8618,CS8625,CS8631,SA1000,SA1005,SA1013,SA1026,SA1101,SA1116,SA1117,SA1201,SA1413,SA1505,SA1508,SA1516,SA1509,SA1649,CA1051,CA1063,CA1711,CA1725,CA1816,$(NoWarn)</NoWarn>
     <TargetFramework>net6.0</TargetFramework>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
@@ -14,6 +14,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Workleap.DomainEventPropagation.Publishing\Workleap.DomainEventPropagation.Publishing.csproj" />
+    <ProjectReference Include="..\Workleap.DomainEventPropagation.Subscription\Workleap.DomainEventPropagation.Subscription.csproj" />
+    <ProjectReference Include="..\Workleap.DomainEventPropagation.Topics\Workleap.DomainEventPropagation.Topics.csproj" />
     <ProjectReference Include="..\Workleap.DomainEventPropagation\Workleap.DomainEventPropagation.csproj" />
   </ItemGroup>
 
@@ -30,4 +32,5 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
   </ItemGroup>
+
 </Project>

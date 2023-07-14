@@ -21,6 +21,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workleap.DomainEventPropaga
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workleap.DomainEventPropagation.Publishing", "Workleap.DomainEventPropagation.Publishing\Workleap.DomainEventPropagation.Publishing.csproj", "{C67FD6F4-FD02-4E5E-92A3-DAD15DD1DBBF}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workleap.DomainEventPropagation.Subscription", "Workleap.DomainEventPropagation.Subscription\Workleap.DomainEventPropagation.Subscription.csproj", "{1109EBB3-EF74-4C84-85B5-FDE7975FC705}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +53,10 @@ Global
 		{C67FD6F4-FD02-4E5E-92A3-DAD15DD1DBBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C67FD6F4-FD02-4E5E-92A3-DAD15DD1DBBF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C67FD6F4-FD02-4E5E-92A3-DAD15DD1DBBF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1109EBB3-EF74-4C84-85B5-FDE7975FC705}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1109EBB3-EF74-4C84-85B5-FDE7975FC705}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1109EBB3-EF74-4C84-85B5-FDE7975FC705}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1109EBB3-EF74-4C84-85B5-FDE7975FC705}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
