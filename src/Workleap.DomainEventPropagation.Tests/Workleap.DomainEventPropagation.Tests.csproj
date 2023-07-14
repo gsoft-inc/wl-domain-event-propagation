@@ -33,7 +33,4 @@
     </PackageReference>
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Subscription\" />
-  </ItemGroup>
 </Project>
