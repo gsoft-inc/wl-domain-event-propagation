@@ -1,9 +1,6 @@
-﻿using System.Threading;
-
 using Microsoft.ApplicationInsights.DataContracts;
-using System.Threading.Tasks;
 
-namespace Workleap.EventPropagation.Subscription;
+namespace Workleap.DomainEventPropagation;
 
 public interface IEventGridRequestHandler
 {

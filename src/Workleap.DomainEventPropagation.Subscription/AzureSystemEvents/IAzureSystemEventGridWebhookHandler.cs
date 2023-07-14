@@ -1,9 +1,6 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-
 using Azure.Messaging.EventGrid;
 
-namespace Workleap.EventPropagation.Subscription.AzureSystemEvents;
+namespace Workleap.DomainEventPropagation.AzureSystemEvents;
 
 public interface IAzureSystemEventGridWebhookHandler
 {

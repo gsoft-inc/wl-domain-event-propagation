@@ -1,11 +1,9 @@
-﻿using Microsoft.ApplicationInsights.DataContracts;
+using System.Diagnostics.CodeAnalysis;
+using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics.CodeAnalysis;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace Workleap.EventPropagation.Subscription;
+namespace Workleap.DomainEventPropagation;
 
 /// <summary>
 /// Entrypoint class that will handle EventGrid events (domain or subscription)

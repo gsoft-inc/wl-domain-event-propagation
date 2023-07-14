@@ -1,14 +1,7 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
-
 using Azure.Messaging.EventGrid;
-
 using Fasterflect;
 
-using Workleap.EventPropagation.Telemetry;
-
-namespace Workleap.EventPropagation.Subscription.AzureSystemEvents;
+namespace Workleap.DomainEventPropagation.AzureSystemEvents;
 
 internal sealed class AzureSystemEventGridWebhookHandler : IAzureSystemEventGridWebhookHandler
 {

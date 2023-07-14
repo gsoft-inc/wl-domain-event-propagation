@@ -1,6 +1,6 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 
-namespace Workleap.EventPropagation.Subscription.Extensions;
+namespace Workleap.DomainEventPropagation.Extensions;
 
 public interface IEventPropagationSubscriberBuilder
 {

@@ -1,7 +1,4 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-
-namespace Workleap.EventPropagation.Subscription.AzureSystemEvents;
+namespace Workleap.DomainEventPropagation.AzureSystemEvents;
 
 public interface IAzureSystemEventHandler<in TAzureSystemEvent>
 {

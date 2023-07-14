@@ -1,9 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
 using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
 
-namespace Workleap.EventPropagation.Subscription.AzureSystemEvents;
+namespace Workleap.DomainEventPropagation.AzureSystemEvents;
 
 /// <summary>
 /// If you want to handle an Azure system event, a mapping between the system event name and the corresponding event data class must be added here.

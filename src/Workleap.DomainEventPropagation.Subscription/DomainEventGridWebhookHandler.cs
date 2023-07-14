@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
-
 using Azure.Messaging.EventGrid;
 
 using Fasterflect;
@@ -12,11 +6,6 @@ using Fasterflect;
 using Microsoft.ApplicationInsights.DataContracts;
 
 using Newtonsoft.Json;
-
-using OpenTelemetry.Trace;
-
-using Workleap.EventPropagation.Abstractions;
-using Workleap.EventPropagation.Telemetry;
 
 namespace Workleap.DomainEventPropagation;
 

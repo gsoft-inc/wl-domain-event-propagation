@@ -1,8 +1,6 @@
-﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 
-namespace Workleap.EventPropagation.Subscription;
+namespace Workleap.DomainEventPropagation;
 
 public sealed class EventPropagationSubscriberOptions
 {

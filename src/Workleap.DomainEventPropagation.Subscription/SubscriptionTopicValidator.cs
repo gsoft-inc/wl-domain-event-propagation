@@ -1,12 +1,7 @@
-﻿using System.Collections.Generic;
-
 using Azure.Messaging.EventGrid;
-
 using Microsoft.Extensions.Options;
 
-using Workleap.EventPropagation.Abstractions;
-
-namespace Workleap.EventPropagation.Subscription;
+namespace Workleap.DomainEventPropagation;
 
 internal sealed class SubscriptionTopicValidator : ISubscriptionTopicValidator
 {

@@ -1,6 +1,6 @@
-﻿using Azure.Messaging.EventGrid.SystemEvents;
+using Azure.Messaging.EventGrid.SystemEvents;
 
-namespace Workleap.EventPropagation.Subscription;
+namespace Workleap.DomainEventPropagation;
 
 public sealed class EventGridRequestResult
 {

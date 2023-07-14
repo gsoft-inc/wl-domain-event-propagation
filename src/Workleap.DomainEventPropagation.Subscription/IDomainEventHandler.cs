@@ -1,10 +1,4 @@
-﻿using System.Threading;
-
-using System.Threading.Tasks;
-
-using Workleap.EventPropagation.Abstractions;
-
-namespace Workleap.EventPropagation.Subscription;
+namespace Workleap.DomainEventPropagation;
 
 public interface IDomainEventHandler<in TDomainEvent>
     where TDomainEvent : IDomainEvent

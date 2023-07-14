@@ -1,18 +1,11 @@
-﻿using System;
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
-
 using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
-
 using Microsoft.ApplicationInsights.DataContracts;
 using Newtonsoft.Json;
+using Workleap.DomainEventPropagation.AzureSystemEvents;
 
-using Workleap.EventPropagation.Subscription.AzureSystemEvents;
-using Workleap.EventPropagation.Telemetry;
-
-namespace Workleap.EventPropagation.Subscription;
+namespace Workleap.DomainEventPropagation;
 
 internal sealed class EventGridRequestHandler : IEventGridRequestHandler
 {

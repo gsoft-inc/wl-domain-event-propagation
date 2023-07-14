@@ -1,19 +1,11 @@
-﻿using System;
-
-using Microsoft.Extensions.DependencyInjection.Extensions;
-
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Reflection;
-
 using Microsoft.Extensions.DependencyInjection;
-
-using Workleap.EventPropagation.Abstractions;
-using Workleap.EventPropagation.Subscription.AzureSystemEvents;
-
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Workleap.DomainEventPropagation.AzureSystemEvents;
 using static System.FormattableString;
 
-namespace Workleap.EventPropagation.Subscription.Extensions;
+namespace Workleap.DomainEventPropagation.Extensions;
 
 [ExcludeFromCodeCoverage]
 public static class EventPropagationSubscriberBuilderExtensions

@@ -1,6 +1,6 @@
-﻿using Azure.Messaging.EventGrid;
+using Azure.Messaging.EventGrid;
 
-namespace Workleap.EventPropagation.Subscription;
+namespace Workleap.DomainEventPropagation;
 
 public interface ISubscriptionTopicValidator
 {

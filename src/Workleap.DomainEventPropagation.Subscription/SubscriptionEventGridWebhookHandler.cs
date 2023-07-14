@@ -1,8 +1,6 @@
-﻿using Azure.Messaging.EventGrid.SystemEvents;
+using Azure.Messaging.EventGrid.SystemEvents;
 
-using Workleap.EventPropagation.Telemetry;
-
-namespace Workleap.EventPropagation.Subscription;
+namespace Workleap.DomainEventPropagation;
 
 internal sealed class SubscriptionEventGridWebhookHandler : ISubscriptionEventGridWebhookHandler
 {

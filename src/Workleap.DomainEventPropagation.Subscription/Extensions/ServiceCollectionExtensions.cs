@@ -1,13 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-
 using Microsoft.Extensions.DependencyInjection;
+using Workleap.DomainEventPropagation.AzureSystemEvents;
 
-using Workleap.EventPropagation.Subscription.AzureSystemEvents;
-using Workleap.EventPropagation.Telemetry;
-
-namespace Workleap.EventPropagation.Subscription.Extensions;
+namespace Workleap.DomainEventPropagation.Extensions;
 
 [ExcludeFromCodeCoverage]
 public static class ServiceCollectionEventPropagationExtensions
