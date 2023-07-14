@@ -15,6 +15,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Workleap.DomainEventPropaga
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Workleap.DomainEventPropagation.Abstractions", "Workleap.DomainEventPropagation.Abstractions\Workleap.DomainEventPropagation.Abstractions.csproj", "{0E6521C9-28A3-40BC-B960-F558322E58E4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Workleap.EventPropagation.Topics", "Workleap.DomainEventPropagation.Topics\Workleap.EventPropagation.Topics.csproj", "{26CB3053-BC43-456B-9071-96CCDC4DFDB3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -36,5 +38,9 @@ Global
 		{0E6521C9-28A3-40BC-B960-F558322E58E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0E6521C9-28A3-40BC-B960-F558322E58E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0E6521C9-28A3-40BC-B960-F558322E58E4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{26CB3053-BC43-456B-9071-96CCDC4DFDB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{26CB3053-BC43-456B-9071-96CCDC4DFDB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{26CB3053-BC43-456B-9071-96CCDC4DFDB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{26CB3053-BC43-456B-9071-96CCDC4DFDB3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
