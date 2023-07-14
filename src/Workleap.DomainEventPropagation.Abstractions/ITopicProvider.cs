@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Workleap.DomainEventPropagation
 {
     public interface ITopicProvider
