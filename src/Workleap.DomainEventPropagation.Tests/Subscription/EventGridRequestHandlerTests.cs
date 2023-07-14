@@ -176,7 +176,7 @@ public class EventGridRequestHandlerTests
         // Then
         Assert.NotNull(result);
         Assert.NotNull(requestTelemetry);
-        Assert.Equal(null, requestTelemetry.Context.Operation.ParentId);
+        Assert.Null(requestTelemetry.Context.Operation.ParentId);
         Assert.True(requestTelemetry.Success != null && requestTelemetry.Success.Value);
         Assert.Equal(EventGridRequestType.Event, result.EventGridRequestType);
 
@@ -243,7 +243,7 @@ public class EventGridRequestHandlerTests
 
         // Then
         Assert.NotNull(requestTelemetry);
-        Assert.Equal(null, requestTelemetry.Context.Operation.ParentId);
+        Assert.Null(requestTelemetry.Context.Operation.ParentId);
         Assert.False(requestTelemetry.Success != null && requestTelemetry.Success.Value);
 
         telemetryClientProviderMock.Verify(x => x.TrackException(It.IsAny<Exception>(), It.IsAny<TelemetrySpan>()), Times.Once);
