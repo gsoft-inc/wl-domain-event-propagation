@@ -1,6 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <!-- Temporarily disable public API analyzers until API has been stabilized -->
+      <!-- Temporarily disable public API analyzers until API has been stabilized -->
     <NoWarn>RS0016,RS0037,$(NoWarn)</NoWarn>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IsPackable>true</IsPackable>
@@ -11,6 +11,10 @@
     <AssemblyOriginatorKeyFile>../Workleap.DomainEventPropagation.snk</AssemblyOriginatorKeyFile>
     <RootNamespace>Workleap.DomainEventPropagation</RootNamespace>
   </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Workleap.DomainEventPropagation.Abstractions\Workleap.DomainEventPropagation.Abstractions.csproj" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4">
