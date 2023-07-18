@@ -116,21 +116,6 @@ public class TelemetryClientProviderTests
         telemetryClientProvider.TrackException(new Exception("Cool exception"));
     }
 
-    [Fact]
-    public void GivenTelemetryClient_WhenGettingOperationId_ThenEventIsTracked()
-    {
-        // Given
-        var telemetryClient = GetTestTelemetryClient();
-        telemetryClient.StartOperation<DependencyTelemetry>("CoolOperation");
-
-        // When
-        var telemetryClientProvider = new TelemetryClientProvider(telemetryClient);
-        var operationId = telemetryClientProvider.GetOperationId();
-
-        // Then
-        Assert.NotNull(operationId);
-    }
-
     private static TelemetryClient GetTestTelemetryClient(ITelemetryChannel telemetryChannel = null)
     {
         if (telemetryChannel == null)

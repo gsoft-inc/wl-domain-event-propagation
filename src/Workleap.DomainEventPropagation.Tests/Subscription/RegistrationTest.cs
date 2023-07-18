@@ -1,6 +1,6 @@
+using System.Text.Json;
 using Azure.Messaging.EventGrid;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using Workleap.DomainEventPropagation.AzureSystemEvents;
 using Workleap.DomainEventPropagation.Extensions;
 using Workleap.DomainEventPropagation.Tests.Subscription.Models;
@@ -28,7 +28,7 @@ public class RegistrationTest
                 "subject",
                 typeof(OneDomainEvent).FullName,
                 "version",
-                JsonConvert.SerializeObject(new OneDomainEvent { Number = 1, Text = "Hello" }))
+                JsonSerializer.Serialize(new OneDomainEvent { Number = 1, Text = "Hello" }))
             {
                 Topic = OrganizationTopicName
             };
@@ -46,7 +46,7 @@ public class RegistrationTest
                 "subject2",
                 typeof(TwoDomainEvent).FullName,
                 "version2",
-                JsonConvert.SerializeObject(new TwoDomainEvent { Number = 1, Text = "Hello" }))
+                JsonSerializer.Serialize(new TwoDomainEvent { Number = 1, Text = "Hello" }))
             {
                 Topic = OrganizationTopicName
             };

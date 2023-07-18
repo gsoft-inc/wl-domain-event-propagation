@@ -13,6 +13,4 @@ public interface ITelemetryClientProvider
     TelemetrySpan TrackEvent(string name, string message, string eventType, TelemetrySpan span = null);
 
     void TrackException(Exception exception, TelemetrySpan span = null);
-
-    string GetOperationId();
 }

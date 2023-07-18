@@ -26,7 +26,7 @@ public class EventPropagationClientTests
         var optionsWrapper = new OptionsWrapper<EventPropagationPublisherOptions>(options);
         var eventPropagationClient = new EventPropagationClient(optionsWrapper, _telemetryClientProviderMock.Object);
 
-        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(() => eventPropagationClient.PublishDomainEventAsync("Subject", new PublishTestDomainEvent()));
+        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(() => eventPropagationClient.PublishDomainEventAsync("Subject", new PublishTestDomainEvent(), CancellationToken.None));
         Assert.Equal(options.TopicName, exception.TopicName);
         Assert.Equal("Subject", exception.Subject);
         Assert.Equal(new Uri(options.TopicEndpoint), new Uri(exception.TopicEndpoint));
@@ -41,7 +41,7 @@ public class EventPropagationClientTests
         var optionsWrapper = new OptionsWrapper<EventPropagationPublisherOptions>(options);
         var eventPropagationClient = new EventPropagationClient(optionsWrapper, _telemetryClientProviderMock.Object);
 
-        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(() => eventPropagationClient.PublishDomainEventAsync(new PublishTestDomainEvent()));
+        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(() => eventPropagationClient.PublishDomainEventAsync(new PublishTestDomainEvent(), CancellationToken.None));
         Assert.Equal(options.TopicName, exception.TopicName);
         Assert.Equal(typeof(PublishTestDomainEvent).FullName, exception.Subject);
         Assert.Equal(new Uri(options.TopicEndpoint), new Uri(exception.TopicEndpoint));
@@ -56,7 +56,7 @@ public class EventPropagationClientTests
         var optionsWrapper = new OptionsWrapper<EventPropagationPublisherOptions>(options);
         var eventPropagationClient = new EventPropagationClient(optionsWrapper, _telemetryClientProviderMock.Object);
 
-        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(() => eventPropagationClient.PublishDomainEventsAsync(new[] { new PublishTestDomainEvent(), new PublishTestDomainEvent() }));
+        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(() => eventPropagationClient.PublishDomainEventsAsync(new[] { new PublishTestDomainEvent(), new PublishTestDomainEvent() }, CancellationToken.None));
         Assert.Equal(options.TopicName, exception.TopicName);
         Assert.Equal(typeof(PublishTestDomainEvent).FullName, exception.Subject);
         Assert.Equal(new Uri(options.TopicEndpoint), new Uri(exception.TopicEndpoint));
