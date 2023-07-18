@@ -36,11 +36,6 @@ public sealed class TelemetryClientProvider : ITelemetryClientProvider
         span.RecordException(exception);
     }
 
-    public string GetOperationId()
-    {
-        return System.Diagnostics.Activity.Current?.RootId;
-    }
-
     // TODO: Replace by OTel
     public IOperationHolder<T> StartOperation<T>(T telemetry) where T : OperationTelemetry
     {

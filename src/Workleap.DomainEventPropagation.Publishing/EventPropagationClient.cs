@@ -1,8 +1,8 @@
+using System.Text.Json;
 using Azure;
 using Azure.Core;
 using Azure.Messaging.EventGrid;
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
 using Workleap.DomainEventPropagation.Exceptions;
 
 namespace Workleap.DomainEventPropagation;
@@ -12,6 +12,8 @@ namespace Workleap.DomainEventPropagation;
 /// </summary>
 internal class EventPropagationClient : IEventPropagationClient
 {
+    private static readonly JsonSerializerOptions SerializerOptions = new();
+
     private readonly EventPropagationPublisherOptions _eventPropagationPublisherOptions;
     private readonly ITelemetryClientProvider _telemetryClientProvider;
 
@@ -23,15 +25,18 @@ internal class EventPropagationClient : IEventPropagationClient
         this._telemetryClientProvider = telemetryClientProvider;
     }
 
-    public async Task PublishDomainEventAsync(string subject, IDomainEvent domainEvent)
+    public async Task PublishDomainEventAsync(string subject, IDomainEvent domainEvent, CancellationToken cancellationToken)
     {
-        await this.PublishDomainEventsAsync(subject, new[] { domainEvent });
+        await this.PublishDomainEventsAsync(subject, new[] { domainEvent }, cancellationToken);
     }
 
-    public Task PublishDomainEventAsync<T>(T domainEvent) where T : IDomainEvent
-        => this.PublishDomainEventAsync(typeof(T).FullName, domainEvent);
+    public Task PublishDomainEventAsync<T>(T domainEvent, CancellationToken cancellationToken) where T : IDomainEvent
+        => this.PublishDomainEventAsync(typeof(T).FullName, domainEvent, cancellationToken);
 
-    public async Task PublishDomainEventsAsync(string subject, IEnumerable<IDomainEvent> domainEvents)
+    public Task PublishDomainEventsAsync<T>(IEnumerable<T> domainEvents, CancellationToken cancellationToken) where T : IDomainEvent
+        => this.PublishDomainEventsAsync(typeof(T).FullName, domainEvents as IEnumerable<IDomainEvent>, cancellationToken);
+
+    public async Task PublishDomainEventsAsync(string subject, IEnumerable<IDomainEvent> domainEvents, CancellationToken cancellationToken)
     {
         var topicName = this._eventPropagationPublisherOptions.TopicName;
         var topicEndpoint = this._eventPropagationPublisherOptions.TopicEndpoint;
@@ -49,7 +54,9 @@ internal class EventPropagationClient : IEventPropagationClient
 
         try
         {
-            await client.SendEventsAsync(GetEventsList(topicName, subject, domainEvents, this._telemetryClientProvider.GetOperationId()));
+            var eventGridEvents = GetEventsList(topicName, subject, domainEvents);
+
+            await client.SendEventsAsync(eventGridEvents, cancellationToken);
 
             this._telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventsPropagated, $"Propagated domain event with subject '{subject}' on topic '{topicName}'", TelemetryHelper.GetDomainEventTypes(domainEvents));
         }
@@ -69,34 +76,13 @@ internal class EventPropagationClient : IEventPropagationClient
         }
     }
 
-    public Task PublishDomainEventsAsync<T>(IEnumerable<T> domainEvents) where T : IDomainEvent
-        => this.PublishDomainEventsAsync(typeof(T).FullName, domainEvents as IEnumerable<IDomainEvent>);
-
-    private static IList<EventGridEvent> GetEventsList(string topic, string subject, IEnumerable<IDomainEvent> domainEvents, string telemetryCorrelationId = null)
+    private static IEnumerable<EventGridEvent> GetEventsList(string topic, string subject, IEnumerable<IDomainEvent> domainEvents)
     {
-        var eventsList = new List<EventGridEvent>();
-
-        foreach (var domainEvent in domainEvents)
-        {
-            var eventData = JsonConvert.SerializeObject(domainEvent);
-
-            if (!string.IsNullOrEmpty(telemetryCorrelationId))
-            {
-                eventData = TelemetryHelper.AddOperationTelemetryCorrelationIdToSerializedObject(eventData, telemetryCorrelationId);
-            }
-
-            // Warning: the Topic field must be left as null. It is automatically set by EventGrid.
-            eventsList.Add(new EventGridEvent(
-                subject: $"{topic}-{subject}",
-                eventType: domainEvent.GetType().FullName,
-                dataVersion: domainEvent.DataVersion,
-                data: BinaryData.FromString(eventData))
-            {
-                Id = Guid.NewGuid().ToString(),
-                EventTime = DateTime.UtcNow
-            });
-        }
-
-        return eventsList;
+        // TODO: Propagate correlation ID by setting data with "telemetryCorrelationId" property when OpenTelemetry is fully supported
+        return domainEvents.Select(domainEvent => new EventGridEvent(
+            subject: $"{topic}-{subject}",
+            eventType: domainEvent.GetType().FullName,
+            dataVersion: domainEvent.DataVersion,
+            data: new BinaryData(domainEvent, SerializerOptions)));
     }
 }

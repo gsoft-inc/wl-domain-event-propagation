@@ -1,14 +1,15 @@
 using System.Diagnostics;
+using System.Text.Json;
 using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
 using Microsoft.ApplicationInsights.DataContracts;
-using Newtonsoft.Json;
 using Workleap.DomainEventPropagation.AzureSystemEvents;
 
 namespace Workleap.DomainEventPropagation;
 
 internal sealed class EventGridRequestHandler : IEventGridRequestHandler
 {
+    private static readonly JsonSerializerOptions SerializerOptions = new();
     private readonly IDomainEventGridWebhookHandler _domainEventGridWebhookHandler;
     private readonly IAzureSystemEventGridWebhookHandler _azureSystemEventGridWebhookHandler;
     private readonly ISubscriptionEventGridWebhookHandler _subscriptionEventGridWebhookHandler;
@@ -33,9 +34,7 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
             throw new ArgumentException("Request content cannot be null.");
         }
 
-        var eventGridEvents = this.GetEventGridEventsFromRequestContent(requestContent);
-
-        foreach (var eventGridEvent in eventGridEvents)
+        foreach (var eventGridEvent in GetEventGridEventsFromRequestContent(requestContent))
         {
             if (eventGridEvent.TryGetSystemEventData(out var systemEventData))
             {
@@ -84,7 +83,7 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
         Activity.Current?.AddBaggage("EventTopic", eventGridEvent.Topic);
         Activity.Current?.AddBaggage("EventId", eventGridEvent.Id);
 
-        SetTelemetryCorrelationId(requestTelemetry, eventGridEvent);
+        // TODO: Assign the correlation ID to the request telemetry when OpenTelemetry is fully supported
         var operation = this._telemetryClientProvider.StartOperation(requestTelemetry);
 
         try
@@ -131,27 +130,9 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
         }
     }
 
-    private EventGridEvent[] GetEventGridEventsFromRequestContent(object requestContent)
+    private static IEnumerable<EventGridEvent> GetEventGridEventsFromRequestContent(object requestContent)
     {
-        try
-        {
-            return EventGridEvent.ParseMany(BinaryData.FromString(requestContent.ToString()));
-        }
-        catch (Exception ex)
-        {
-            this._telemetryClientProvider.TrackEvent("InitialDeserializationFailed", $"Initial EventGridEvent deserialization failed: {ex.Message}", null);
-            // Mismatch in lib versions between publisher and subscriber can cause event data interpretation as double serialization
-            // fall back on basic string deserialization instead of binary and see if it works before throwing exception
-            return JsonConvert.DeserializeObject<EventGridEvent[]>(requestContent.ToString());
-        }
-    }
-
-    private static void SetTelemetryCorrelationId(RequestTelemetry requestTelemetry, EventGridEvent eventGridEvent)
-    {
-        if (requestTelemetry != null && string.IsNullOrEmpty(requestTelemetry.Context.Operation.ParentId))
-        {
-            requestTelemetry.Context.Operation.ParentId = TelemetryHelper.GetOperationCorrelationIdFromSerializedObject(eventGridEvent.Data.ToString());
-        }
+        return EventGridEvent.ParseMany(BinaryData.FromString(requestContent.ToString()));
     }
 
     private static void SetRequestTelemetrySuccessStatus(RequestTelemetry requestTelemetry, bool status)

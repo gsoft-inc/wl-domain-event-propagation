@@ -1,17 +1,18 @@
 using System.Reflection;
+using System.Text.Json;
 using Azure.Messaging.EventGrid;
 
 using Fasterflect;
 
 using Microsoft.ApplicationInsights.DataContracts;
 
-using Newtonsoft.Json;
-
 namespace Workleap.DomainEventPropagation;
 
 internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHandler
 {
     private const string DomainEventHandlerHandleMethod = "HandleDomainEventAsync";
+
+    private static readonly JsonSerializerOptions SerializerOptions = new();
 
     private static IEnumerable<Assembly> DomainEventAssemblies;
 
@@ -44,30 +45,19 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
         {
             var domainEventType = assembly.GetType(eventGridEvent.EventType);
 
-            if (domainEventType != null)
+            if (domainEventType is null)
             {
-                try
-                {
-                    var deserializedEvent = JsonConvert.DeserializeObject(eventGridEvent.Data.ToString(), domainEventType);
-                    var domainEvent = (IDomainEvent)deserializedEvent;
-
-                    await this.HandleDomainEventAsync(domainEvent, domainEventType, cancellationToken);
-                }
-                catch (JsonSerializationException)
-                {
-                    // Mismatch in lib versions between publisher and subscriber can cause event data interpretation as double serialization
-                    // fall back on double deserialization and see if it works before throwing exception
-                    var deserializedEvent = JsonConvert.DeserializeObject(JsonConvert.DeserializeObject(eventGridEvent.Data.ToString()).ToString(), domainEventType);
-                    var domainEvent = (IDomainEvent)deserializedEvent;
-
-                    await this.HandleDomainEventAsync(domainEvent, domainEventType, cancellationToken);
-                }
-
-                return;
+                continue;
             }
+
+            var domainEvent = (IDomainEvent)JsonSerializer.Deserialize(eventGridEvent.Data.ToString(), domainEventType, SerializerOptions);
+
+            await this.HandleDomainEventAsync(domainEvent, domainEventType, cancellationToken);
+
+            return;
         }
 
-        this._telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventDeserializationFailed, $"Domain event received. Cannot deserialize object", eventGridEvent.EventType);
+        this._telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventDeserializationFailed, "Domain event received. Cannot deserialize object", eventGridEvent.EventType);
     }
 
     private async Task HandleDomainEventAsync(IDomainEvent domainEvent, Type domainEventTypeOf, CancellationToken cancellationToken)

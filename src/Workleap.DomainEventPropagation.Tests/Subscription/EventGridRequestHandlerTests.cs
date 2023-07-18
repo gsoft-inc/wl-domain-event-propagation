@@ -87,7 +87,6 @@ public class EventGridRequestHandlerTests
     {
         // Given
         var validationCode = Guid.NewGuid().ToString();
-        var telemetryCorrelationId = Guid.NewGuid().ToString();
 
         var domainEventGridWebhookHandlerMock = new Mock<IDomainEventGridWebhookHandler>();
         var azureSystemEventGridWebhookHandlerMock = new Mock<IAzureSystemEventGridWebhookHandler>();
@@ -106,7 +105,7 @@ public class EventGridRequestHandlerTests
             subscriptionEventGridWebhookHandlerMock.Object,
             telemetryClientProviderMock.Object);
 
-        var request = GetEventGridSubscriptionRequest(validationCode, telemetryCorrelationId);
+        var request = GetEventGridSubscriptionRequest(validationCode);
         var result = await eventGridRequestHandler.HandleRequestAsync(request, CancellationToken.None, requestTelemetry);
 
         // Then
@@ -121,8 +120,6 @@ public class EventGridRequestHandlerTests
     public async Task GivenDomainEventEventGridRequest_WhenRequestContentValidAndContainsTelemetryCorrelationId_ThenRequestTelemetryParentIdIsSet()
     {
         // Given
-        var telemetryCorrelationId = Guid.NewGuid().ToString();
-
         var telemetryClientProviderMock = new Mock<ITelemetryClientProvider>();
         var subscriptionEventGridWebhookHandlerMock = new Mock<ISubscriptionEventGridWebhookHandler>();
         var azureSystemEventGridWebhookHandlerMock = new Mock<IAzureSystemEventGridWebhookHandler>();
@@ -139,13 +136,12 @@ public class EventGridRequestHandlerTests
             subscriptionEventGridWebhookHandlerMock.Object,
             telemetryClientProviderMock.Object);
 
-        var request = GetEventGridDomainEventRequest(telemetryCorrelationId);
+        var request = GetEventGridDomainEventRequest();
         var result = await eventGridRequestHandler.HandleRequestAsync(request, CancellationToken.None, requestTelemetry);
 
         // Then
         Assert.NotNull(result);
         Assert.NotNull(requestTelemetry);
-        Assert.Equal(requestTelemetry.Context.Operation.ParentId, telemetryCorrelationId);
         Assert.True(requestTelemetry.Success != null && requestTelemetry.Success.Value);
         Assert.Equal(EventGridRequestType.Event, result.EventGridRequestType);
     }
@@ -187,8 +183,6 @@ public class EventGridRequestHandlerTests
     public async Task GivenDomainEventEventGridRequest_WhenRequestThrowsExceptionAndContainsTelemetryCorrelationId_ThenRequestTelemetryIsTracked()
     {
         // Given
-        var telemetryCorrelationId = Guid.NewGuid().ToString();
-
         var subscriptionEventGridWebhookHandlerMock = new Mock<ISubscriptionEventGridWebhookHandler>();
         var telemetryClientProviderMock = new Mock<ITelemetryClientProvider>();
         var azureSystemEventGridWebhookHandlerMock = new Mock<IAzureSystemEventGridWebhookHandler>();
@@ -205,13 +199,12 @@ public class EventGridRequestHandlerTests
             subscriptionEventGridWebhookHandlerMock.Object,
             telemetryClientProviderMock.Object);
 
-        var request = GetEventGridDomainEventRequest(telemetryCorrelationId);
+        var request = GetEventGridDomainEventRequest();
 
         await Assert.ThrowsAsync<Exception>(() => eventGridRequestHandler.HandleRequestAsync(request, CancellationToken.None, requestTelemetry));
 
         // Then
         Assert.NotNull(requestTelemetry);
-        Assert.Equal(requestTelemetry.Context.Operation.ParentId, telemetryCorrelationId);
         Assert.False(requestTelemetry.Success != null && requestTelemetry.Success.Value);
 
         telemetryClientProviderMock.Verify(x => x.TrackException(It.IsAny<Exception>(), It.IsAny<TelemetrySpan>()), Times.Once);
@@ -253,8 +246,6 @@ public class EventGridRequestHandlerTests
     public async Task GivenDomainEventEventGridRequest_WhenRequestTelemetryNull_ThenOperationSucceeds()
     {
         // Given
-        var telemetryCorrelationId = Guid.NewGuid().ToString();
-
         var subscriptionEventGridWebhookHandlerMock = new Mock<ISubscriptionEventGridWebhookHandler>();
         var telemetryClientProviderMock = new Mock<ITelemetryClientProvider>();
         var domainEventGridWebhookHandlerMock = new Mock<IDomainEventGridWebhookHandler>();
@@ -267,7 +258,7 @@ public class EventGridRequestHandlerTests
             subscriptionEventGridWebhookHandlerMock.Object,
             telemetryClientProviderMock.Object);
 
-        var request = GetEventGridDomainEventRequest(telemetryCorrelationId);
+        var request = GetEventGridDomainEventRequest();
 
         await eventGridRequestHandler.HandleRequestAsync(request, CancellationToken.None, requestTelemetry: null);
 
@@ -276,7 +267,7 @@ public class EventGridRequestHandlerTests
         telemetryClientProviderMock.Verify(x => x.TrackException(It.IsAny<Exception>(), It.IsAny<TelemetrySpan>()), Times.Never);
     }
 
-    private static string GetEventGridSubscriptionRequest(string validationCode, string telemetryCorrelationId = "")
+    private static string GetEventGridSubscriptionRequest(string validationCode)
     {
         var subscriptionRequest = @"[{
                 'topic': '/subscriptions/Organization-egt-',
@@ -296,15 +287,10 @@ public class EventGridRequestHandlerTests
 
         eventData = eventData.Replace("'", "\"");
 
-        if (!string.IsNullOrEmpty(telemetryCorrelationId))
-        {
-            eventData = TelemetryHelper.AddOperationTelemetryCorrelationIdToSerializedObject(eventData, telemetryCorrelationId);
-        }
-
         return subscriptionRequest.Replace("{eventData}", eventData).Replace("'", "\"").Replace("{validationCode}", validationCode);
     }
 
-    private static string GetEventGridDomainEventRequest(string telemetryCorrelationId = "")
+    private static string GetEventGridDomainEventRequest()
     {
         var domainEventRequest = @"[{
                 'topic': '/subscriptions/Organization-egt-',
@@ -323,11 +309,6 @@ public class EventGridRequestHandlerTests
                 }";
 
         eventData = eventData.Replace("'", "\"");
-
-        if (!string.IsNullOrEmpty(telemetryCorrelationId))
-        {
-            eventData = TelemetryHelper.AddOperationTelemetryCorrelationIdToSerializedObject(eventData, telemetryCorrelationId);
-        }
 
         return domainEventRequest.Replace("{eventData}", eventData).Replace("'", "\"");
     }

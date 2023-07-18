@@ -1,7 +1,7 @@
+using System.Text.Json;
 using Azure.Messaging.EventGrid;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
-using Newtonsoft.Json;
 using OpenTelemetry.Trace;
 using Workleap.DomainEventPropagation.Extensions;
 using Workleap.DomainEventPropagation.Tests.Subscription.Mocks;
@@ -187,7 +187,7 @@ public class DomainEventGridWebhookHandlerTests
         services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler.Object);
 
         var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidatorMock.Object, _telemetryClientProviderMock.Object);
-        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", "SomeNamepsace.OhNo.Hohoa", "version", JsonConvert.SerializeObject((object?)new TestDomainEvent { Number = 1, Text = "Hello" }))
+        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", "SomeNamepsace.OhNo.Hohoa", "version", JsonSerializer.Serialize(new TestDomainEvent { Number = 1, Text = "Hello" }))
         {
             Topic = OrganizationTopicName
         }, CancellationToken.None);
