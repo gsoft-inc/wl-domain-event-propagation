@@ -1,13 +1,20 @@
+using Azure.Messaging.EventGrid;
+using FakeItEasy;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Options;
-using Moq;
-using OpenTelemetry.Trace;
 using Workleap.DomainEventPropagation.Exceptions;
 
 namespace Workleap.DomainEventPropagation.Tests.Publishing;
 
 public class EventPropagationClientTests
 {
-    private readonly Mock<ITelemetryClientProvider> _telemetryClientProviderMock = new ();
+    private const string Subject = nameof(Subject);
+
+    private readonly EventPropagationPublisherOptions _eventPropagationPublisherOptions;
+    private readonly EventPropagationClient _eventPropagationClient;
+    private readonly IAzureClientFactory<EventGridPublisherClient> _eventGridPublisherClientFactory;
+    private readonly EventGridPublisherClient _eventGridPublisherClient;
+    private readonly PublishTestDomainEvent _domainEvent;
 
     internal class PublishTestDomainEvent : IDomainEvent
     {
@@ -18,48 +25,109 @@ public class EventPropagationClientTests
         public string DataVersion => "1";
     }
 
-    [Fact]
-    public async Task GivenEventPropagationClient_WhenErrorDuringPublication_ThenThrowsException()
+    public EventPropagationClientTests()
     {
-        // error will be endpoint is nothing
-        var options = new EventPropagationPublisherOptions { TopicName = "Organization", TopicAccessKey = "AccessKey", TopicEndpoint = "http://localhost:11111" };
-        var optionsWrapper = new OptionsWrapper<EventPropagationPublisherOptions>(options);
-        var eventPropagationClient = new EventPropagationClient(optionsWrapper, _telemetryClientProviderMock.Object);
+        this._domainEvent = new PublishTestDomainEvent();
+        this._eventPropagationPublisherOptions = new EventPropagationPublisherOptions { TopicName = "Organization", TopicAccessKey = "AccessKey", TopicEndpoint = "http://localhost:11111" };
+        this._eventGridPublisherClientFactory = A.Fake<IAzureClientFactory<EventGridPublisherClient>>(opts => opts.Strict());
+        this._eventGridPublisherClient = A.Fake<EventGridPublisherClient>(opts => opts.Strict());
 
-        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(() => eventPropagationClient.PublishDomainEventAsync("Subject", new PublishTestDomainEvent(), CancellationToken.None));
-        Assert.Equal(options.TopicName, exception.TopicName);
-        Assert.Equal("Subject", exception.Subject);
-        Assert.Equal(new Uri(options.TopicEndpoint), new Uri(exception.TopicEndpoint));
-        _telemetryClientProviderMock.Verify(x => x.TrackException(It.IsAny<Exception>(), It.IsAny<TelemetrySpan>()), Times.Once);
+        var telemetryClientProvider = A.Fake<ITelemetryClientProvider>();
+
+        this._eventPropagationClient = new EventPropagationClient(this._eventGridPublisherClientFactory, Options.Create(this._eventPropagationPublisherOptions), telemetryClientProvider);
+    }
+
+    [Fact]
+    public async Task GivenEventPropagationClient_WhenErrorDuringPublication_ThenThrowsEventPropagationPublishingException()
+    {
+        A.CallTo(() => this._eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName)).Returns(this._eventGridPublisherClient);
+
+        A.CallTo(() => this._eventGridPublisherClient.SendEventsAsync(
+                A<IEnumerable<EventGridEvent>>.That.Matches(events => events.Count() == 1), 
+                A<CancellationToken>._))
+            .Throws(A.Fake<Exception>());
+
+        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(() => this._eventPropagationClient.PublishDomainEventAsync(Subject, this._domainEvent, CancellationToken.None));
+
+        Assert.Equal(this._eventPropagationPublisherOptions.TopicEndpoint, exception.TopicEndpoint);
+        Assert.Equal(Subject, exception.Subject);
+        Assert.Equal(this._eventPropagationPublisherOptions.TopicName, exception.TopicName);
     }
 
     [Fact]
     public async Task GivenGenericPublishDomainEventAsync_WhenErrorDuringPublication_ThenThrowsException()
     {
-        // error will be endpoint is nothing
-        var options = new EventPropagationPublisherOptions { TopicName = "Organization", TopicAccessKey = "AccessKey", TopicEndpoint = "http://localhost:11111" };
-        var optionsWrapper = new OptionsWrapper<EventPropagationPublisherOptions>(options);
-        var eventPropagationClient = new EventPropagationClient(optionsWrapper, _telemetryClientProviderMock.Object);
+        A.CallTo(() => this._eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName)).Returns(this._eventGridPublisherClient);
 
-        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(() => eventPropagationClient.PublishDomainEventAsync(new PublishTestDomainEvent(), CancellationToken.None));
-        Assert.Equal(options.TopicName, exception.TopicName);
+        A.CallTo(() => this._eventGridPublisherClient.SendEventsAsync(
+                A<IEnumerable<EventGridEvent>>.That.Matches(events => events.Count() == 1),
+                A<CancellationToken>._))
+            .Throws(A.Fake<Exception>());
+
+        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(() => this._eventPropagationClient.PublishDomainEventAsync(new PublishTestDomainEvent(), CancellationToken.None));
+
+        Assert.Equal(this._eventPropagationPublisherOptions.TopicEndpoint, exception.TopicEndpoint);
         Assert.Equal(typeof(PublishTestDomainEvent).FullName, exception.Subject);
-        Assert.Equal(new Uri(options.TopicEndpoint), new Uri(exception.TopicEndpoint));
-        _telemetryClientProviderMock.Verify(x => x.TrackException(It.IsAny<Exception>(), It.IsAny<TelemetrySpan>()), Times.Once);
+        Assert.Equal(this._eventPropagationPublisherOptions.TopicName, exception.TopicName);
     }
 
     [Fact]
     public async Task GivenGenericPublishDomainEventsAsync_WhenErrorDuringPublication_ThenThrowsException()
     {
-        // error will be endpoint is nothing
-        var options = new EventPropagationPublisherOptions { TopicName = "Organization", TopicAccessKey = "AccessKey", TopicEndpoint = "http://localhost:11111" };
-        var optionsWrapper = new OptionsWrapper<EventPropagationPublisherOptions>(options);
-        var eventPropagationClient = new EventPropagationClient(optionsWrapper, _telemetryClientProviderMock.Object);
+        A.CallTo(() => this._eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName)).Returns(this._eventGridPublisherClient);
 
-        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(() => eventPropagationClient.PublishDomainEventsAsync(new[] { new PublishTestDomainEvent(), new PublishTestDomainEvent() }, CancellationToken.None));
-        Assert.Equal(options.TopicName, exception.TopicName);
+        A.CallTo(() => this._eventGridPublisherClient.SendEventsAsync(
+                A<IEnumerable<EventGridEvent>>.That.Matches(events => events.Count() == 1),
+                A<CancellationToken>._))
+            .Throws(A.Fake<Exception>());
+
+        var domainEvents = new List<PublishTestDomainEvent> { this._domainEvent, new() };
+
+        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(() => this._eventPropagationClient.PublishDomainEventsAsync(domainEvents, CancellationToken.None));
+
+        Assert.Equal(this._eventPropagationPublisherOptions.TopicEndpoint, exception.TopicEndpoint);
         Assert.Equal(typeof(PublishTestDomainEvent).FullName, exception.Subject);
-        Assert.Equal(new Uri(options.TopicEndpoint), new Uri(exception.TopicEndpoint));
-        _telemetryClientProviderMock.Verify(x => x.TrackException(It.IsAny<Exception>(), It.IsAny<TelemetrySpan>()), Times.Once);
+        Assert.Equal(this._eventPropagationPublisherOptions.TopicName, exception.TopicName);
+    }
+
+    [Fact]
+    public async Task GivenEventPropagationClient_WhenEventsAreSuccessfullySentWithEventGridPublisher_ThenNoErrors()
+    {
+        A.CallTo(() => this._eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName)).Returns(this._eventGridPublisherClient);
+
+        A.CallTo(() => this._eventGridPublisherClient.SendEventsAsync(
+                A<IEnumerable<EventGridEvent>>.That.Matches(events => events.Count() == 1),
+                A<CancellationToken>._))
+            .Returns(Task.FromResult(A.Fake<Azure.Response>()));
+
+        await this._eventPropagationClient.PublishDomainEventAsync(Subject, this._domainEvent, CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task GivenGenericPublishDomainEventAsync_WhenEventsAreSuccessfullySentWithEventGridPublisher_ThenNoErrors()
+    {
+        A.CallTo(() => this._eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName)).Returns(this._eventGridPublisherClient);
+
+        A.CallTo(() => this._eventGridPublisherClient.SendEventsAsync(
+                A<IEnumerable<EventGridEvent>>.That.Matches(events => events.Count() == 1),
+                A<CancellationToken>._))
+            .Returns(Task.FromResult(A.Fake<Azure.Response>()));
+
+        await this._eventPropagationClient.PublishDomainEventAsync(this._domainEvent, CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task GivenGenericPublishDomainEventsAsync_WhenEventsAreSuccessfullySentWithEventGridPublisher_ThenNoErrors()
+    {
+        A.CallTo(() => this._eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName)).Returns(this._eventGridPublisherClient);
+
+        var domainEvents = new List<PublishTestDomainEvent> { this._domainEvent, new() };
+
+        A.CallTo(() => this._eventGridPublisherClient.SendEventsAsync(
+                A<IEnumerable<EventGridEvent>>.That.Matches(events => events.Count() == domainEvents.Count),
+                A<CancellationToken>._))
+            .Returns(Task.FromResult(A.Fake<Azure.Response>()));
+
+        await this._eventPropagationClient.PublishDomainEventsAsync(domainEvents, CancellationToken.None);
     }
 }

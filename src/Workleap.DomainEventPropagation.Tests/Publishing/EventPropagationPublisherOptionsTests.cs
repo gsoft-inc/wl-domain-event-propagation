@@ -42,9 +42,9 @@ public class EventPropagationPublisherOptionsTests
         TopicProviderMock.Setup(x => x.GetAllTopicsNames()).Returns(new[] { "Organization", "Signup" });
         services.AddSingleton(TopicProviderMock.Object);
         services.AddSingleton<IConfiguration>(configuration);
-        services.AddEventPropagationPublisherOptions();
+        services.AddEventPropagationPublisherOptions(_ => { });
 
-        var serviceProvider = services.BuildServiceProvider();
+        using var serviceProvider = services.BuildServiceProvider();
 
         Assert.Throws<OptionsValidationException>(() => serviceProvider.GetService<IOptions<EventPropagationPublisherOptions>>().Value);
     }
@@ -68,9 +68,9 @@ public class EventPropagationPublisherOptionsTests
         TopicProviderMock.Setup(x => x.GetAllTopicsNames()).Returns(new[] { "Organization", "Signup" });
         services.AddSingleton(TopicProviderMock.Object);
         services.AddSingleton<IConfiguration>(configuration);
-        services.AddEventPropagationPublisherOptions();
+        services.AddEventPropagationPublisherOptions(_ => { });
 
-        var serviceProvider = services.BuildServiceProvider();
+        using var serviceProvider = services.BuildServiceProvider();
 
         var options = serviceProvider.GetService<IOptions<EventPropagationPublisherOptions>>().Value;
 
