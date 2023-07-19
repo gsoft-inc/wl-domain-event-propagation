@@ -48,7 +48,7 @@ internal sealed class EventPropagationClient : IEventPropagationClient
 
             await this._eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName).SendEventsAsync(eventGridEvents, cancellationToken);
 
-            this._telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventsPropagated, $"Propagated domain event with subject '{subject}' on topic '{this.TopicName}'", domainEventTypes);
+            this._telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventsPropagated, $"Published domain event with subject '{subject}' on topic '{this.TopicName}'", domainEventTypes);
         }
         catch (Exception ex)
         {
@@ -59,7 +59,7 @@ internal sealed class EventPropagationClient : IEventPropagationClient
                 TopicEndpoint = this._eventPropagationPublisherOptions.TopicEndpoint
             };
 
-            this._telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventsPropagationFailed, $"Domain event propagation failed with subject '{subject}' on topic '{this.TopicName}'", domainEventTypes);
+            this._telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventsPropagationFailed, $"Failed to publish domain event with subject '{subject}' on topic '{this.TopicName}'", domainEventTypes);
             this._telemetryClientProvider.TrackException(exception);
 
             throw exception;
