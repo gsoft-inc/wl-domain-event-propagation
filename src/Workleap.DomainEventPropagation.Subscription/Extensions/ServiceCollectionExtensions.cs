@@ -7,8 +7,21 @@ namespace Workleap.DomainEventPropagation.Extensions;
 [ExcludeFromCodeCoverage]
 public static class ServiceCollectionEventPropagationExtensions
 {
-    public static IEventPropagationSubscriberBuilder AddEventPropagationSubscriber(this IServiceCollection services, Action<EventPropagationSubscriberOptions> configureOptions = null)
+    public static IEventPropagationSubscriberBuilder AddEventPropagationSubscriber(this IServiceCollection services)
+        => services.AddEventPropagationSubscriber(_ => { });
+
+    public static IEventPropagationSubscriberBuilder AddEventPropagationSubscriber(this IServiceCollection services, Action<EventPropagationSubscriberOptions> configure)
     {
+        if (services == null)
+        {
+            throw new ArgumentNullException(nameof(services));
+        }
+
+        if (configure == null)
+        {
+            throw new ArgumentNullException(nameof(configure));
+        }
+
         services.AddSingleton<ISubscriptionEventGridWebhookHandler, SubscriptionEventGridWebhookHandler>();
         services.AddSingleton<IDomainEventGridWebhookHandler, DomainEventGridWebhookHandler>();
         services.AddSingleton<IAzureSystemEventGridWebhookHandler, AzureSystemEventGridWebhookHandler>();
@@ -16,8 +29,10 @@ public static class ServiceCollectionEventPropagationExtensions
         services.AddSingleton<ITelemetryClientProvider, TelemetryClientProvider>();
         services.AddSingleton<IEventGridRequestHandler, EventGridRequestHandler>();
 
-        services.AddOptions<EventPropagationSubscriberOptions>()
-            .Configure(configureOptions ?? (_ => {}))
+        services
+            .AddOptions<EventPropagationSubscriberOptions>()
+            .BindConfiguration(EventPropagationSubscriberOptions.SectionName)
+            .PostConfigure(configure)
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
