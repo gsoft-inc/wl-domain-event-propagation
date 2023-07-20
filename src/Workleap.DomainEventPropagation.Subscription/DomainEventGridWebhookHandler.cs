@@ -1,8 +1,7 @@
+using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text.Json;
 using Azure.Messaging.EventGrid;
-
-using Fasterflect;
 
 using Microsoft.ApplicationInsights.DataContracts;
 
@@ -19,6 +18,7 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
     private readonly IServiceProvider _serviceProvider;
     private readonly ISubscriptionTopicValidator _subscriptionTopicValidator;
     private readonly ITelemetryClientProvider _telemetryClientProvider;
+    private readonly ConcurrentDictionary<Type, MethodInfo> _handlerDictionary = new();
 
     public DomainEventGridWebhookHandler(
         IServiceProvider serviceProvider,
@@ -60,9 +60,8 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
         this._telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventDeserializationFailed, "Domain event received. Cannot deserialize object", eventGridEvent.EventType);
     }
 
-    private async Task HandleDomainEventAsync(IDomainEvent domainEvent, Type domainEventTypeOf, CancellationToken cancellationToken)
+    private async Task HandleDomainEventAsync(IDomainEvent domainEvent, Type domainEventType, CancellationToken cancellationToken)
     {
-        var domainEventType = domainEventTypeOf ?? domainEvent.GetType();
         var handlerType = typeof(IDomainEventHandler<>).MakeGenericType(domainEventType);
 
         var handler = this._serviceProvider.GetService(handlerType);
@@ -76,9 +75,14 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
 
         using (this._telemetryClientProvider.StartOperation(new DependencyTelemetry("DomainEventHandler", domainEventType.Name, handler.GetType().Name, handler.GetType().FullName)))
         {
-            await (Task)handler.CallMethod(DomainEventHandlerHandleMethod, domainEvent, cancellationToken);
-        }
+            var handlerMethod = this._handlerDictionary.GetOrAdd(handlerType, static type =>
+            {
+                return type.GetMethod(DomainEventHandlerHandleMethod, BindingFlags.Public | BindingFlags.Instance) ??
+                       throw new InvalidOperationException($"No public method found with name {DomainEventHandlerHandleMethod} on type {type.FullName}.");
+            });
 
+            await (Task)handlerMethod.Invoke(handler, new object[] { domainEvent, cancellationToken });
+        }
 
         this._telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventHandled, $"Domain event received and handled by domain event handler: {handlerType}", domainEventType.FullName);
     }

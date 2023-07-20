@@ -1,8 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <!-- Temporarily disable public API analyzers until API has been stabilized -->
-    <!-- 
-      CS8625, SA1000, SA1012, SA1013, SA1101, SA1201, SA1413, SA1507, SA1508, SA1515, SA1649, CS8600, CS8602, CS8603, CS8604, CS8618, 
+    <!--
+      CS8625, SA1000, SA1012, SA1013, SA1101, SA1201, SA1413, SA1507, SA1508, SA1515, SA1649, CS8600, CS8602, CS8603, CS8604, CS8618,
       CS8625,SA1508 are current warnings from ported code that shall be fixed or voided when the implementation is stable
     -->
     <NoWarn>RS0016,RS0037,CS8625,SA1000,SA1012,SA1013,SA1101,SA1201,SA1413,SA1507,SA1508,SA1515,SA1649,CS8600,CS8602,CS8603,CS8604,CS8618,CS8625,SA1508,$(NoWarn)</NoWarn>
@@ -20,7 +20,6 @@
   <ItemGroup>
     <PackageReference Include="Azure.Messaging.EventGrid" Version="4.17.0" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Core" Version="2.2.5" />
-    <PackageReference Include="fasterflect" Version="3.0.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
