@@ -38,14 +38,14 @@ public static class ServiceCollectionEventPropagationExtensions
 
         return new EventPropagationSubscriberBuilder(services);
     }
+}
 
-    private sealed class EventPropagationSubscriberBuilder : IEventPropagationSubscriberBuilder
+internal sealed class EventPropagationSubscriberBuilder : IEventPropagationSubscriberBuilder
+{
+    public EventPropagationSubscriberBuilder(IServiceCollection services)
     {
-        public EventPropagationSubscriberBuilder(IServiceCollection services)
-        {
-            this.Services = services;
-        }
-
-        public IServiceCollection Services { get; }
+        this.Services = services;
     }
+
+    public IServiceCollection Services { get; }
 }
