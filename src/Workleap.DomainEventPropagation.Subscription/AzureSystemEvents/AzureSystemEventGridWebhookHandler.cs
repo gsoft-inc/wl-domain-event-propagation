@@ -1,5 +1,6 @@
+using System.Collections.Concurrent;
+using System.Reflection;
 using Azure.Messaging.EventGrid;
-using Fasterflect;
 
 namespace Workleap.DomainEventPropagation.AzureSystemEvents;
 
@@ -10,6 +11,7 @@ internal sealed class AzureSystemEventGridWebhookHandler : IAzureSystemEventGrid
     private readonly IServiceProvider _serviceProvider;
     private readonly ISubscriptionTopicValidator _subscriptionTopicValidator;
     private readonly ITelemetryClientProvider _telemetryClientProvider;
+    private readonly ConcurrentDictionary<Type, MethodInfo> _handlerDictionary = new();
 
     public AzureSystemEventGridWebhookHandler(
         IServiceProvider serviceProvider,
@@ -55,6 +57,12 @@ internal sealed class AzureSystemEventGridWebhookHandler : IAzureSystemEventGrid
 
         this._telemetryClientProvider.TrackEvent(TelemetryConstants.AzureSystemEventHandled, $"Azure System event received and matched with event handler: {handlerType}", eventGridEventType);
 
-        await (Task)handler.CallMethod(AzureSystemEventHandlerHandleMethod, eventData, cancellationToken);
+        var handlerMethod = this._handlerDictionary.GetOrAdd(handlerType, static type =>
+        {
+            return type.GetMethod(AzureSystemEventHandlerHandleMethod, BindingFlags.Public | BindingFlags.Instance) ??
+                   throw new InvalidOperationException($"No public method found with name {AzureSystemEventHandlerHandleMethod} on type {type.FullName}.");
+        });
+
+        await (Task)handlerMethod.Invoke(handler, new object[] { eventData, cancellationToken });
     }
 }
