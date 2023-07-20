@@ -185,8 +185,8 @@ public class DomainEventGridWebhookHandlerTests
         A.CallTo(() => subscriptionTopicValidator.IsSubscribedToTopic(A<string>._)).Returns(true);
 
         // Given 2
-        var domainEventHandler = new TestDomainEventHandlerMock();
-        services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler.Object);
+        var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
+        services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler);
 
         var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
         await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", "SomeNamepsace.OhNo.Hohoa", "version", JsonSerializer.Serialize(new TestDomainEvent { Number = 1, Text = "Hello" }))
