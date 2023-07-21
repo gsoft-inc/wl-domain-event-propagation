@@ -23,6 +23,7 @@ public class EventsApiUnitTests
     [Fact]
     public async Task GivenEventsApiHandleEvent_WhenResultRequestTypeIsSubscription_ThenReturnsOkResultWithValidationCode()
     {
+        // Given
         var requestTelemetry = new RequestTelemetry();
         var httpContextFeatures = A.Fake<IFeatureCollection>();
 
@@ -42,8 +43,10 @@ public class EventsApiUnitTests
 
         A.CallTo(() => this._eventGridRequestHandler.HandleRequestAsync(A<object>._, A<CancellationToken>._, requestTelemetry)).Returns(Task.FromResult(eventGridRequestResult));
 
+        // When
         var actualResult = await EventsApi.HandleEventGridEvent(new object(), this._httpContext, this._eventGridRequestHandler, CancellationToken.None);
 
+        // Then
         var (data, statusCode) = await actualResult.GetResponseAsync<SubscriptionValidationResponse>();
 
         Assert.Equal(HttpStatusCode.OK, statusCode);
@@ -54,6 +57,7 @@ public class EventsApiUnitTests
     [Fact]
     public async Task GivenEventsApiHandleEvent_WhenResultRequestTypeIsNotSubscription_ThenReturnsOkResult()
     {
+        // Given
         var requestTelemetry = new RequestTelemetry();
         var httpContextFeatures = A.Fake<IFeatureCollection>();
 
@@ -67,8 +71,10 @@ public class EventsApiUnitTests
 
         A.CallTo(() => this._eventGridRequestHandler.HandleRequestAsync(A<object>._, A<CancellationToken>._, requestTelemetry)).Returns(Task.FromResult(eventGridRequestResult));
 
+        // When
         var actualResult = await EventsApi.HandleEventGridEvent(new object(), this._httpContext, this._eventGridRequestHandler, CancellationToken.None);
 
+        // Then
         var (data, statusCode) = await actualResult.GetResponseAsync<object>();
 
         Assert.Equal(HttpStatusCode.OK, statusCode);

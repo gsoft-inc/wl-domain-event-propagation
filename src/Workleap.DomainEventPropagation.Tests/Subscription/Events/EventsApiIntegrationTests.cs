@@ -47,6 +47,7 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
     [Fact]
     public async Task GivenEventsApi_WhenASubscriptionEventIsPosted_ThenReturnsOkWithValidationResponse()
     {
+        // Given
         A.CallTo(() => this._topicProvider.GetTopicValidationPattern(A<string>._)).Returns("dummytopic");
 
         var subscriptionValidationEventData = new SubscriptionValidationEventTestData
@@ -65,10 +66,12 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
                 },
             SerializerOptions);
 
-        var content = new StringContent(serializedContent, Encoding.UTF8, "application/json");
+        var content = new StringContent(serializedContent, Encoding.UTF8, MediaTypeNames.Application.Json);
 
+        // When
         var response = await this._httpClient.PostAsync("/eventgrid/domainevents", content);
 
+        // Then
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
         var subscriptionValidationResponse = await response.Content.ReadFromJsonAsync<SubscriptionValidationResponse>(SerializerOptions);
@@ -79,6 +82,7 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
     [Fact]
     public async Task GivenEventsApi_WhenADomainEventIsPosted_ThenReturnsOk()
     {
+        // Given
         A.CallTo(() => this._topicProvider.GetTopicValidationPattern(A<string>._)).Returns("dummytopic");
 
         var dummyDomainEvent = new DummyDomainEvent
@@ -98,8 +102,10 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
 
         var content = new StringContent(JsonSerializer.Serialize(eventGridEvent), Encoding.UTF8, MediaTypeNames.Application.Json);
 
+        // When
         var response = await this._httpClient.PostAsync("/eventgrid/domainevents", content);
 
+        // Then
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 }
@@ -129,6 +135,11 @@ public sealed class EventsApiIntegrationTestsFixture : WebApplicationFactory<Eve
         base.ConfigureWebHost(builder);
     }
 
+    /// <remarks>
+    /// Given we are in a test assembly and that we don't have a typical entry point project,
+    /// we manually create a host like it would be done in consuming applications, which would
+    /// register the dependencies pertaining to the subscriber capabilities. 
+    /// </summary>
     protected override IHostBuilder CreateHostBuilder()
     {
         return Host.CreateDefaultBuilder()
