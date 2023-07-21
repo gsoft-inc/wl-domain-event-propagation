@@ -1,14 +1,25 @@
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Workleap.DomainEventPropagation.AzureSystemEvents;
 
 namespace Workleap.DomainEventPropagation.Extensions;
 
-[ExcludeFromCodeCoverage]
 public static class ServiceCollectionEventPropagationExtensions
 {
-    public static IEventPropagationSubscriberBuilder AddEventPropagationSubscriber(this IServiceCollection services, Action<EventPropagationSubscriberOptions> configureOptions = null)
+    public static IEventPropagationSubscriberBuilder AddEventPropagationSubscriber(this IServiceCollection services)
+        => services.AddEventPropagationSubscriber(_ => { });
+
+    public static IEventPropagationSubscriberBuilder AddEventPropagationSubscriber(this IServiceCollection services, Action<EventPropagationSubscriberOptions> configure)
     {
+        if (services == null)
+        {
+            throw new ArgumentNullException(nameof(services));
+        }
+
+        if (configure == null)
+        {
+            throw new ArgumentNullException(nameof(configure));
+        }
+
         services.AddSingleton<ISubscriptionEventGridWebhookHandler, SubscriptionEventGridWebhookHandler>();
         services.AddSingleton<IDomainEventGridWebhookHandler, DomainEventGridWebhookHandler>();
         services.AddSingleton<IAzureSystemEventGridWebhookHandler, AzureSystemEventGridWebhookHandler>();
@@ -16,21 +27,23 @@ public static class ServiceCollectionEventPropagationExtensions
         services.AddSingleton<ITelemetryClientProvider, TelemetryClientProvider>();
         services.AddSingleton<IEventGridRequestHandler, EventGridRequestHandler>();
 
-        services.AddOptions<EventPropagationSubscriberOptions>()
-            .Configure(configureOptions ?? (_ => {}))
+        services
+            .AddOptions<EventPropagationSubscriberOptions>()
+            .BindConfiguration(EventPropagationSubscriberOptions.SectionName)
+            .Configure(configure)
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
         return new EventPropagationSubscriberBuilder(services);
     }
+}
 
-    private sealed class EventPropagationSubscriberBuilder : IEventPropagationSubscriberBuilder
+internal sealed class EventPropagationSubscriberBuilder : IEventPropagationSubscriberBuilder
+{
+    public EventPropagationSubscriberBuilder(IServiceCollection services)
     {
-        public EventPropagationSubscriberBuilder(IServiceCollection services)
-        {
-            this.Services = services;
-        }
-
-        public IServiceCollection Services { get; }
+        this.Services = services;
     }
+
+    public IServiceCollection Services { get; }
 }

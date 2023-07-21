@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Azure.Messaging.EventGrid;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Workleap.DomainEventPropagation.AzureSystemEvents;
 using Workleap.DomainEventPropagation.Extensions;
@@ -15,11 +16,22 @@ public class RegistrationTest
     public async Task GivenDomainEventIsFired_WhenDomainEventHandlerIsRegisteredToMultipleDomainEvents_ThenDomainEventHandlerIsCalled()
     {
         var services = new ServiceCollection();
-        services.AddSingleton<ITopicProvider, PlatformTopicProvider>();
-        var eventProcessingBuilder = services.AddEventPropagationSubscriber(options => { options.SubscribedTopics = new[] { OrganizationTopicName }; });
-        eventProcessingBuilder.AddDomainEventHandlersFromAssembly(typeof(DomainEventHandler).Assembly);
 
-        var serviceProvider = services.BuildServiceProvider();
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string>
+            {
+                { $"{EventPropagationSubscriberOptions.SectionName}:SubscribedTopics:0", OrganizationTopicName },
+            })
+            .Build();
+
+        services.AddSingleton<IConfiguration>(configuration);
+
+        services.AddSingleton<ITopicProvider, PlatformTopicProvider>();
+        
+        services.AddEventPropagationSubscriber()
+            .AddDomainEventHandlersFromAssembly(typeof(DomainEventHandler).Assembly);
+
+        await using var serviceProvider = services.BuildServiceProvider();
         var domainEventGridWebhookHandler = serviceProvider.GetRequiredService<IDomainEventGridWebhookHandler>();
 
         try
