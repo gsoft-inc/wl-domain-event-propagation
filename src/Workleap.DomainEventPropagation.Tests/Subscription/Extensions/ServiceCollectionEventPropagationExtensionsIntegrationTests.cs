@@ -21,6 +21,25 @@ public class ServiceCollectionEventPropagationExtensionsIntegrationTests
     }
 
     [Fact]
+    public void AddEventPropagationSubscriber_WhenConventionalSectionNotFilledOutButConfigurationOverrides_ThenOptionsAreAsExpected()
+    {
+        var configuration = new ConfigurationBuilder().Build();
+
+        this._services
+            .AddSingleton<IConfiguration>(configuration)
+            .AddEventPropagationSubscriber(opts =>
+            {
+                opts.SubscribedTopics.Add("Blabla");
+            });
+
+        using var serviceProvider = this._services.BuildServiceProvider();
+
+        var subscriberOptions = serviceProvider.GetRequiredService<IOptions<EventPropagationSubscriberOptions>>().Value;
+
+        Assert.True(subscriberOptions.SubscribedTopics.SequenceEqual(new[] { "Blabla" }));
+    }
+
+    [Fact]
     public void AddEventPropagationSubscriber_WithoutConfigurationOverrides_ThenOptionsAreKeptIntact()
     {
         var configuration = new ConfigurationBuilder()

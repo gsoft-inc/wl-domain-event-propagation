@@ -1,10 +1,8 @@
-using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Workleap.DomainEventPropagation.AzureSystemEvents;
 
 namespace Workleap.DomainEventPropagation.Extensions;
 
-[ExcludeFromCodeCoverage]
 public static class ServiceCollectionEventPropagationExtensions
 {
     public static IEventPropagationSubscriberBuilder AddEventPropagationSubscriber(this IServiceCollection services)
@@ -32,7 +30,7 @@ public static class ServiceCollectionEventPropagationExtensions
         services
             .AddOptions<EventPropagationSubscriberOptions>()
             .BindConfiguration(EventPropagationSubscriberOptions.SectionName)
-            .PostConfigure(configure)
+            .Configure(configure)
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
