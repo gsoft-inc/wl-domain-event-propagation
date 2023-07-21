@@ -1,6 +1,5 @@
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 
 namespace Workleap.DomainEventPropagation.Events;
 
@@ -14,7 +13,7 @@ internal static class EventsApi
     }
 
     internal static async Task<IResult> HandleEventGridEvent(
-        [FromBody] object requestContent,
+        object requestContent,
         HttpContext httpContext,
         IEventGridRequestHandler eventGridRequestHandler,
         CancellationToken cancellationToken)

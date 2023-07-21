@@ -6,11 +6,14 @@ using System.Text.Json;
 using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
 using FakeItEasy;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Workleap.DomainEventPropagation.Extensions;
 
 namespace Workleap.DomainEventPropagation.Tests.Subscription.Events;
 
@@ -101,7 +104,7 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
     }
 }
 
-public sealed class EventsApiIntegrationTestsFixture : WebApplicationFactory<Program>
+public sealed class EventsApiIntegrationTestsFixture : WebApplicationFactory<EventsApiIntegrationTestsFixture.Startup>
 {
     public const string TestTopic = "DummyTopic";
 
@@ -124,5 +127,34 @@ public sealed class EventsApiIntegrationTestsFixture : WebApplicationFactory<Pro
         builder.UseConfiguration(configuration);
 
         base.ConfigureWebHost(builder);
+    }
+
+    protected override IHostBuilder CreateHostBuilder()
+    {
+        return Host.CreateDefaultBuilder()
+            .ConfigureWebHostDefaults(webBuilder =>
+            {
+                webBuilder.UseStartup<Startup>();
+            });
+    }
+
+    public class Startup
+    {
+        public void ConfigureServices(IServiceCollection services)
+        {
+            services
+                .AddEventPropagationSubscriber()
+                .AddDomainEventHandler<DummyDomainEventHandler>();
+        }
+
+        public void Configure(IApplicationBuilder app)
+        {
+            app.UseRouting();
+
+            app.UseEndpoints(endpoints =>
+            {
+                endpoints.AddEventPropagationEndpoints();
+            });
+        }
     }
 }

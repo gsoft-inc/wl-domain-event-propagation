@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Workleap.DomainEventPropagation.AzureSystemEvents;
@@ -44,12 +45,20 @@ public static class ServiceCollectionEventPropagationExtensions
     public static IEndpointRouteBuilder AddEventPropagationEndpoints(this IEndpointRouteBuilder builder)
     {
         builder
-            .MapPost(EventsApi.Routes.DomainEvents, EventsApi.HandleEventGridEvent)
+            .MapPost(EventsApi.Routes.DomainEvents, (
+                [FromBody] object requestContent,
+                HttpContext httpContext,
+                IEventGridRequestHandler eventGridRequestHandler,
+                CancellationToken cancellationToken) => EventsApi.HandleEventGridEvent(requestContent, httpContext, eventGridRequestHandler, cancellationToken))
             .AllowAnonymous()
             .ExcludeFromDescription();
 
         builder
-            .MapPost(EventsApi.Routes.SystemEvents, EventsApi.HandleEventGridEvent)
+            .MapPost(EventsApi.Routes.SystemEvents, (
+                [FromBody] object requestContent,
+                HttpContext httpContext,
+                IEventGridRequestHandler eventGridRequestHandler,
+                CancellationToken cancellationToken) => EventsApi.HandleEventGridEvent(requestContent, httpContext, eventGridRequestHandler, cancellationToken))
             .AllowAnonymous()
             .ExcludeFromDescription();
 

@@ -9,7 +9,7 @@ namespace Workleap.DomainEventPropagation.AzureSystemEvents;
 /// </summary>
 public static class EventTypeMapping
 {
-    public static bool TryGetEventDataTypeForEventType(string eventType, out Type eventDataType)
+    public static bool TryGetEventDataTypeForEventType(string eventType, out Type? eventDataType)
     {
         return Mapping.TryGetValue(eventType, out eventDataType);
     }

@@ -1,4 +1,4 @@
-using Workleap.DomainEventPropagation;
+namespace Workleap.DomainEventPropagation.Tests.Subscription.Events;
 
 public sealed class DummyDomainEvent : IDomainEvent
 {
