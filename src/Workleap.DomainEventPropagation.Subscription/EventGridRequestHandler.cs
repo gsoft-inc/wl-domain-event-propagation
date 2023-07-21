@@ -1,5 +1,4 @@
 using System.Diagnostics;
-using System.Text.Json;
 using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
 using Microsoft.ApplicationInsights.DataContracts;
@@ -9,7 +8,6 @@ namespace Workleap.DomainEventPropagation;
 
 internal sealed class EventGridRequestHandler : IEventGridRequestHandler
 {
-    private static readonly JsonSerializerOptions SerializerOptions = new();
     private readonly IDomainEventGridWebhookHandler _domainEventGridWebhookHandler;
     private readonly IAzureSystemEventGridWebhookHandler _azureSystemEventGridWebhookHandler;
     private readonly ISubscriptionEventGridWebhookHandler _subscriptionEventGridWebhookHandler;
