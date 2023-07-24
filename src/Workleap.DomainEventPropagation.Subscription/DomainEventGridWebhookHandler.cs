@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text.Json;
+using Azure.Messaging;
 using Azure.Messaging.EventGrid;
 
 using Microsoft.ApplicationInsights.DataContracts;
@@ -32,18 +33,18 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
         DomainEventAssemblies = GetAssemblies();
     }
 
-    public async Task HandleEventGridWebhookEventAsync(EventGridEvent eventGridEvent, CancellationToken cancellationToken)
+    public async Task HandleEventGridWebhookEventAsync(CloudEvent eventGridEvent, CancellationToken cancellationToken)
     {
-        if (!this._subscriptionTopicValidator.IsSubscribedToTopic(eventGridEvent.Topic))
+        if (!this._subscriptionTopicValidator.IsSubscribedToTopic(eventGridEvent.DataSchema))
         {
-            this._telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventRejectedBasedOnTopic, $"Domain event received and ignored based on topic. Topic: ­{eventGridEvent.Topic}", eventGridEvent.EventType);
+            this._telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventRejectedBasedOnTopic, $"Domain event received and ignored based on topic. Topic: ­{eventGridEvent.DataSchema}", eventGridEvent.Type);
 
             return;
         }
 
         foreach (var assembly in DomainEventAssemblies)
         {
-            var domainEventType = assembly.GetType(eventGridEvent.EventType);
+            var domainEventType = assembly.GetType(eventGridEvent.Type);
 
             if (domainEventType is null)
             {
@@ -57,7 +58,7 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
             return;
         }
 
-        this._telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventDeserializationFailed, "Domain event received. Cannot deserialize object", eventGridEvent.EventType);
+        this._telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventDeserializationFailed, "Domain event received. Cannot deserialize object", eventGridEvent.Type);
     }
 
     private async Task HandleDomainEventAsync(IDomainEvent domainEvent, Type domainEventType, CancellationToken cancellationToken)

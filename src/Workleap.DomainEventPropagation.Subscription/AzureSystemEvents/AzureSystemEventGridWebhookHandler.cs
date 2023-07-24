@@ -1,3 +1,4 @@
+using Azure.Messaging;
 using System.Collections.Concurrent;
 using System.Reflection;
 using Azure.Messaging.EventGrid;
@@ -23,23 +24,23 @@ internal sealed class AzureSystemEventGridWebhookHandler : IAzureSystemEventGrid
         this._telemetryClientProvider = telemetryClientProvider;
     }
 
-    public async Task HandleEventGridWebhookEventAsync(EventGridEvent eventGridEvent, object systemEventData, CancellationToken cancellationToken)
+    public async Task HandleEventGridWebhookEventAsync(CloudEvent eventGridEvent, object systemEventData, CancellationToken cancellationToken)
     {
-        if (!this._subscriptionTopicValidator.IsSubscribedToTopic(eventGridEvent.Topic))
+        if (!this._subscriptionTopicValidator.IsSubscribedToTopic(eventGridEvent.DataSchema))
         {
-            this._telemetryClientProvider.TrackEvent(TelemetryConstants.AzureSystemEventRejectedBasedOnTopic, $"Azure System event received and ignored based on topic. Topic: ­{eventGridEvent.Topic}", eventGridEvent.EventType);
+            this._telemetryClientProvider.TrackEvent(TelemetryConstants.AzureSystemEventRejectedBasedOnTopic, $"Azure System event received and ignored based on topic. Topic: ­{eventGridEvent.DataSchema}", eventGridEvent.Type);
 
             return;
         }
 
-        if (EventTypeMapping.TryGetEventDataTypeForEventType(eventGridEvent.EventType, out var eventDataType))
+        if (EventTypeMapping.TryGetEventDataTypeForEventType(eventGridEvent.Type, out var eventDataType))
         {
-            await this.HandleAzureSystemEventAsync(systemEventData, eventGridEvent.EventType, eventDataType, cancellationToken);
+            await this.HandleAzureSystemEventAsync(systemEventData, eventGridEvent.Type, eventDataType, cancellationToken);
 
             return;
         }
 
-        this._telemetryClientProvider.TrackEvent(TelemetryConstants.AzureSystemEventDeserializationFailed, $"Azure System event received. Cannot deserialize object", eventGridEvent.EventType);
+        this._telemetryClientProvider.TrackEvent(TelemetryConstants.AzureSystemEventDeserializationFailed, $"Azure System event received. Cannot deserialize object", eventGridEvent.Type);
     }
 
     private async Task HandleAzureSystemEventAsync(object eventData, string eventGridEventType, Type eventDataType, CancellationToken cancellationToken)

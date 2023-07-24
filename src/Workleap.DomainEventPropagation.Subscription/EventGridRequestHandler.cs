@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Text.Json;
+using Azure.Messaging;
 using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
 using Microsoft.ApplicationInsights.DataContracts;
@@ -38,12 +40,12 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
             {
                 if (systemEventData is SubscriptionValidationEventData subscriptionValidationEventData)
                 {
-                    return ProcessSubscriptionEvent(subscriptionValidationEventData, eventGridEvent.EventType, eventGridEvent.Topic);
+                    return ProcessSubscriptionEvent(subscriptionValidationEventData, eventGridEvent.Type, eventGridEvent.DataSchema);
                 }
 
                 await this.ProcessAzureSystemEventAsync(eventGridEvent, systemEventData, requestTelemetry, cancellationToken);
             }
-            else if (!string.IsNullOrEmpty(eventGridEvent.Topic))
+            else if (!string.IsNullOrEmpty(eventGridEvent.DataSchema))
             {
                 await this.ProcessDomainEventAsync(eventGridEvent, requestTelemetry, cancellationToken);
             }
@@ -75,10 +77,10 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
         }
     }
 
-    private async Task ProcessDomainEventAsync(EventGridEvent eventGridEvent, RequestTelemetry requestTelemetry, CancellationToken cancellationToken)
+    private async Task ProcessDomainEventAsync(CloudEvent eventGridEvent, RequestTelemetry requestTelemetry, CancellationToken cancellationToken)
     {
-        Activity.Current?.AddBaggage("EventType", eventGridEvent.EventType);
-        Activity.Current?.AddBaggage("EventTopic", eventGridEvent.Topic);
+        Activity.Current?.AddBaggage("EventType", eventGridEvent.Type);
+        Activity.Current?.AddBaggage("EventTopic", eventGridEvent.DataSchema);
         Activity.Current?.AddBaggage("EventId", eventGridEvent.Id);
 
         // TODO: Assign the correlation ID to the request telemetry when OpenTelemetry is fully supported
@@ -104,7 +106,7 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
         }
     }
 
-    private async Task ProcessAzureSystemEventAsync(EventGridEvent eventGridEvent, object systemEventData, RequestTelemetry requestTelemetry, CancellationToken cancellationToken)
+    private async Task ProcessAzureSystemEventAsync(CloudEvent eventGridEvent, object systemEventData, RequestTelemetry requestTelemetry, CancellationToken cancellationToken)
     {
         var operation = this._telemetryClientProvider.StartOperation(requestTelemetry);
 
@@ -128,9 +130,9 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
         }
     }
 
-    private static IEnumerable<EventGridEvent> GetEventGridEventsFromRequestContent(object requestContent)
+    private static IEnumerable<CloudEvent> GetEventGridEventsFromRequestContent(object requestContent)
     {
-        return EventGridEvent.ParseMany(BinaryData.FromString(requestContent.ToString()));
+        return CloudEvent.ParseMany(BinaryData.FromString(requestContent.ToString()));
     }
 
     private static void SetRequestTelemetrySuccessStatus(RequestTelemetry requestTelemetry, bool status)

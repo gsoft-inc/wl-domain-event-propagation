@@ -1,3 +1,4 @@
+using Azure.Messaging;
 using System.Reflection;
 using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
@@ -30,9 +31,9 @@ public class AzureSystemEventGridWebhookHandlerTests
         services.AddSingleton<IAzureSystemEventHandler<MediaJobFinishedEventData>>(azureSystemEventHandler);
 
         var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
-        var eventGridEvent = new EventGridEvent("subject", SystemEventNames.MediaJobFinished, "version", BinaryData.FromString(@"{ ""outputs"": [] }"))
+        var eventGridEvent = new CloudEvent("subject", SystemEventNames.MediaJobFinished, BinaryData.FromString(@"{ ""outputs"": [] }"), "dataContentType")
         {
-            Topic = "UnregisteredTopic"
+            DataSchema = "UnregisteredTopic"
         };
 
         var wasParsedAsSystemEvent = eventGridEvent.TryGetSystemEventData(out var systemEventData);
@@ -63,9 +64,9 @@ public class AzureSystemEventGridWebhookHandlerTests
         var azureSystemEventHandler = A.Fake<IAzureSystemEventHandler<MediaJobFinishedEventData>>();
 
         var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
-        var eventGridEvent = new EventGridEvent("subject", SystemEventNames.MediaJobFinished, "version", BinaryData.FromString(@"{ ""outputs"": [] }"))
+        var eventGridEvent = new CloudEvent("subject", SystemEventNames.MediaJobFinished, BinaryData.FromString(@"{ ""outputs"": [] }"))
         {
-            Topic = $"xzxzxzx{systemTopicPattern}xzxzxzx"
+            DataSchema = $"xzxzxzx{systemTopicPattern}xzxzxzx",
         };
 
         var wasParsedAsSystemEvent = eventGridEvent.TryGetSystemEventData(out var systemEventData);
@@ -77,7 +78,7 @@ public class AzureSystemEventGridWebhookHandlerTests
         await azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None);
 
         A.CallTo(() => azureSystemEventHandler.HandleAzureSystemEventAsync(A<MediaJobFinishedEventData>._, A<CancellationToken>._)).MustNotHaveHappened();
-        A.CallTo(() => _telemetryClientProvider.TrackEvent(TelemetryConstants.AzureSystemEventNoHandlerFound, A<string>._, eventGridEvent.EventType, A<TelemetrySpan>._)).MustHaveHappenedOnceExactly();
+        A.CallTo(() => _telemetryClientProvider.TrackEvent(TelemetryConstants.AzureSystemEventNoHandlerFound, A<string>._, eventGridEvent.Type, A<TelemetrySpan>._)).MustHaveHappenedOnceExactly();
     }
 
     [Fact]
@@ -98,9 +99,9 @@ public class AzureSystemEventGridWebhookHandlerTests
         services.AddSingleton<IAzureSystemEventHandler<MediaJobFinishedEventData>>(azureSystemEventHandler);
 
         var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
-        var eventGridEvent = new EventGridEvent("subject", SystemEventNames.MediaJobFinished, "version", BinaryData.FromString(@"{ ""outputs"": [] }"))
+        var eventGridEvent = new CloudEvent("subject", SystemEventNames.MediaJobFinished, BinaryData.FromString(@"{ ""outputs"": [] }"), "dataContentType")
         {
-            Topic = $"xzxzxzx{systemTopicPattern}xzxzxzx"
+            DataSchema = $"xzxzxzx{systemTopicPattern}xzxzxzx"
         };
 
         var wasParsedAsSystemEvent = eventGridEvent.TryGetSystemEventData(out var systemEventData);
@@ -170,9 +171,9 @@ public class AzureSystemEventGridWebhookHandlerTests
         services.AddSingleton<IAzureSystemEventHandler<MediaJobCanceledEventData>>(azureSystemEventHandler);
 
         var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
-        var eventGridEvent = new EventGridEvent("subject", SystemEventNames.MediaJobCanceled, "version", BinaryData.FromString(@"{ ""outputs"": [] }"))
+        var eventGridEvent = new CloudEvent("subject", SystemEventNames.MediaJobCanceled, BinaryData.FromString(@"{ ""outputs"": [] }"), "dataContentType")
         {
-            Topic = $"xzxzxzx{systemTopicPattern}xzxzxzx"
+            DataSchema = $"xzxzxzx{systemTopicPattern}xzxzxzx"
         };
 
         var wasParsedAsSystemEvent = eventGridEvent.TryGetSystemEventData(out var systemEventData);
@@ -202,9 +203,9 @@ public class AzureSystemEventGridWebhookHandlerTests
         services.AddSingleton<IAzureSystemEventHandler<MediaJobFinishedEventData>>(azureSystemEventHandler);
 
         var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
-        var eventGridEvent = new EventGridEvent("subject", SystemEventNames.RedisPatchingCompleted, "version", BinaryData.FromString(@"{ ""name"": ""name"", ""timestamp"": ""timestamp"", ""status"": ""status"" }"))
+        var eventGridEvent = new CloudEvent("subject", SystemEventNames.RedisPatchingCompleted, BinaryData.FromString(@"{ ""name"": ""name"", ""timestamp"": ""timestamp"", ""status"": ""status"" }"), "dataContentType")
         {
-            Topic = $"SomeRedisTopic"
+            DataSchema = $"SomeRedisTopic"
         };
 
         eventGridEvent.TryGetSystemEventData(out var systemEventData);

@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
+using Azure.Messaging;
 using Azure.Messaging.EventGrid;
 using FakeItEasy;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,9 +31,9 @@ public class DomainEventGridWebhookHandlerTests
         services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler);
 
         var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
-        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", new TestDomainEvent { Number = 1, Text = "Hello" })
+        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new CloudEvent("subject", typeof(TestDomainEvent).FullName, new TestDomainEvent { Number = 1, Text = "Hello" })
         {
-            Topic = "UnregisteredTopic"
+            DataSchema = "UnregisteredTopic"
         }, CancellationToken.None);
 
         A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestDomainEvent>._, A<CancellationToken>._)).MustNotHaveHappened();
@@ -54,9 +55,9 @@ public class DomainEventGridWebhookHandlerTests
 
         var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
 
-        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }))
+        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new CloudEvent("subject", typeof(TestDomainEvent).FullName, BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }), "dataContentType")
         {
-            Topic = OrganizationTopicName
+            DataSchema = OrganizationTopicName
         }, CancellationToken.None);
 
         A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestDomainEvent>._, A<CancellationToken>._)).MustNotHaveHappened();
@@ -78,9 +79,9 @@ public class DomainEventGridWebhookHandlerTests
         services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler);
 
         var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
-        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }))
+        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new CloudEvent("subject", typeof(TestDomainEvent).FullName,  BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }), "dataContentType")
         {
-            Topic = OrganizationTopicName
+            DataSchema = OrganizationTopicName
         }, CancellationToken.None);
 
         A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestDomainEvent>._, CancellationToken.None)).MustHaveHappenedOnceExactly();
@@ -102,9 +103,9 @@ public class DomainEventGridWebhookHandlerTests
         services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler);
 
         var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
-        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }))
+        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new CloudEvent("subject", typeof(TestDomainEvent).FullName, BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }), "dataContentType")
         {
-            Topic = OrganizationTopicName
+            DataSchema = OrganizationTopicName
         }, CancellationToken.None);
 
         A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestDomainEvent>._, CancellationToken.None)).MustHaveHappenedOnceExactly();
@@ -165,9 +166,9 @@ public class DomainEventGridWebhookHandlerTests
 
         var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
 
-        await Assert.ThrowsAsync<TargetInvocationException>(() => domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestExceptionDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestExceptionDomainEvent { Number = 1, Text = "Hello" }))
+        await Assert.ThrowsAsync<TargetInvocationException>(() => domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new CloudEvent("subject", typeof(TestExceptionDomainEvent).FullName, BinaryData.FromObjectAsJson(new TestExceptionDomainEvent { Number = 1, Text = "Hello" }), "dataContentType")
         {
-            Topic = OrganizationTopicName
+            DataSchema = OrganizationTopicName
         }, CancellationToken.None));
 
         A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestExceptionDomainEvent>._, CancellationToken.None)).MustHaveHappenedOnceExactly();
@@ -189,9 +190,9 @@ public class DomainEventGridWebhookHandlerTests
         services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler);
 
         var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
-        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", "SomeNamepsace.OhNo.Hohoa", "version", JsonSerializer.Serialize(new TestDomainEvent { Number = 1, Text = "Hello" }))
+        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new CloudEvent("subject", "SomeNamepsace.OhNo.Hohoa", JsonSerializer.Serialize(new TestDomainEvent { Number = 1, Text = "Hello" }))
         {
-            Topic = OrganizationTopicName
+            DataSchema = OrganizationTopicName
         }, CancellationToken.None);
 
         // "Domain event received. Cannot deserialize object"

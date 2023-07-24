@@ -1,8 +1,9 @@
+using Azure.Messaging;
 using Azure.Messaging.EventGrid;
 
 namespace Workleap.DomainEventPropagation;
 
 public interface IDomainEventGridWebhookHandler
 {
-    Task HandleEventGridWebhookEventAsync(EventGridEvent eventGridEvent, CancellationToken cancellationToken);
+    Task HandleEventGridWebhookEventAsync(CloudEvent eventGridEvent, CancellationToken cancellationToken);
 }
