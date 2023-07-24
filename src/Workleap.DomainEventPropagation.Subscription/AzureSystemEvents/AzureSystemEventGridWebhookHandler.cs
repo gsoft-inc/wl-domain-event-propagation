@@ -1,7 +1,6 @@
-using Azure.Messaging;
 using System.Collections.Concurrent;
 using System.Reflection;
-using Azure.Messaging.EventGrid;
+using Azure.Messaging;
 
 namespace Workleap.DomainEventPropagation.AzureSystemEvents;
 

@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Net.Mime;
 using System.Text;
 using System.Text.Json;
+using Azure.Messaging;
 using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
 using FakeItEasy;
@@ -55,16 +56,15 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
             ValidationCode = "ABC"
         };
 
-        var serializedContent = JsonSerializer.Serialize(
-            new EventGridEvent(
-                subject: "Blabla",
-                eventType: SystemEventNames.EventGridSubscriptionValidation,
-                dataVersion: "1.0",
-                data: new BinaryData(subscriptionValidationEventData, SerializerOptions))
-                {
-                  Topic = EventsApiIntegrationTestsFixture.TestTopic,  
-                },
-            SerializerOptions);
+        var @event = new CloudEvent(
+            "Blabla",
+            SystemEventNames.EventGridSubscriptionValidation,
+            new BinaryData(subscriptionValidationEventData, SerializerOptions),
+            "datatype")
+        {
+            DataSchema = EventsApiIntegrationTestsFixture.TestTopic,  
+        };
+        var serializedContent = JsonSerializer.Serialize(@event, SerializerOptions);
 
         var content = new StringContent(serializedContent, Encoding.UTF8, MediaTypeNames.Application.Json);
 
@@ -91,16 +91,16 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
             PropertyB = 1
         };
 
-        var eventGridEvent = new EventGridEvent(
-            subject: typeof(DummyDomainEvent).FullName,
-            eventType: typeof(DummyDomainEvent).FullName,
-            dataVersion: "1.0",
-            data: new BinaryData(dummyDomainEvent, SerializerOptions))
+        var @event = new CloudEvent(
+            typeof(DummyDomainEvent).FullName,
+            typeof(DummyDomainEvent).FullName,
+            new BinaryData(dummyDomainEvent, SerializerOptions),
+            "datatype")
         {
-            Topic = EventsApiIntegrationTestsFixture.TestTopic,
+            DataSchema = EventsApiIntegrationTestsFixture.TestTopic,
         };
 
-        var content = new StringContent(JsonSerializer.Serialize(eventGridEvent), Encoding.UTF8, MediaTypeNames.Application.Json);
+        var content = new StringContent(JsonSerializer.Serialize(@event), Encoding.UTF8, MediaTypeNames.Application.Json);
 
         // When
         var response = await this._httpClient.PostAsync("/eventgrid/domainevents", content);
