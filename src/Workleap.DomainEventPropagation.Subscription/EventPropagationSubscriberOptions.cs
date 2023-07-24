@@ -4,8 +4,7 @@ namespace Workleap.DomainEventPropagation;
 
 public sealed class EventPropagationSubscriberOptions
 {
-    public const string SectionName = "EventPropagation:Subscriber";
-
     [Required]
-    public IList<string> SubscribedTopics { get; set; } = new List<string>();
+    public IEnumerable<string> SubscribedTopics { get; set; } = Enumerable.Empty<string>();
+
 }

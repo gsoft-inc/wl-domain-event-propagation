@@ -1,3 +1,4 @@
+using Azure.Messaging;
 using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
 using Microsoft.ApplicationInsights.DataContracts;
@@ -125,7 +126,7 @@ public class EventGridRequestHandlerTests
         var azureSystemEventGridWebhookHandlerMock = new Mock<IAzureSystemEventGridWebhookHandler>();
 
         var domainEventGridWebhookHandlerMock = new Mock<IDomainEventGridWebhookHandler>();
-        domainEventGridWebhookHandlerMock.Setup(x => x.HandleEventGridWebhookEventAsync(It.IsAny<EventGridEvent>(), CancellationToken.None)).Returns(Task.CompletedTask);
+        domainEventGridWebhookHandlerMock.Setup(x => x.HandleEventGridWebhookEventAsync(It.IsAny<CloudEvent>(), CancellationToken.None)).Returns(Task.CompletedTask);
 
         var requestTelemetry = new RequestTelemetry();
 
@@ -155,7 +156,7 @@ public class EventGridRequestHandlerTests
         var domainEventGridWebhookHandlerMock = new Mock<IDomainEventGridWebhookHandler>();
 
         var azureSystemEventGridWebhookHandlerMock = new Mock<IAzureSystemEventGridWebhookHandler>();
-        azureSystemEventGridWebhookHandlerMock.Setup(x => x.HandleEventGridWebhookEventAsync(It.IsAny<EventGridEvent>(), It.IsAny<object>(), CancellationToken.None)).Returns(Task.CompletedTask);
+        azureSystemEventGridWebhookHandlerMock.Setup(x => x.HandleEventGridWebhookEventAsync(It.IsAny<CloudEvent>(), It.IsAny<object>(), CancellationToken.None)).Returns(Task.CompletedTask);
 
         var requestTelemetry = new RequestTelemetry();
 
@@ -176,7 +177,7 @@ public class EventGridRequestHandlerTests
         Assert.True(requestTelemetry.Success != null && requestTelemetry.Success.Value);
         Assert.Equal(EventGridRequestType.Event, result.EventGridRequestType);
 
-        azureSystemEventGridWebhookHandlerMock.Verify(x => x.HandleEventGridWebhookEventAsync(It.IsAny<EventGridEvent>(), It.IsAny<object>(), CancellationToken.None), Times.Once);
+        azureSystemEventGridWebhookHandlerMock.Verify(x => x.HandleEventGridWebhookEventAsync(It.IsAny<CloudEvent>(), It.IsAny<object>(), CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -188,7 +189,7 @@ public class EventGridRequestHandlerTests
         var azureSystemEventGridWebhookHandlerMock = new Mock<IAzureSystemEventGridWebhookHandler>();
 
         var domainEventGridWebhookHandlerMock = new Mock<IDomainEventGridWebhookHandler>();
-        domainEventGridWebhookHandlerMock.Setup(x => x.HandleEventGridWebhookEventAsync(It.IsAny<EventGridEvent>(), CancellationToken.None)).Throws(new Exception("Never in a million years will I let tobbacco touch my lips"));
+        domainEventGridWebhookHandlerMock.Setup(x => x.HandleEventGridWebhookEventAsync(It.IsAny<CloudEvent>(), CancellationToken.None)).Throws(new Exception("Never in a million years will I let tobbacco touch my lips"));
 
         var requestTelemetry = new RequestTelemetry();
 
@@ -219,7 +220,7 @@ public class EventGridRequestHandlerTests
         var domainEventGridWebhookHandlerMock = new Mock<IDomainEventGridWebhookHandler>();
 
         var azureSystemEventGridWebhookHandlerMock = new Mock<IAzureSystemEventGridWebhookHandler>();
-        azureSystemEventGridWebhookHandlerMock.Setup(x => x.HandleEventGridWebhookEventAsync(It.IsAny<EventGridEvent>(), It.IsAny<object>(), CancellationToken.None)).Throws(new Exception("Never in a million years will I let tobbacco touch my lips"));
+        azureSystemEventGridWebhookHandlerMock.Setup(x => x.HandleEventGridWebhookEventAsync(It.IsAny<CloudEvent>(), It.IsAny<object>(), CancellationToken.None)).Throws(new Exception("Never in a million years will I let tobbacco touch my lips"));
 
         var requestTelemetry = new RequestTelemetry();
 
@@ -263,21 +264,20 @@ public class EventGridRequestHandlerTests
         await eventGridRequestHandler.HandleRequestAsync(request, CancellationToken.None, requestTelemetry: null);
 
         // Then
-        domainEventGridWebhookHandlerMock.Verify(x => x.HandleEventGridWebhookEventAsync(It.IsAny<EventGridEvent>(), CancellationToken.None), Times.Once);
+        domainEventGridWebhookHandlerMock.Verify(x => x.HandleEventGridWebhookEventAsync(It.IsAny<CloudEvent>(), CancellationToken.None), Times.Once);
         telemetryClientProviderMock.Verify(x => x.TrackException(It.IsAny<Exception>(), It.IsAny<TelemetrySpan>()), Times.Never);
     }
 
     private static string GetEventGridSubscriptionRequest(string validationCode)
     {
         var subscriptionRequest = @"[{
-                'topic': '/subscriptions/Organization-egt-',
-                'subject': '',
-                'eventType': 'Microsoft.EventGrid.SubscriptionValidationEvent',
-                'eventTime': '2017-08-16T01:57:26.005121Z',
+                'dataschema': '/subscriptions/Organization-egt-',
+                'source': '',
+                'type': 'Microsoft.EventGrid.SubscriptionValidationEvent',
+                'time': '2017-08-16T01:57:26.005121Z',
                 'id': '602a88ef-0001-00e6-1233-1646070610ea',
                 'data': {eventData},
-                'metadataVersion': '1',
-                'dataVersion': '1'
+                'specversion': '1.0'
             }]";
 
         var eventData = @"{
@@ -293,14 +293,13 @@ public class EventGridRequestHandlerTests
     private static string GetEventGridDomainEventRequest()
     {
         var domainEventRequest = @"[{
-                'topic': '/subscriptions/Organization-egt-',
-                'subject': 'Test',
-                'eventType': 'Workleap.Organization.DomainEvents.ExampleDomainEvent',
-                'eventTime': '2017-08-16T01:57:26.005121Z',
+                'dataschema': '/subscriptions/Organization-egt-',
+                'source': 'Test',
+                'type': 'Workleap.Organization.DomainEvents.ExampleDomainEvent',
+                'time': '2017-08-16T01:57:26.005121Z',
                 'id': '602a88ef-0001-00e6-1233-1646070610ea',
                 'data': {eventData},
-                'metadataVersion': '1',
-                'dataVersion': '1'
+                'specversion': '1.0'
              }]";
 
         var eventData = @"{
@@ -316,14 +315,13 @@ public class EventGridRequestHandlerTests
     private static string GetEventGridAzureSystemEventRequest()
     {
         var subscriptionRequest = @"[{
-                'topic': '/subscriptions/1234/resourceGroups/ov-dev-something/providers/Microsoft.Media/mediaservices/xzxzxzx-egst-xzxzxz',
-                'subject': 'transforms/VideoAnalyzerTransform/jobs/12345',
-                'eventType': 'Microsoft.Media.JobFinished',
-                'eventTime': '2022-08-14T01:57:26.005121Z',
+                'dataschema': '/subscriptions/1234/resourceGroups/ov-dev-something/providers/Microsoft.Media/mediaservices/xzxzxzx-egst-xzxzxz',
+                'source': 'transforms/VideoAnalyzerTransform/jobs/12345',
+                'type': 'Microsoft.Media.JobFinished',
+                'time': '2022-08-14T01:57:26.005121Z',
                 'id': '602a88ef-0001-00e6-1233-1646070610ea',
                 'data': {eventData},
-                'metadataVersion': '1',
-                'dataVersion': '1'
+                'specversion': '1.0'
             }]";
 
         var eventData = @"{ 'outputs': [] }";

@@ -1,8 +1,8 @@
-using System.Reflection;
 using System.Text.Json;
+using Azure.Messaging;
 using Azure.Messaging.EventGrid;
-using FakeItEasy;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using OpenTelemetry.Trace;
 using Workleap.DomainEventPropagation.Extensions;
 using Workleap.DomainEventPropagation.Tests.Subscription.Mocks;
@@ -12,7 +12,7 @@ namespace Workleap.DomainEventPropagation.Tests.Subscription;
 public class DomainEventGridWebhookHandlerTests
 {
     private const string OrganizationTopicName = "Organization";
-    private readonly ITelemetryClientProvider _telemetryClientProvider = A.Fake<ITelemetryClientProvider>();
+    private readonly Mock<ITelemetryClientProvider> _telemetryClientProviderMock = new Mock<ITelemetryClientProvider>();
 
     [Fact]
     public async Task GivenDomainEventIsFired_WhenTopicIsNotSubscribedTo_ThenDomainEventIsIgnored()
@@ -22,20 +22,20 @@ public class DomainEventGridWebhookHandlerTests
         eventProcessingBuilder.AddDomainEventHandlersFromAssembly(typeof(DomainEventGridWebhookHandlerTests).Assembly);
 
         //Given 1
-        var subscriptionTopicValidator = A.Fake<ISubscriptionTopicValidator>();
-        A.CallTo(() => subscriptionTopicValidator.IsSubscribedToTopic(A<string>._)).Returns(false);
+        var subscriptionTopicValidatorMock = new Mock<ISubscriptionTopicValidator>();
+        subscriptionTopicValidatorMock.Setup(x => x.IsSubscribedToTopic(It.IsAny<string>())).Returns(false);
 
         //Given 2
-        var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
-        services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler);
+        var domainEventHandler = new TestDomainEventHandlerMock();
+        services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler.Object);
 
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
-        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", new TestDomainEvent { Number = 1, Text = "Hello" })
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidatorMock.Object, _telemetryClientProviderMock.Object);
+        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new CloudEvent("subject", typeof(TestDomainEvent).FullName, new TestDomainEvent { Number = 1, Text = "Hello" })
         {
-            Topic = "UnregisteredTopic"
+            DataSchema = "UnregisteredTopic"
         }, CancellationToken.None);
 
-        A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestDomainEvent>._, A<CancellationToken>._)).MustNotHaveHappened();
+        domainEventHandler.Verify(x => x.HandleDomainEventAsync(It.IsAny<TestDomainEvent>(), CancellationToken.None), Times.Never);
     }
 
     [Fact]
@@ -46,20 +46,20 @@ public class DomainEventGridWebhookHandlerTests
         eventProcessingBuilder.AddDomainEventHandlersFromAssembly(typeof(DomainEventGridWebhookHandlerTests).Assembly);
 
         //Given 1
-        var subscriptionTopicValidator = A.Fake<ISubscriptionTopicValidator>();
-        A.CallTo(() => subscriptionTopicValidator.IsSubscribedToTopic(A<string>._)).Returns(true);
+        var subscriptionTopicValidatorMock = new Mock<ISubscriptionTopicValidator>();
+        subscriptionTopicValidatorMock.Setup(x => x.IsSubscribedToTopic(It.IsAny<string>())).Returns(true);
 
         //No eventHandler is registered
-        var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
+        var domainEventHandler = new TestDomainEventHandlerMock();
 
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidatorMock.Object, _telemetryClientProviderMock.Object);
 
-        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }))
+        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new CloudEvent("subject", typeof(TestDomainEvent).FullName, BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }), "dataContentType")
         {
-            Topic = OrganizationTopicName
+            DataSchema = OrganizationTopicName
         }, CancellationToken.None);
 
-        A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestDomainEvent>._, A<CancellationToken>._)).MustNotHaveHappened();
+        domainEventHandler.Verify(x => x.HandleDomainEventAsync(It.IsAny<TestDomainEvent>(), CancellationToken.None), Times.Never);
     }
 
     [Fact]
@@ -70,20 +70,20 @@ public class DomainEventGridWebhookHandlerTests
         eventProcessingBuilder.AddDomainEventHandlersFromAssembly(typeof(DomainEventGridWebhookHandlerTests).Assembly);
 
         // Given 1
-        var subscriptionTopicValidator = A.Fake<ISubscriptionTopicValidator>();
-        A.CallTo(() => subscriptionTopicValidator.IsSubscribedToTopic(A<string>._)).Returns(true);
+        var subscriptionTopicValidatorMock = new Mock<ISubscriptionTopicValidator>();
+        subscriptionTopicValidatorMock.Setup(x => x.IsSubscribedToTopic(It.IsAny<string>())).Returns(true);
 
         // Given 2
-        var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
-        services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler);
+        var domainEventHandler = new TestDomainEventHandlerMock();
+        services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler.Object);
 
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
-        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }))
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidatorMock.Object, _telemetryClientProviderMock.Object);
+        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new CloudEvent("subject", typeof(TestDomainEvent).FullName,  BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }), "dataContentType")
         {
-            Topic = OrganizationTopicName
+            DataSchema = OrganizationTopicName
         }, CancellationToken.None);
 
-        A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestDomainEvent>._, CancellationToken.None)).MustHaveHappenedOnceExactly();
+        domainEventHandler.Verify(x => x.HandleDomainEventAsync(It.IsAny<TestDomainEvent>(), CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -94,20 +94,20 @@ public class DomainEventGridWebhookHandlerTests
         eventProcessingBuilder.AddDomainEventHandlersFromAssembly(typeof(DomainEventGridWebhookHandlerTests).Assembly);
 
         //Given 1
-        var subscriptionTopicValidator = A.Fake<ISubscriptionTopicValidator>();
-        A.CallTo(() => subscriptionTopicValidator.IsSubscribedToTopic(A<string>._)).Returns(true);
+        var subscriptionTopicValidatorMock = new Mock<ISubscriptionTopicValidator>();
+        subscriptionTopicValidatorMock.Setup(x => x.IsSubscribedToTopic(It.IsAny<string>())).Returns(true);
 
         // Given 2
-        var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
-        services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler);
+        var domainEventHandler = new TestDomainEventHandlerMock();
+        services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler.Object);
 
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
-        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }))
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidatorMock.Object, _telemetryClientProviderMock.Object);
+        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new CloudEvent("subject", typeof(TestDomainEvent).FullName, BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }), "dataContentType")
         {
-            Topic = OrganizationTopicName
+            DataSchema = OrganizationTopicName
         }, CancellationToken.None);
 
-        A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestDomainEvent>._, CancellationToken.None)).MustHaveHappenedOnceExactly();
+        domainEventHandler.Verify(x => x.HandleDomainEventAsync(It.IsAny<TestDomainEvent>(), CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -155,22 +155,21 @@ public class DomainEventGridWebhookHandlerTests
         eventProcessingBuilder.AddDomainEventHandlersFromAssembly(typeof(DomainEventGridWebhookHandlerTests).Assembly);
 
         // Given 1
-        var subscriptionTopicValidator = A.Fake<ISubscriptionTopicValidator>();
-        A.CallTo(() => subscriptionTopicValidator.IsSubscribedToTopic(A<string>._)).Returns(true);
+        var subscriptionTopicValidatorMock = new Mock<ISubscriptionTopicValidator>();
+        subscriptionTopicValidatorMock.Setup(x => x.IsSubscribedToTopic(It.IsAny<string>())).Returns(true);
 
         // Given 2
-        var domainEventHandler = A.Fake<IDomainEventHandler<TestExceptionDomainEvent>>();
-        A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestExceptionDomainEvent>._, A<CancellationToken>._)).Throws(new Exception("Test exception"));
-        services.AddSingleton<IDomainEventHandler<TestExceptionDomainEvent>>(domainEventHandler);
+        var domainEventHandler = new TestExceptionDomainEventHandlerMock();
+        services.AddSingleton<IDomainEventHandler<TestExceptionDomainEvent>>(domainEventHandler.Object);
 
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidatorMock.Object, _telemetryClientProviderMock.Object);
 
-        await Assert.ThrowsAsync<TargetInvocationException>(() => domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestExceptionDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestExceptionDomainEvent { Number = 1, Text = "Hello" }))
+        await Assert.ThrowsAsync<Exception>(() => domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new CloudEvent("subject", typeof(TestExceptionDomainEvent).FullName, BinaryData.FromObjectAsJson(new TestExceptionDomainEvent { Number = 1, Text = "Hello" }), "dataContentType")
         {
-            Topic = OrganizationTopicName
+            DataSchema = OrganizationTopicName
         }, CancellationToken.None));
 
-        A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestExceptionDomainEvent>._, CancellationToken.None)).MustHaveHappenedOnceExactly();
+        domainEventHandler.Verify(x => x.HandleDomainEventAsync(It.IsAny<TestExceptionDomainEvent>(), CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -181,20 +180,20 @@ public class DomainEventGridWebhookHandlerTests
         eventProcessingBuilder.AddDomainEventHandlersFromAssembly(typeof(DomainEventGridWebhookHandlerTests).Assembly);
 
         // Given 1
-        var subscriptionTopicValidator = A.Fake<ISubscriptionTopicValidator>();
-        A.CallTo(() => subscriptionTopicValidator.IsSubscribedToTopic(A<string>._)).Returns(true);
+        var subscriptionTopicValidatorMock = new Mock<ISubscriptionTopicValidator>();
+        subscriptionTopicValidatorMock.Setup(x => x.IsSubscribedToTopic(It.IsAny<string>())).Returns(true);
 
         // Given 2
-        var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
-        services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler);
+        var domainEventHandler = new TestDomainEventHandlerMock();
+        services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler.Object);
 
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
-        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", "SomeNamepsace.OhNo.Hohoa", "version", JsonSerializer.Serialize(new TestDomainEvent { Number = 1, Text = "Hello" }))
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidatorMock.Object, _telemetryClientProviderMock.Object);
+        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new CloudEvent("subject", "SomeNamepsace.OhNo.Hohoa", JsonSerializer.Serialize(new TestDomainEvent { Number = 1, Text = "Hello" }))
         {
-            Topic = OrganizationTopicName
+            DataSchema = OrganizationTopicName
         }, CancellationToken.None);
 
         // "Domain event received. Cannot deserialize object"
-        A.CallTo(() => _telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventDeserializationFailed, A<string>._, "SomeNamepsace.OhNo.Hohoa", A<TelemetrySpan>._)).MustHaveHappenedOnceExactly();
+        _telemetryClientProviderMock.Verify(x => x.TrackEvent(TelemetryConstants.DomainEventDeserializationFailed, It.IsAny<string>(), "SomeNamepsace.OhNo.Hohoa", It.IsAny<TelemetrySpan>()));
     }
 }

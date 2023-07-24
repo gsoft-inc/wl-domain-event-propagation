@@ -1,8 +1,8 @@
-using System.Reflection;
+using Azure.Messaging;
 using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
-using FakeItEasy;
 using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using OpenTelemetry.Trace;
 using Workleap.DomainEventPropagation.AzureSystemEvents;
 using Workleap.DomainEventPropagation.Extensions;
@@ -12,7 +12,7 @@ namespace Workleap.DomainEventPropagation.Tests.Subscription.AzureSystemEvents;
 
 public class AzureSystemEventGridWebhookHandlerTests
 {
-    private readonly ITelemetryClientProvider _telemetryClientProvider = A.Fake<ITelemetryClientProvider>();
+    private readonly Mock<ITelemetryClientProvider> _telemetryClientProviderMock = new Mock<ITelemetryClientProvider>();
 
     [Fact]
     public async Task GivenAzureSystemEventIsFired_WhenTopicIsNotSubscribedTo_ThenAzureSystemEventIsIgnored()
@@ -22,17 +22,17 @@ public class AzureSystemEventGridWebhookHandlerTests
         eventProcessingBuilder.AddAzureSystemEventHandlersFromAssembly(typeof(AzureSystemEventGridWebhookHandlerTests).Assembly);
 
         //Given 1
-        var subscriptionTopicValidator = A.Fake<ISubscriptionTopicValidator>();
-        A.CallTo(() => subscriptionTopicValidator.IsSubscribedToTopic(A<EventGridEvent>._)).Returns(false);
+        var subscriptionTopicValidatorMock = new Mock<ISubscriptionTopicValidator>();
+        subscriptionTopicValidatorMock.Setup(x => x.IsSubscribedToTopic(It.IsAny<string>())).Returns(false);
 
         //Given 2
-        var azureSystemEventHandler = A.Fake<IAzureSystemEventHandler<MediaJobFinishedEventData>>();
-        services.AddSingleton<IAzureSystemEventHandler<MediaJobFinishedEventData>>(azureSystemEventHandler);
+        var azureSystemEventHandler = new TestAzureSystemEventHandlerMock();
+        services.AddSingleton<IAzureSystemEventHandler<MediaJobFinishedEventData>>(azureSystemEventHandler.Object);
 
-        var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
-        var eventGridEvent = new EventGridEvent("subject", SystemEventNames.MediaJobFinished, "version", BinaryData.FromString(@"{ ""outputs"": [] }"))
+        var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidatorMock.Object, _telemetryClientProviderMock.Object);
+        var eventGridEvent = new CloudEvent("subject", SystemEventNames.MediaJobFinished, BinaryData.FromString(@"{ ""outputs"": [] }"), "dataContentType")
         {
-            Topic = "UnregisteredTopic"
+            DataSchema = "UnregisteredTopic"
         };
 
         var wasParsedAsSystemEvent = eventGridEvent.TryGetSystemEventData(out var systemEventData);
@@ -43,7 +43,7 @@ public class AzureSystemEventGridWebhookHandlerTests
 
         await azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None);
 
-        A.CallTo(() => azureSystemEventHandler.HandleAzureSystemEventAsync(A<MediaJobFinishedEventData>._, A<CancellationToken>._)).MustNotHaveHappened();
+        azureSystemEventHandler.Verify(x => x.HandleAzureSystemEventAsync(It.IsAny<MediaJobFinishedEventData>(), CancellationToken.None), Times.Never);
     }
 
     [Fact(Skip = "This is failing, we'll investigate later")]
@@ -56,16 +56,16 @@ public class AzureSystemEventGridWebhookHandlerTests
         eventProcessingBuilder.AddAzureSystemEventHandlersFromAssembly(typeof(AzureSystemEventGridWebhookHandlerTests).Assembly);
 
         //Given 1
-        var subscriptionTopicValidator = A.Fake<ISubscriptionTopicValidator>();
-        A.CallTo(() => subscriptionTopicValidator.IsSubscribedToTopic(A<string>._)).Returns(true);
+        var subscriptionTopicValidatorMock = new Mock<ISubscriptionTopicValidator>();
+        subscriptionTopicValidatorMock.Setup(x => x.IsSubscribedToTopic(It.IsAny<string>())).Returns(true);
 
         //No eventHandler is registered
-        var azureSystemEventHandler = A.Fake<IAzureSystemEventHandler<MediaJobFinishedEventData>>();
+        var azureSystemEventHandler = new TestAzureSystemEventHandlerMock();
 
-        var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
-        var eventGridEvent = new EventGridEvent("subject", SystemEventNames.MediaJobFinished, "version", BinaryData.FromString(@"{ ""outputs"": [] }"))
+        var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidatorMock.Object, _telemetryClientProviderMock.Object);
+        var eventGridEvent = new CloudEvent("subject", SystemEventNames.MediaJobFinished, BinaryData.FromString(@"{ ""outputs"": [] }"))
         {
-            Topic = $"xzxzxzx{systemTopicPattern}xzxzxzx"
+            DataSchema = $"xzxzxzx{systemTopicPattern}xzxzxzx",
         };
 
         var wasParsedAsSystemEvent = eventGridEvent.TryGetSystemEventData(out var systemEventData);
@@ -76,8 +76,8 @@ public class AzureSystemEventGridWebhookHandlerTests
 
         await azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None);
 
-        A.CallTo(() => azureSystemEventHandler.HandleAzureSystemEventAsync(A<MediaJobFinishedEventData>._, A<CancellationToken>._)).MustNotHaveHappened();
-        A.CallTo(() => _telemetryClientProvider.TrackEvent(TelemetryConstants.AzureSystemEventNoHandlerFound, A<string>._, eventGridEvent.EventType, A<TelemetrySpan>._)).MustHaveHappenedOnceExactly();
+        azureSystemEventHandler.Verify(x => x.HandleAzureSystemEventAsync(It.IsAny<MediaJobFinishedEventData>(), CancellationToken.None), Times.Never);
+        _telemetryClientProviderMock.Verify(x => x.TrackEvent(TelemetryConstants.AzureSystemEventNoHandlerFound, It.IsAny<string>(), eventGridEvent.Type, It.IsAny<TelemetrySpan>()), Times.Once);
     }
 
     [Fact]
@@ -90,17 +90,17 @@ public class AzureSystemEventGridWebhookHandlerTests
         eventProcessingBuilder.AddAzureSystemEventHandlersFromAssembly(typeof(AzureSystemEventGridWebhookHandlerTests).Assembly);
 
         // Given 1
-        var subscriptionTopicValidator = A.Fake<ISubscriptionTopicValidator>();
-        A.CallTo(() => subscriptionTopicValidator.IsSubscribedToTopic(A<string>._)).Returns(true);
+        var subscriptionTopicValidatorMock = new Mock<ISubscriptionTopicValidator>();
+        subscriptionTopicValidatorMock.Setup(x => x.IsSubscribedToTopic(It.IsAny<string>())).Returns(true);
 
         // Given 2
-        var azureSystemEventHandler = A.Fake<IAzureSystemEventHandler<MediaJobFinishedEventData>>();
-        services.AddSingleton<IAzureSystemEventHandler<MediaJobFinishedEventData>>(azureSystemEventHandler);
+        var azureSystemEventHandler = new TestAzureSystemEventHandlerMock();
+        services.AddSingleton<IAzureSystemEventHandler<MediaJobFinishedEventData>>(azureSystemEventHandler.Object);
 
-        var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
-        var eventGridEvent = new EventGridEvent("subject", SystemEventNames.MediaJobFinished, "version", BinaryData.FromString(@"{ ""outputs"": [] }"))
+        var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidatorMock.Object, _telemetryClientProviderMock.Object);
+        var eventGridEvent = new CloudEvent("subject", SystemEventNames.MediaJobFinished, BinaryData.FromString(@"{ ""outputs"": [] }"), "dataContentType")
         {
-            Topic = $"xzxzxzx{systemTopicPattern}xzxzxzx"
+            DataSchema = $"xzxzxzx{systemTopicPattern}xzxzxzx"
         };
 
         var wasParsedAsSystemEvent = eventGridEvent.TryGetSystemEventData(out var systemEventData);
@@ -111,7 +111,7 @@ public class AzureSystemEventGridWebhookHandlerTests
 
         await azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None);
 
-        A.CallTo(() => azureSystemEventHandler.HandleAzureSystemEventAsync(A<MediaJobFinishedEventData>._, A<CancellationToken>._)).MustHaveHappenedOnceExactly();
+        azureSystemEventHandler.Verify(x => x.HandleAzureSystemEventAsync(It.IsAny<MediaJobFinishedEventData>(), CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -161,18 +161,17 @@ public class AzureSystemEventGridWebhookHandlerTests
         eventProcessingBuilder.AddAzureSystemEventHandlersFromAssembly(typeof(AzureSystemEventGridWebhookHandlerTests).Assembly);
 
         // Given 1
-        var subscriptionTopicValidator = A.Fake<ISubscriptionTopicValidator>();
-        A.CallTo(() => subscriptionTopicValidator.IsSubscribedToTopic(A<string>._)).Returns(true);
+        var subscriptionTopicValidatorMock = new Mock<ISubscriptionTopicValidator>();
+        subscriptionTopicValidatorMock.Setup(x => x.IsSubscribedToTopic(It.IsAny<string>())).Returns(true);
 
         // Given 2
-        var azureSystemEventHandler = A.Fake<IAzureSystemEventHandler<MediaJobCanceledEventData>>();
-        A.CallTo(() => azureSystemEventHandler.HandleAzureSystemEventAsync(A<MediaJobCanceledEventData>._, A<CancellationToken>._)).Throws(new Exception("Test exception"));
-        services.AddSingleton<IAzureSystemEventHandler<MediaJobCanceledEventData>>(azureSystemEventHandler);
+        var azureSystemEventHandler = new TestExceptionAzureSystemEventHandlerMock();
+        services.AddSingleton<IAzureSystemEventHandler<MediaJobCanceledEventData>>(azureSystemEventHandler.Object);
 
-        var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
-        var eventGridEvent = new EventGridEvent("subject", SystemEventNames.MediaJobCanceled, "version", BinaryData.FromString(@"{ ""outputs"": [] }"))
+        var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidatorMock.Object, _telemetryClientProviderMock.Object);
+        var eventGridEvent = new CloudEvent("subject", SystemEventNames.MediaJobCanceled, BinaryData.FromString(@"{ ""outputs"": [] }"), "dataContentType")
         {
-            Topic = $"xzxzxzx{systemTopicPattern}xzxzxzx"
+            DataSchema = $"xzxzxzx{systemTopicPattern}xzxzxzx"
         };
 
         var wasParsedAsSystemEvent = eventGridEvent.TryGetSystemEventData(out var systemEventData);
@@ -181,9 +180,9 @@ public class AzureSystemEventGridWebhookHandlerTests
             Assert.Fail("Could not deserialize the event data of type 'MediaJobCanceledEventData' as a valid Azure System Event");
         }
 
-        await Assert.ThrowsAsync<TargetInvocationException>(() => azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None));
+        await Assert.ThrowsAsync<Exception>(() => azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None));
 
-        A.CallTo(() => azureSystemEventHandler.HandleAzureSystemEventAsync(A<MediaJobCanceledEventData>._, A<CancellationToken>._)).MustHaveHappenedOnceExactly();
+        azureSystemEventHandler.Verify(x => x.HandleAzureSystemEventAsync(It.IsAny<MediaJobCanceledEventData>(), CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -194,23 +193,23 @@ public class AzureSystemEventGridWebhookHandlerTests
         eventProcessingBuilder.AddAzureSystemEventHandlersFromAssembly(typeof(AzureSystemEventGridWebhookHandlerTests).Assembly);
 
         // Given 1
-        var subscriptionTopicValidator = A.Fake<ISubscriptionTopicValidator>();
-        A.CallTo(() => subscriptionTopicValidator.IsSubscribedToTopic(A<string>._)).Returns(true);
+        var subscriptionTopicValidatorMock = new Mock<ISubscriptionTopicValidator>();
+        subscriptionTopicValidatorMock.Setup(x => x.IsSubscribedToTopic(It.IsAny<string>())).Returns(true);
 
         // Given 2
-        var azureSystemEventHandler = A.Fake<IAzureSystemEventHandler<MediaJobFinishedEventData>>();
-        services.AddSingleton<IAzureSystemEventHandler<MediaJobFinishedEventData>>(azureSystemEventHandler);
+        var azureSystemEventHandler = new TestAzureSystemEventHandlerMock();
+        services.AddSingleton<IAzureSystemEventHandler<MediaJobFinishedEventData>>(azureSystemEventHandler.Object);
 
-        var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
-        var eventGridEvent = new EventGridEvent("subject", SystemEventNames.RedisPatchingCompleted, "version", BinaryData.FromString(@"{ ""name"": ""name"", ""timestamp"": ""timestamp"", ""status"": ""status"" }"))
+        var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidatorMock.Object, _telemetryClientProviderMock.Object);
+        var eventGridEvent = new CloudEvent("subject", SystemEventNames.RedisPatchingCompleted, BinaryData.FromString(@"{ ""name"": ""name"", ""timestamp"": ""timestamp"", ""status"": ""status"" }"), "dataContentType")
         {
-            Topic = $"SomeRedisTopic"
+            DataSchema = $"SomeRedisTopic"
         };
 
         eventGridEvent.TryGetSystemEventData(out var systemEventData);
         await azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None);
 
         // "Azure System event received. Cannot deserialize object"
-        A.CallTo(() => _telemetryClientProvider.TrackEvent(TelemetryConstants.AzureSystemEventDeserializationFailed, A<string>._, SystemEventNames.RedisPatchingCompleted, A<TelemetrySpan>._)).MustHaveHappenedOnceExactly();
+        _telemetryClientProviderMock.Verify(x => x.TrackEvent(TelemetryConstants.AzureSystemEventDeserializationFailed, It.IsAny<string>(), SystemEventNames.RedisPatchingCompleted, It.IsAny<TelemetrySpan>()), Times.Once);
     }
 }

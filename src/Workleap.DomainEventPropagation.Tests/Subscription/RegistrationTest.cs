@@ -1,6 +1,6 @@
 using System.Text.Json;
+using Azure.Messaging;
 using Azure.Messaging.EventGrid;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Workleap.DomainEventPropagation.AzureSystemEvents;
 using Workleap.DomainEventPropagation.Extensions;
@@ -16,33 +16,21 @@ public class RegistrationTest
     public async Task GivenDomainEventIsFired_WhenDomainEventHandlerIsRegisteredToMultipleDomainEvents_ThenDomainEventHandlerIsCalled()
     {
         var services = new ServiceCollection();
-
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string>
-            {
-                { $"{EventPropagationSubscriberOptions.SectionName}:SubscribedTopics:0", OrganizationTopicName },
-            })
-            .Build();
-
-        services.AddSingleton<IConfiguration>(configuration);
-
         services.AddSingleton<ITopicProvider, PlatformTopicProvider>();
-        
-        services.AddEventPropagationSubscriber()
-            .AddDomainEventHandlersFromAssembly(typeof(DomainEventHandler).Assembly);
+        var eventProcessingBuilder = services.AddEventPropagationSubscriber(options => { options.SubscribedTopics = new[] { OrganizationTopicName }; });
+        eventProcessingBuilder.AddDomainEventHandlersFromAssembly(typeof(DomainEventHandler).Assembly);
 
-        await using var serviceProvider = services.BuildServiceProvider();
+        var serviceProvider = services.BuildServiceProvider();
         var domainEventGridWebhookHandler = serviceProvider.GetRequiredService<IDomainEventGridWebhookHandler>();
 
         try
         {
-            var eventGridEvent = new EventGridEvent(
+            var eventGridEvent = new CloudEvent(
                 "subject",
                 typeof(OneDomainEvent).FullName,
-                "version",
                 JsonSerializer.Serialize(new OneDomainEvent { Number = 1, Text = "Hello" }))
             {
-                Topic = OrganizationTopicName
+                DataSchema = OrganizationTopicName
             };
 
             await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, CancellationToken.None);
@@ -54,13 +42,12 @@ public class RegistrationTest
 
         try
         {
-            var eventGridEvent = new EventGridEvent(
+            var eventGridEvent = new CloudEvent(
                 "subject2",
                 typeof(TwoDomainEvent).FullName,
-                "version2",
                 JsonSerializer.Serialize(new TwoDomainEvent { Number = 1, Text = "Hello" }))
             {
-                Topic = OrganizationTopicName
+                DataSchema = OrganizationTopicName
             };
 
             await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, CancellationToken.None);
@@ -86,13 +73,12 @@ public class RegistrationTest
 
         try
         {
-            var eventGridEvent = new EventGridEvent(
+            var eventGridEvent = new CloudEvent(
                 "subject",
                 SystemEventNames.MediaJobFinished,
-                "version",
                 BinaryData.FromString(@"{ ""outputs"": [] }"))
             {
-                Topic = $"xzxzxzx{systemTopicPattern}xzxzxzx"
+                DataSchema = $"xzxzxzx{systemTopicPattern}xzxzxzx"
             };
 
             var wasParsedAsSystemEvent = eventGridEvent.TryGetSystemEventData(out var systemEventData);
@@ -110,13 +96,12 @@ public class RegistrationTest
 
         try
         {
-            var eventGridEvent = new EventGridEvent(
+            var eventGridEvent = new CloudEvent(
                 "subject2",
                 SystemEventNames.MediaJobErrored,
-                "version2",
                 BinaryData.FromString(@"{ ""outputs"": [] }"))
             {
-                Topic = $"xzxzxzx{systemTopicPattern}xzxzxzx"
+                DataSchema = $"xzxzxzx{systemTopicPattern}xzxzxzx"
             };
 
             var wasParsedAsSystemEvent = eventGridEvent.TryGetSystemEventData(out var systemEventData);

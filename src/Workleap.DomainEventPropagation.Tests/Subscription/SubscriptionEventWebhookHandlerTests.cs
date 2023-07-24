@@ -6,7 +6,7 @@ namespace Workleap.DomainEventPropagation.Tests.Subscription;
 
 public class SubscriptionEventWebhookHandlerTests
 {
-    private readonly Mock<ITelemetryClientProvider> _telemetryClientProviderMock = new();
+    private readonly Mock<ITelemetryClientProvider> _telemetryClientProviderMock = new Mock<ITelemetryClientProvider>();
 
     [Fact]
     public void GivenEventGridSubscriptionEvent_WhenEventTopicIsNotSubscribedTo_ThenReturnRejectionResponse()
@@ -19,7 +19,7 @@ public class SubscriptionEventWebhookHandlerTests
         var subscriptionEventWebhookHandler = new SubscriptionEventGridWebhookHandler(subscriptionTopicValidatorMock.Object, _telemetryClientProviderMock.Object);
         var response = subscriptionEventWebhookHandler.HandleEventGridSubscriptionEvent(subscriptionEventData.Object, "eventType", "UnsubscribedTopic");
 
-        Assert.Equal(default, response);
+        Assert.Equal(default(SubscriptionValidationResponse), response);
     }
 
     [Fact]
