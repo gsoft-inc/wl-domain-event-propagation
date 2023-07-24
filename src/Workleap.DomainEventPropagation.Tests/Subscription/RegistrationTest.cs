@@ -37,7 +37,7 @@ public class RegistrationTest
 
         try
         {
-            var eventGridEvent = new CloudEvent(
+            var cloudEvent = new CloudEvent(
                 "subject",
                 typeof(OneDomainEvent).FullName,
                 JsonSerializer.Serialize(new OneDomainEvent { Number = 1, Text = "Hello" }))
@@ -45,7 +45,7 @@ public class RegistrationTest
                 DataSchema = OrganizationTopicName
             };
 
-            await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, CancellationToken.None);
+            await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(cloudEvent, CancellationToken.None);
         }
         catch (Exception e)
         {
@@ -54,7 +54,7 @@ public class RegistrationTest
 
         try
         {
-            var eventGridEvent = new CloudEvent(
+            var cloudEvent = new CloudEvent(
                 "subject2",
                 typeof(TwoDomainEvent).FullName,
                 JsonSerializer.Serialize(new TwoDomainEvent { Number = 1, Text = "Hello" }))
@@ -62,7 +62,7 @@ public class RegistrationTest
                 DataSchema = OrganizationTopicName
             };
 
-            await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, CancellationToken.None);
+            await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(cloudEvent, CancellationToken.None);
         }
         catch (Exception e)
         {
@@ -85,7 +85,7 @@ public class RegistrationTest
 
         try
         {
-            var eventGridEvent = new CloudEvent(
+            var cloudEvent = new CloudEvent(
                 "subject",
                 SystemEventNames.MediaJobFinished,
                 BinaryData.FromString(@"{ ""outputs"": [] }"))
@@ -93,13 +93,13 @@ public class RegistrationTest
                 DataSchema = $"xzxzxzx{systemTopicPattern}xzxzxzx"
             };
 
-            var wasParsedAsSystemEvent = eventGridEvent.TryGetSystemEventData(out var systemEventData);
+            var wasParsedAsSystemEvent = cloudEvent.TryGetSystemEventData(out var systemEventData);
             if (!wasParsedAsSystemEvent)
             {
                 Assert.Fail("Could not deserialize the event data of type 'MediaJobFinishedEventData' as a valid Azure System Event");
             }
 
-            await azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None);
+            await azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(cloudEvent, systemEventData, CancellationToken.None);
         }
         catch (Exception e)
         {
@@ -108,7 +108,7 @@ public class RegistrationTest
 
         try
         {
-            var eventGridEvent = new CloudEvent(
+            var cloudEvent = new CloudEvent(
                 "subject2",
                 SystemEventNames.MediaJobErrored,
                 BinaryData.FromString(@"{ ""outputs"": [] }"))
@@ -116,13 +116,13 @@ public class RegistrationTest
                 DataSchema = $"xzxzxzx{systemTopicPattern}xzxzxzx"
             };
 
-            var wasParsedAsSystemEvent = eventGridEvent.TryGetSystemEventData(out var systemEventData);
+            var wasParsedAsSystemEvent = cloudEvent.TryGetSystemEventData(out var systemEventData);
             if (!wasParsedAsSystemEvent)
             {
                 Assert.Fail("Could not deserialize the event data of type 'MediaJobErroredEventData' as a valid Azure System Event");
             }
 
-            await azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None);
+            await azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(cloudEvent, systemEventData, CancellationToken.None);
         }
         catch (Exception e)
         {

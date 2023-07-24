@@ -31,8 +31,8 @@ internal sealed class SubscriptionTopicValidator : ISubscriptionTopicValidator
         return false;
     }
 
-    public bool IsSubscribedToTopic(EventGridEvent eventGridEvent)
+    public bool IsSubscribedToTopic(EventGridEvent cloudEvent)
     {
-        return this.IsSubscribedToTopic(eventGridEvent.Topic);
+        return this.IsSubscribedToTopic(cloudEvent.Topic);
     }
 }

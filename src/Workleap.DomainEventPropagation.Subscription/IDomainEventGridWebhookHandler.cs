@@ -5,5 +5,5 @@ namespace Workleap.DomainEventPropagation;
 
 public interface IDomainEventGridWebhookHandler
 {
-    Task HandleEventGridWebhookEventAsync(CloudEvent eventGridEvent, CancellationToken cancellationToken);
+    Task HandleEventGridWebhookEventAsync(CloudEvent cloudEvent, CancellationToken cancellationToken);
 }

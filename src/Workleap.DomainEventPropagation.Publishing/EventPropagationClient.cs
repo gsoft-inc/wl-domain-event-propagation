@@ -44,9 +44,9 @@ internal sealed class EventPropagationClient : IEventPropagationClient
 
         try
         {
-            var eventGridEvents = this.GetEventsList(subject, domainEvents);
+            var cloudEvents = this.GetEventsList(subject, domainEvents);
 
-            await this._eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName).SendEventsAsync(eventGridEvents, cancellationToken);
+            await this._eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName).SendEventsAsync(cloudEvents, cancellationToken);
 
             this._telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventsPropagated, $"Published domain event with subject '{subject}' on topic '{this.TopicName}'", domainEventTypes);
         }

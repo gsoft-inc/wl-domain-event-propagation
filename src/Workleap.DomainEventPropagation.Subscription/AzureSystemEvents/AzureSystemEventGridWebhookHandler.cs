@@ -23,26 +23,26 @@ internal sealed class AzureSystemEventGridWebhookHandler : IAzureSystemEventGrid
         this._telemetryClientProvider = telemetryClientProvider;
     }
 
-    public async Task HandleEventGridWebhookEventAsync(CloudEvent eventGridEvent, object systemEventData, CancellationToken cancellationToken)
+    public async Task HandleEventGridWebhookEventAsync(CloudEvent cloudEvent, object systemEventData, CancellationToken cancellationToken)
     {
-        if (!this._subscriptionTopicValidator.IsSubscribedToTopic(eventGridEvent.DataSchema))
+        if (!this._subscriptionTopicValidator.IsSubscribedToTopic(cloudEvent.DataSchema))
         {
-            this._telemetryClientProvider.TrackEvent(TelemetryConstants.AzureSystemEventRejectedBasedOnTopic, $"Azure System event received and ignored based on topic. Topic: ­{eventGridEvent.DataSchema}", eventGridEvent.Type);
+            this._telemetryClientProvider.TrackEvent(TelemetryConstants.AzureSystemEventRejectedBasedOnTopic, $"Azure System event received and ignored based on topic. Topic: ­{cloudEvent.DataSchema}", cloudEvent.Type);
 
             return;
         }
 
-        if (EventTypeMapping.TryGetEventDataTypeForEventType(eventGridEvent.Type, out var eventDataType))
+        if (EventTypeMapping.TryGetEventDataTypeForEventType(cloudEvent.Type, out var eventDataType))
         {
-            await this.HandleAzureSystemEventAsync(systemEventData, eventGridEvent.Type, eventDataType, cancellationToken);
+            await this.HandleAzureSystemEventAsync(systemEventData, cloudEvent.Type, eventDataType, cancellationToken);
 
             return;
         }
 
-        this._telemetryClientProvider.TrackEvent(TelemetryConstants.AzureSystemEventDeserializationFailed, $"Azure System event received. Cannot deserialize object", eventGridEvent.Type);
+        this._telemetryClientProvider.TrackEvent(TelemetryConstants.AzureSystemEventDeserializationFailed, $"Azure System event received. Cannot deserialize object", cloudEvent.Type);
     }
 
-    private async Task HandleAzureSystemEventAsync(object eventData, string eventGridEventType, Type eventDataType, CancellationToken cancellationToken)
+    private async Task HandleAzureSystemEventAsync(object eventData, string cloudEventType, Type eventDataType, CancellationToken cancellationToken)
     {
         var handlerType = typeof(IAzureSystemEventHandler<>).MakeGenericType(eventDataType);
 
@@ -50,12 +50,12 @@ internal sealed class AzureSystemEventGridWebhookHandler : IAzureSystemEventGrid
 
         if (handler == null)
         {
-            this._telemetryClientProvider.TrackEvent(TelemetryConstants.AzureSystemEventNoHandlerFound, $"No Azure System event handler found of type {handlerType.FullName}.", eventGridEventType);
+            this._telemetryClientProvider.TrackEvent(TelemetryConstants.AzureSystemEventNoHandlerFound, $"No Azure System event handler found of type {handlerType.FullName}.", cloudEventType);
 
             return;
         }
 
-        this._telemetryClientProvider.TrackEvent(TelemetryConstants.AzureSystemEventHandled, $"Azure System event received and matched with event handler: {handlerType}", eventGridEventType);
+        this._telemetryClientProvider.TrackEvent(TelemetryConstants.AzureSystemEventHandled, $"Azure System event received and matched with event handler: {handlerType}", cloudEventType);
 
         var handlerMethod = this._handlerDictionary.GetOrAdd(handlerType, static type =>
         {

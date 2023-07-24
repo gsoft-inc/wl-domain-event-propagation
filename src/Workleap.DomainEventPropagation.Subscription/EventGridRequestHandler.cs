@@ -34,20 +34,20 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
             throw new ArgumentException("Request content cannot be null.");
         }
 
-        foreach (var eventGridEvent in GetEventGridEventsFromRequestContent(requestContent))
+        foreach (var cloudEvent in GetEventGridEventsFromRequestContent(requestContent))
         {
-            if (eventGridEvent.TryGetSystemEventData(out var systemEventData))
+            if (cloudEvent.TryGetSystemEventData(out var systemEventData))
             {
                 if (systemEventData is SubscriptionValidationEventData subscriptionValidationEventData)
                 {
-                    return ProcessSubscriptionEvent(subscriptionValidationEventData, eventGridEvent.Type, eventGridEvent.DataSchema);
+                    return ProcessSubscriptionEvent(subscriptionValidationEventData, cloudEvent.Type, cloudEvent.DataSchema);
                 }
 
-                await this.ProcessAzureSystemEventAsync(eventGridEvent, systemEventData, requestTelemetry, cancellationToken);
+                await this.ProcessAzureSystemEventAsync(cloudEvent, systemEventData, requestTelemetry, cancellationToken);
             }
-            else if (!string.IsNullOrEmpty(eventGridEvent.DataSchema))
+            else if (!string.IsNullOrEmpty(cloudEvent.DataSchema))
             {
-                await this.ProcessDomainEventAsync(eventGridEvent, requestTelemetry, cancellationToken);
+                await this.ProcessDomainEventAsync(cloudEvent, requestTelemetry, cancellationToken);
             }
         }
 
@@ -77,18 +77,18 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
         }
     }
 
-    private async Task ProcessDomainEventAsync(CloudEvent eventGridEvent, RequestTelemetry requestTelemetry, CancellationToken cancellationToken)
+    private async Task ProcessDomainEventAsync(CloudEvent cloudEvent, RequestTelemetry requestTelemetry, CancellationToken cancellationToken)
     {
-        Activity.Current?.AddBaggage("EventType", eventGridEvent.Type);
-        Activity.Current?.AddBaggage("EventTopic", eventGridEvent.DataSchema);
-        Activity.Current?.AddBaggage("EventId", eventGridEvent.Id);
+        Activity.Current?.AddBaggage("EventType", cloudEvent.Type);
+        Activity.Current?.AddBaggage("EventTopic", cloudEvent.DataSchema);
+        Activity.Current?.AddBaggage("EventId", cloudEvent.Id);
 
         // TODO: Assign the correlation ID to the request telemetry when OpenTelemetry is fully supported
         var operation = this._telemetryClientProvider.StartOperation(requestTelemetry);
 
         try
         {
-            await this._domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, cancellationToken);
+            await this._domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(cloudEvent, cancellationToken);
 
             SetRequestTelemetrySuccessStatus(requestTelemetry: requestTelemetry, status: true);
         }
@@ -106,13 +106,13 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
         }
     }
 
-    private async Task ProcessAzureSystemEventAsync(CloudEvent eventGridEvent, object systemEventData, RequestTelemetry requestTelemetry, CancellationToken cancellationToken)
+    private async Task ProcessAzureSystemEventAsync(CloudEvent cloudEvent, object systemEventData, RequestTelemetry requestTelemetry, CancellationToken cancellationToken)
     {
         var operation = this._telemetryClientProvider.StartOperation(requestTelemetry);
 
         try
         {
-            await this._azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, cancellationToken);
+            await this._azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(cloudEvent, systemEventData, cancellationToken);
 
             SetRequestTelemetrySuccessStatus(requestTelemetry: requestTelemetry, status: true);
         }

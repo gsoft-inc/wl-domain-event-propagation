@@ -33,32 +33,32 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
         DomainEventAssemblies = GetAssemblies();
     }
 
-    public async Task HandleEventGridWebhookEventAsync(CloudEvent eventGridEvent, CancellationToken cancellationToken)
+    public async Task HandleEventGridWebhookEventAsync(CloudEvent cloudEvent, CancellationToken cancellationToken)
     {
-        if (!this._subscriptionTopicValidator.IsSubscribedToTopic(eventGridEvent.DataSchema))
+        if (!this._subscriptionTopicValidator.IsSubscribedToTopic(cloudEvent.DataSchema))
         {
-            this._telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventRejectedBasedOnTopic, $"Domain event received and ignored based on topic. Topic: ­{eventGridEvent.DataSchema}", eventGridEvent.Type);
+            this._telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventRejectedBasedOnTopic, $"Domain event received and ignored based on topic. Topic: ­{cloudEvent.DataSchema}", cloudEvent.Type);
 
             return;
         }
 
         foreach (var assembly in DomainEventAssemblies)
         {
-            var domainEventType = assembly.GetType(eventGridEvent.Type);
+            var domainEventType = assembly.GetType(cloudEvent.Type);
 
             if (domainEventType is null)
             {
                 continue;
             }
 
-            var domainEvent = (IDomainEvent)JsonSerializer.Deserialize(eventGridEvent.Data.ToString(), domainEventType, SerializerOptions);
+            var domainEvent = (IDomainEvent)JsonSerializer.Deserialize(cloudEvent.Data.ToString(), domainEventType, SerializerOptions);
 
             await this.HandleDomainEventAsync(domainEvent, domainEventType, cancellationToken);
 
             return;
         }
 
-        this._telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventDeserializationFailed, "Domain event received. Cannot deserialize object", eventGridEvent.Type);
+        this._telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventDeserializationFailed, "Domain event received. Cannot deserialize object", cloudEvent.Type);
     }
 
     private async Task HandleDomainEventAsync(IDomainEvent domainEvent, Type domainEventType, CancellationToken cancellationToken)
