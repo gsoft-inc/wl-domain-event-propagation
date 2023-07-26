@@ -20,10 +20,17 @@
 
 When using dotnet core, you can register event propagation at startup in the service collection.
 ```
-services
-    .AddEventPropagation()
-    .Configure(this.Configuration);
-```
+// Method 1: Lazily bind the options to a configuration section
+services.AddEventPropagationPublisher();
+services.AddOptions<EventPropagationPublisherOptions>().BindConfiguration(EventPropagationPublisherOptions.SectionName);
+
+// Method 2: Set options values directly in C#
+services.AddEventPropagationPublisher(opt =>
+{
+  opt.TopicName = "<topic_name_to _publish_to>",
+  opt.TopicAccessKey = "<provided from keyVault>",
+  opt.TopicEndpoint = "<azure_topic_uri>"
+});
 Configuration is required. Configuration can be loaded from the appsettings file by passing the IConfiguration instance (see above). The topic access key should be stored securely in a key vault.
 ```
 "EventPropagation": {
