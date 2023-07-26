@@ -20,18 +20,27 @@
 
 When using dotnet core, you can register event propagation at startup in the service collection.
 ```
-services
-    .AddEventPropagation()
-    .Configure(this.Configuration);
-```
+// Method 1: Lazily bind the options to a configuration section
+services.AddEventPropagationPublisher();
+services.AddOptions<EventPropagationPublisherOptions>().BindConfiguration(EventPropagationPublisherOptions.SectionName);
+
+// Method 2: Set options values directly in C#
+services.AddEventPropagationPublisher(opt =>
+{
+  opt.TopicName = "<topic_name_to _publish_to>",
+  opt.TopicAccessKey = "<provided from keyVault>",
+  opt.TopicEndpoint = "<azure_topic_uri>"
+});
 Configuration is required. Configuration can be loaded from the appsettings file by passing the IConfiguration instance (see above). The topic access key should be stored securely in a key vault.
-```
-"EventPropagation": {
-    "TopicName": "...",
-    "TopicAccessKey": "...",
-    "TopicEndpoint": "http://topicurl.domain.com/api/events"
+```json
+// appsettings.json
+{
+  "EventPropagation": {
+    "TopicName": "<topic_name_to_publish_to>",
+    "TopicAccessKey": "<keyVault_provided_value>",
+    "TopicEndpoint": "<azure_topic_uri>"
   }
-```
+}
 
 To publish an event, use the IEventPropagationClient interface (via injection). Use the PublishDomainEventAsync to publish the event. The required Subject field is a string description to provide context for the event.
 
