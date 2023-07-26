@@ -58,14 +58,7 @@ await this._eventPropagationClient.PublishDomainEventAsync(subject: "TestEventPu
 * Your service can publish events on only 1 topic.
 * The topic the service publishes to must be in the Topics class provided by the Workleap.EventPropagation package.
 
-#### Exceptions
-
-In case of error while publishing an event, an exception of type EventPropagationPublishingException is thrown. It provides the TopicName, Subject and TopicHostName fields.
-
-If configuration is bad, an exception of type InvalidConfigurationException is thrown. If the provided topic is bad, an exception of type InvalidTopicException is thrown.
-
 ### Using the Workleap.EventPropagation package to subscribe to events
-
 When using dotnet core, you can register event propagation subscriptions at startup in the service collection.  To configure the subscriber, the list of subscribed topics is required.
 
 ```
@@ -97,11 +90,6 @@ public class ExampleDomainEventHandler : IDomainEventHandler<ExampleDomainEvent>
     }
 }
 ```
-
-#### Exceptions
-* If configuration is invalid, an exception of type InvalidConfigurationException is thrown.
-* If provided topic names are unknown, an exception of type InvalidTopicException is thrown.
-
 #### Restrictions
 * You may only define 1 domain event handler per domain event you wish to handle. If you would require more, use the 1 allowed domain event handler as a façade for multiple operations.
 * DomainEventHandlers must have idempotent behavior (you could execute it multiple times for the same event and the result would always be the same).
