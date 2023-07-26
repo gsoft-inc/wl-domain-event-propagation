@@ -16,7 +16,7 @@
 * Validates configurations
 * Handles topic subscriptions
 
-### Using the Workleap.EventPropagation package to publish events
+### Using the Workleap.DomainEventPropagation.Publishing package to publish events
 
 When using dotnet core, you can register event propagation at startup in the service collection.
 ```
