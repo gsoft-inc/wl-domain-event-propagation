@@ -32,13 +32,15 @@ services.AddEventPropagationPublisher(opt =>
   opt.TopicEndpoint = "<azure_topic_uri>"
 });
 Configuration is required. Configuration can be loaded from the appsettings file by passing the IConfiguration instance (see above). The topic access key should be stored securely in a key vault.
-```
-"EventPropagation": {
-    "TopicName": "...",
-    "TopicAccessKey": "...",
-    "TopicEndpoint": "http://topicurl.domain.com/api/events"
+```json
+// appsettings.json
+{
+  "EventPropagation": {
+    "TopicName": "<topic_name_to_publish_to>",
+    "TopicAccessKey": "<keyVault_provided_value>",
+    "TopicEndpoint": "<azure_topic_uri>"
   }
-```
+}
 
 To publish an event, use the IEventPropagationClient interface (via injection). Use the PublishDomainEventAsync to publish the event. The required Subject field is a string description to provide context for the event.
 
