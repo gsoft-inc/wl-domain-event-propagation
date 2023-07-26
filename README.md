@@ -73,8 +73,10 @@ services
     .AddEventPropagationSubscriber()
     .AddDomainEventHandlersFromAssembly(Assembly.GetExecutingAssembly())
     .Configure(new[] { Topics.Organisation, Topics.Candor });
-```
 
+// or add single domain event handler
+.AddDomainEventHandler<ExampleDomainEventHandler>()
+```
 An API endpoint must be made available to receive events from the EventGrid topic. The package provides this endpoint for dotnet core projects. It can be added like so.
 ```
 services.AddControllers().PartManager.ApplicationParts.Add(new AssemblyPart(typeof(EventGridController).Assembly));
@@ -94,14 +96,6 @@ public class ExampleDomainEventHandler : IDomainEventHandler<ExampleDomainEvent>
         return Task.CompletedTask;
     }
 }
-```
-To register domain event handlers, you can either use the package’s extension to scan your assembly and register all found domainevent handlers, or register your favorite domain event handlers manually.
-```
-// dotnet core service collection extension: scan assembly for all domain event handlers
-.AddDomainEventHandlersFromAssembly(Assembly.GetExecutingAssembly())
-
-// dotnet core service collection extension: add single domain event handler
-.AddDomainEventHandler<ExampleDomainEventHandler>()
 ```
 
 #### Exceptions
