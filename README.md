@@ -5,7 +5,7 @@
 
 ## Getting started
 
-### What does the Workleap.EventPropagation package do?
+### What does the Workleap.DomainEventPropagation package do?
 * Provides list of existing Topics
 * Serializes domain events
 * Manages publication fields
