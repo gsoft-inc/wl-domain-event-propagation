@@ -15,8 +15,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Workleap.DomainEventPropagation.Publishing\Workleap.DomainEventPropagation.Publishing.csproj" />
     <ProjectReference Include="..\Workleap.DomainEventPropagation.Subscription\Workleap.DomainEventPropagation.Subscription.csproj" />
-    <ProjectReference Include="..\Workleap.DomainEventPropagation.Topics\Workleap.DomainEventPropagation.Topics.csproj" />
-    <ProjectReference Include="..\Workleap.DomainEventPropagation\Workleap.DomainEventPropagation.csproj" />
   </ItemGroup>
 
   <ItemGroup>
