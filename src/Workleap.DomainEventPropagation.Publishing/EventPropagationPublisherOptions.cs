@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Azure.Core;
 using GSoft.ComponentModel.DataAnnotations;
 
 namespace Workleap.DomainEventPropagation;
@@ -12,8 +13,9 @@ public sealed class EventPropagationPublisherOptions
     [Required]
     public string TopicName { get; set; }
 
-    [Required]
     public string TopicAccessKey { get; set; }
+
+    public TokenCredential? TokenCredential { get; set; }
 
     [Required]
     [UrlOfKind(UriKind.Absolute)]
