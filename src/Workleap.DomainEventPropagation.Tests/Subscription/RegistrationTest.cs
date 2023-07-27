@@ -26,8 +26,6 @@ public class RegistrationTest
 
         services.AddSingleton<IConfiguration>(configuration);
 
-        services.AddSingleton<ITopicProvider, PlatformTopicProvider>();
-        
         services.AddEventPropagationSubscriber()
             .AddDomainEventHandlersFromAssembly(typeof(DomainEventHandler).Assembly);
 

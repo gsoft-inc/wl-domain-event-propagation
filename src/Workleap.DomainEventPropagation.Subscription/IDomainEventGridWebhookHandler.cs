@@ -2,7 +2,7 @@ using Azure.Messaging.EventGrid;
 
 namespace Workleap.DomainEventPropagation;
 
-public interface IDomainEventGridWebhookHandler
+internal interface IDomainEventGridWebhookHandler
 {
     Task HandleEventGridWebhookEventAsync(EventGridEvent eventGridEvent, CancellationToken cancellationToken);
 }
