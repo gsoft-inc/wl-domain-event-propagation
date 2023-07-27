@@ -2,7 +2,7 @@ using Azure.Messaging.EventGrid;
 
 namespace Workleap.DomainEventPropagation;
 
-public interface ISubscriptionTopicValidator
+internal interface ISubscriptionTopicValidator
 {
     bool IsSubscribedToTopic(string topic);
 

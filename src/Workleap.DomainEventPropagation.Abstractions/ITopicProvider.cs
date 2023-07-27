@@ -1,11 +1,10 @@
-namespace Workleap.DomainEventPropagation
+namespace Workleap.DomainEventPropagation;
+
+public interface ITopicProvider
 {
-    public interface ITopicProvider
-    {
-        IEnumerable<string> GetAllTopicsNames();
+    IEnumerable<string> GetAllTopicsNames();
 
-        IEnumerable<string> GetAllTopicValidationPatterns();
+    IEnumerable<string> GetAllTopicValidationPatterns();
 
-        string GetTopicValidationPattern(string topicName);
-    }
+    string GetTopicValidationPattern(string topicName);
 }
