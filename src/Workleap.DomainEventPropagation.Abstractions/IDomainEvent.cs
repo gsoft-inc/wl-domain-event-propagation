@@ -1,7 +1,6 @@
-namespace Workleap.DomainEventPropagation
+namespace Workleap.DomainEventPropagation;
+
+public interface IDomainEvent
 {
-    public interface IDomainEvent
-    {
-        string DataVersion { get; }
-    }
+    string DataVersion { get; }
 }
