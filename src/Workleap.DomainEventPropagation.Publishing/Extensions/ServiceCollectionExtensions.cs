@@ -34,21 +34,35 @@ public static class ServiceCollectionEventPropagationExtensions
         services.AddAzureClients(builder =>
         {
             using var sp = services.BuildServiceProvider();
-
             var options = sp.GetRequiredService<IOptions<EventPropagationPublisherOptions>>().Value;
-
             var topicEndpointUri = new Uri(options.TopicEndpoint);
-            var topicCredentials = new AzureKeyCredential(options.TopicAccessKey);
 
-            builder
-                .AddEventGridPublisherClient(topicEndpointUri, topicCredentials)
-                .WithName(EventPropagationPublisherOptions.ClientName)
-                .ConfigureOptions(clientOptions =>
-                {
-                    clientOptions.Retry.Mode = RetryMode.Fixed;
-                    clientOptions.Retry.MaxRetries = 1;
-                    clientOptions.Retry.NetworkTimeout = TimeSpan.FromSeconds(4);
-                });
+            if (options.TokenCredential is not null)
+            {
+                builder
+                    .AddEventGridPublisherClient(topicEndpointUri)
+                    .WithCredential(options.TokenCredential)
+                    .WithName(EventPropagationPublisherOptions.ClientName)
+                    .ConfigureOptions(clientOptions =>
+                    {
+                        clientOptions.Retry.Mode = RetryMode.Fixed;
+                        clientOptions.Retry.MaxRetries = 1;
+                        clientOptions.Retry.NetworkTimeout = TimeSpan.FromSeconds(4);
+                    });
+            }
+            else
+            {
+                var topicCredentials = new AzureKeyCredential(options.TopicAccessKey);
+                builder
+                    .AddEventGridPublisherClient(topicEndpointUri, topicCredentials)
+                    .WithName(EventPropagationPublisherOptions.ClientName)
+                    .ConfigureOptions(clientOptions =>
+                    {
+                        clientOptions.Retry.Mode = RetryMode.Fixed;
+                        clientOptions.Retry.MaxRetries = 1;
+                        clientOptions.Retry.NetworkTimeout = TimeSpan.FromSeconds(4);
+                    });
+            }
         });
 
         return new EventPropagationPublisherBuilder(services);
