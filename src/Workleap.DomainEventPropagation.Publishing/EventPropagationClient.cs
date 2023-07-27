@@ -12,19 +12,16 @@ namespace Workleap.DomainEventPropagation;
 internal sealed class EventPropagationClient : IEventPropagationClient
 {
     private static readonly JsonSerializerOptions SerializerOptions = new();
-    
+
     private readonly EventPropagationPublisherOptions _eventPropagationPublisherOptions;
     private readonly IAzureClientFactory<EventGridPublisherClient> _eventGridPublisherClientFactory;
-    private readonly ITelemetryClientProvider _telemetryClientProvider;
 
     public EventPropagationClient(
         IAzureClientFactory<EventGridPublisherClient> eventGridPublisherClientFactory,
-        IOptions<EventPropagationPublisherOptions> eventPropagationPublisherOptions,
-        ITelemetryClientProvider telemetryClientProvider)
+        IOptions<EventPropagationPublisherOptions> eventPropagationPublisherOptions)
     {
         this._eventPropagationPublisherOptions = eventPropagationPublisherOptions.Value;
         this._eventGridPublisherClientFactory = eventGridPublisherClientFactory;
-        this._telemetryClientProvider = telemetryClientProvider;
     }
 
     private string TopicName => this._eventPropagationPublisherOptions.TopicName;
@@ -40,15 +37,12 @@ internal sealed class EventPropagationClient : IEventPropagationClient
 
     public async Task PublishDomainEventsAsync(string subject, IEnumerable<IDomainEvent> domainEvents, CancellationToken cancellationToken)
     {
-        var domainEventTypes = TelemetryHelper.GetDomainEventTypes(domainEvents);
-
         try
         {
             var eventGridEvents = this.GetEventsList(subject, domainEvents);
 
             await this._eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName).SendEventsAsync(eventGridEvents, cancellationToken);
 
-            this._telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventsPropagated, $"Published domain event with subject '{subject}' on topic '{this.TopicName}'", domainEventTypes);
         }
         catch (Exception ex)
         {
@@ -58,9 +52,6 @@ internal sealed class EventPropagationClient : IEventPropagationClient
                 Subject = subject,
                 TopicEndpoint = this._eventPropagationPublisherOptions.TopicEndpoint
             };
-
-            this._telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventsPropagationFailed, $"Failed to publish domain event with subject '{subject}' on topic '{this.TopicName}'", domainEventTypes);
-            this._telemetryClientProvider.TrackException(exception);
 
             throw exception;
         }

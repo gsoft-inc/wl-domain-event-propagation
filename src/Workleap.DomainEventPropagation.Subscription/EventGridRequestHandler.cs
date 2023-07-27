@@ -11,18 +11,15 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
     private readonly IDomainEventGridWebhookHandler _domainEventGridWebhookHandler;
     private readonly IAzureSystemEventGridWebhookHandler _azureSystemEventGridWebhookHandler;
     private readonly ISubscriptionEventGridWebhookHandler _subscriptionEventGridWebhookHandler;
-    private readonly ITelemetryClientProvider _telemetryClientProvider;
 
     public EventGridRequestHandler(
         IDomainEventGridWebhookHandler domainEventGridWebhookHandler,
         IAzureSystemEventGridWebhookHandler azureSystemEventGridWebhookHandler,
-        ISubscriptionEventGridWebhookHandler subscriptionEventGridWebhookHandler,
-        ITelemetryClientProvider telemetryClientProvider)
+        ISubscriptionEventGridWebhookHandler subscriptionEventGridWebhookHandler)
     {
         this._domainEventGridWebhookHandler = domainEventGridWebhookHandler;
         this._azureSystemEventGridWebhookHandler = azureSystemEventGridWebhookHandler;
         this._subscriptionEventGridWebhookHandler = subscriptionEventGridWebhookHandler;
-        this._telemetryClientProvider = telemetryClientProvider;
     }
 
     public async Task<EventGridRequestResult> HandleRequestAsync(object requestContent, CancellationToken cancellationToken, RequestTelemetry requestTelemetry = default)
@@ -69,8 +66,6 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
         }
         catch (Exception ex)
         {
-            this._telemetryClientProvider.TrackException(ex);
-
             throw;
         }
     }
@@ -82,8 +77,6 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
         Activity.Current?.AddBaggage("EventId", eventGridEvent.Id);
 
         // TODO: Assign the correlation ID to the request telemetry when OpenTelemetry is fully supported
-        var operation = this._telemetryClientProvider.StartOperation(requestTelemetry);
-
         try
         {
             await this._domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, cancellationToken);
@@ -92,22 +85,14 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
         }
         catch (Exception ex)
         {
-            this._telemetryClientProvider.TrackException(ex);
-
             SetRequestTelemetrySuccessStatus(requestTelemetry: requestTelemetry, status: false);
 
             throw;
-        }
-        finally
-        {
-            this._telemetryClientProvider.StopOperation(operation);
         }
     }
 
     private async Task ProcessAzureSystemEventAsync(EventGridEvent eventGridEvent, object systemEventData, RequestTelemetry requestTelemetry, CancellationToken cancellationToken)
     {
-        var operation = this._telemetryClientProvider.StartOperation(requestTelemetry);
-
         try
         {
             await this._azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, cancellationToken);
@@ -116,15 +101,9 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
         }
         catch (Exception ex)
         {
-            this._telemetryClientProvider.TrackException(ex);
-
             SetRequestTelemetrySuccessStatus(requestTelemetry: requestTelemetry, status: false);
 
             throw;
-        }
-        finally
-        {
-            this._telemetryClientProvider.StopOperation(operation);
         }
     }
 

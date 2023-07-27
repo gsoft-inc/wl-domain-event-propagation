@@ -27,8 +27,6 @@ public static class ServiceCollectionEventPropagationExtensions
         }
 
         services.TryAddSingleton<IEventPropagationClient, EventPropagationClient>();
-        services.TryAddSingleton<ITelemetryClientProvider, TelemetryClientProvider>();
-
         services.AddEventPropagationPublisherOptions(configure);
 
         services.AddAzureClients(builder =>

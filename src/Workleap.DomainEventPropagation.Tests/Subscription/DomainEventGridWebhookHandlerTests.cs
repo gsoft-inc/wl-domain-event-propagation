@@ -12,7 +12,6 @@ namespace Workleap.DomainEventPropagation.Tests.Subscription;
 public class DomainEventGridWebhookHandlerTests
 {
     private const string OrganizationTopicName = "Organization";
-    private readonly ITelemetryClientProvider _telemetryClientProvider = A.Fake<ITelemetryClientProvider>();
 
     [Fact]
     public async Task GivenDomainEventIsFired_WhenTopicIsNotSubscribedTo_ThenDomainEventIsIgnored()
@@ -29,7 +28,7 @@ public class DomainEventGridWebhookHandlerTests
         var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
         services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler);
 
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
         await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", new TestDomainEvent { Number = 1, Text = "Hello" })
         {
             Topic = "UnregisteredTopic"
@@ -52,7 +51,7 @@ public class DomainEventGridWebhookHandlerTests
         //No eventHandler is registered
         var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
 
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
 
         await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }))
         {
@@ -77,7 +76,7 @@ public class DomainEventGridWebhookHandlerTests
         var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
         services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler);
 
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
         await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }))
         {
             Topic = OrganizationTopicName
@@ -101,7 +100,7 @@ public class DomainEventGridWebhookHandlerTests
         var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
         services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler);
 
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
         await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }))
         {
             Topic = OrganizationTopicName
@@ -163,7 +162,7 @@ public class DomainEventGridWebhookHandlerTests
         A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestExceptionDomainEvent>._, A<CancellationToken>._)).Throws(new Exception("Test exception"));
         services.AddSingleton<IDomainEventHandler<TestExceptionDomainEvent>>(domainEventHandler);
 
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
 
         await Assert.ThrowsAsync<TargetInvocationException>(() => domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestExceptionDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestExceptionDomainEvent { Number = 1, Text = "Hello" }))
         {
@@ -188,13 +187,10 @@ public class DomainEventGridWebhookHandlerTests
         var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
         services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler);
 
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
         await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", "SomeNamepsace.OhNo.Hohoa", "version", JsonSerializer.Serialize(new TestDomainEvent { Number = 1, Text = "Hello" }))
         {
             Topic = OrganizationTopicName
         }, CancellationToken.None);
-
-        // "Domain event received. Cannot deserialize object"
-        A.CallTo(() => _telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventDeserializationFailed, A<string>._, "SomeNamepsace.OhNo.Hohoa", A<TelemetrySpan>._)).MustHaveHappenedOnceExactly();
     }
 }
