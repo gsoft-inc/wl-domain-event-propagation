@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workleap.DomainEventPropagation", "Workleap.DomainEventPropagation\Workleap.DomainEventPropagation.csproj", "{4479DD41-F9CE-4DFD-8F7C-4ACC25BE203C}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "files", "files", "{3B3625CC-919B-4216-9B50-BCFE297AA184}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
@@ -14,8 +12,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workleap.DomainEventPropagation.Tests", "Workleap.DomainEventPropagation.Tests\Workleap.DomainEventPropagation.Tests.csproj", "{2A5429CC-E179-47E7-85BB-C1E33E2AFD8A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workleap.DomainEventPropagation.Abstractions", "Workleap.DomainEventPropagation.Abstractions\Workleap.DomainEventPropagation.Abstractions.csproj", "{0E6521C9-28A3-40BC-B960-F558322E58E4}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workleap.DomainEventPropagation.Topics", "Workleap.DomainEventPropagation.Topics\Workleap.DomainEventPropagation.Topics.csproj", "{26CB3053-BC43-456B-9071-96CCDC4DFDB3}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workleap.DomainEventPropagation.Publishing", "Workleap.DomainEventPropagation.Publishing\Workleap.DomainEventPropagation.Publishing.csproj", "{C67FD6F4-FD02-4E5E-92A3-DAD15DD1DBBF}"
 EndProject
@@ -27,10 +23,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{4479DD41-F9CE-4DFD-8F7C-4ACC25BE203C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4479DD41-F9CE-4DFD-8F7C-4ACC25BE203C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4479DD41-F9CE-4DFD-8F7C-4ACC25BE203C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4479DD41-F9CE-4DFD-8F7C-4ACC25BE203C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2A5429CC-E179-47E7-85BB-C1E33E2AFD8A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{2A5429CC-E179-47E7-85BB-C1E33E2AFD8A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2A5429CC-E179-47E7-85BB-C1E33E2AFD8A}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -39,10 +31,6 @@ Global
 		{0E6521C9-28A3-40BC-B960-F558322E58E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0E6521C9-28A3-40BC-B960-F558322E58E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0E6521C9-28A3-40BC-B960-F558322E58E4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{26CB3053-BC43-456B-9071-96CCDC4DFDB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{26CB3053-BC43-456B-9071-96CCDC4DFDB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{26CB3053-BC43-456B-9071-96CCDC4DFDB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{26CB3053-BC43-456B-9071-96CCDC4DFDB3}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C67FD6F4-FD02-4E5E-92A3-DAD15DD1DBBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C67FD6F4-FD02-4E5E-92A3-DAD15DD1DBBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C67FD6F4-FD02-4E5E-92A3-DAD15DD1DBBF}.Release|Any CPU.ActiveCfg = Release|Any CPU

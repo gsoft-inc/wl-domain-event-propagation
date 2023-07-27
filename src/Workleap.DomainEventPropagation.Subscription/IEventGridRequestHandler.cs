@@ -1,6 +1,6 @@
 namespace Workleap.DomainEventPropagation;
 
-public interface IEventGridRequestHandler
+internal interface IEventGridRequestHandler
 {
     Task<EventGridRequestResult> HandleRequestAsync(object requestContent, CancellationToken cancellationToken);
 }

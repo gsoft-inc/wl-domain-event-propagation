@@ -18,5 +18,4 @@ public sealed class EventPropagationPublisherOptions
     [Required]
     [UrlOfKind(UriKind.Absolute)]
     public string TopicEndpoint { get; set; }
-
 }
