@@ -1,7 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using Azure;
 using Azure.Core;
-using Azure.Identity;
 using Azure.Messaging.EventGrid;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
@@ -38,10 +37,9 @@ public static class ServiceCollectionEventPropagationExtensions
             using var sp = services.BuildServiceProvider();
 
             var options = sp.GetRequiredService<IOptions<EventPropagationPublisherOptions>>().Value;
-
             var topicEndpointUri = new Uri(options.TopicEndpoint);
 
-            if (options.TokenCredential != null)
+            if (options.TokenCredential is not null)
             {
                 builder
                     .AddEventGridPublisherClient(topicEndpointUri)

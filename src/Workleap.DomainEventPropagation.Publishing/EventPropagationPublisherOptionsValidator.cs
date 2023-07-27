@@ -13,7 +13,7 @@ public sealed class EventPropagationPublisherOptionsValidator : IValidateOptions
 
     public ValidateOptionsResult Validate(string name, EventPropagationPublisherOptions options)
     {
-        if (options.TokenCredential == null && string.IsNullOrWhiteSpace(options.TopicAccessKey))
+        if (options.TokenCredential is null && string.IsNullOrWhiteSpace(options.TopicAccessKey))
         {
             return ValidateOptionsResult.Fail($"A token credential or an access key is required");
         }
