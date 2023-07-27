@@ -3,10 +3,8 @@ using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
 using FakeItEasy;
 using Microsoft.Extensions.DependencyInjection;
-using OpenTelemetry.Trace;
 using Workleap.DomainEventPropagation.AzureSystemEvents;
 using Workleap.DomainEventPropagation.Extensions;
-using Workleap.DomainEventPropagation.Tests.Subscription.AzureSystemEvents.Mocks;
 
 namespace Workleap.DomainEventPropagation.Tests.Subscription.AzureSystemEvents;
 

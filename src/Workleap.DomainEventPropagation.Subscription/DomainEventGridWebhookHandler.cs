@@ -3,8 +3,6 @@ using System.Reflection;
 using System.Text.Json;
 using Azure.Messaging.EventGrid;
 
-using Microsoft.ApplicationInsights.DataContracts;
-
 namespace Workleap.DomainEventPropagation;
 
 internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHandler

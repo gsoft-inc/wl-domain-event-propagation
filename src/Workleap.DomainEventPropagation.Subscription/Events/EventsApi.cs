@@ -1,4 +1,3 @@
-using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Http;
 
 namespace Workleap.DomainEventPropagation.Events;
@@ -18,9 +17,8 @@ internal static class EventsApi
         IEventGridRequestHandler eventGridRequestHandler,
         CancellationToken cancellationToken)
     {
-        var requestTelemetry = httpContext.Features.Get<RequestTelemetry>();
 
-        var result = await eventGridRequestHandler.HandleRequestAsync(requestContent, cancellationToken, requestTelemetry: requestTelemetry);
+        var result = await eventGridRequestHandler.HandleRequestAsync(requestContent, cancellationToken);
 
         return result.EventGridRequestType switch
         {

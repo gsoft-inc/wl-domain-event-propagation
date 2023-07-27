@@ -1,7 +1,6 @@
 using System.Diagnostics;
 using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
-using Microsoft.ApplicationInsights.DataContracts;
 using Workleap.DomainEventPropagation.AzureSystemEvents;
 
 namespace Workleap.DomainEventPropagation;
@@ -22,7 +21,7 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
         this._subscriptionEventGridWebhookHandler = subscriptionEventGridWebhookHandler;
     }
 
-    public async Task<EventGridRequestResult> HandleRequestAsync(object requestContent, CancellationToken cancellationToken, RequestTelemetry requestTelemetry = default)
+    public async Task<EventGridRequestResult> HandleRequestAsync(object requestContent, CancellationToken cancellationToken)
     {
         if (requestContent == null)
         {
@@ -38,11 +37,11 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
                     return ProcessSubscriptionEvent(subscriptionValidationEventData, eventGridEvent.EventType, eventGridEvent.Topic);
                 }
 
-                await this.ProcessAzureSystemEventAsync(eventGridEvent, systemEventData, requestTelemetry, cancellationToken);
+                await this.ProcessAzureSystemEventAsync(eventGridEvent, systemEventData, cancellationToken);
             }
             else if (!string.IsNullOrEmpty(eventGridEvent.Topic))
             {
-                await this.ProcessDomainEventAsync(eventGridEvent, requestTelemetry, cancellationToken);
+                await this.ProcessDomainEventAsync(eventGridEvent, cancellationToken);
             }
         }
 
@@ -70,53 +69,23 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
         }
     }
 
-    private async Task ProcessDomainEventAsync(EventGridEvent eventGridEvent, RequestTelemetry requestTelemetry, CancellationToken cancellationToken)
+    private async Task ProcessDomainEventAsync(EventGridEvent eventGridEvent, CancellationToken cancellationToken)
     {
         Activity.Current?.AddBaggage("EventType", eventGridEvent.EventType);
         Activity.Current?.AddBaggage("EventTopic", eventGridEvent.Topic);
         Activity.Current?.AddBaggage("EventId", eventGridEvent.Id);
 
         // TODO: Assign the correlation ID to the request telemetry when OpenTelemetry is fully supported
-        try
-        {
-            await this._domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, cancellationToken);
-
-            SetRequestTelemetrySuccessStatus(requestTelemetry: requestTelemetry, status: true);
-        }
-        catch (Exception ex)
-        {
-            SetRequestTelemetrySuccessStatus(requestTelemetry: requestTelemetry, status: false);
-
-            throw;
-        }
+        await this._domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, cancellationToken);
     }
 
-    private async Task ProcessAzureSystemEventAsync(EventGridEvent eventGridEvent, object systemEventData, RequestTelemetry requestTelemetry, CancellationToken cancellationToken)
+    private async Task ProcessAzureSystemEventAsync(EventGridEvent eventGridEvent, object systemEventData, CancellationToken cancellationToken)
     {
-        try
-        {
-            await this._azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, cancellationToken);
-
-            SetRequestTelemetrySuccessStatus(requestTelemetry: requestTelemetry, status: true);
-        }
-        catch (Exception ex)
-        {
-            SetRequestTelemetrySuccessStatus(requestTelemetry: requestTelemetry, status: false);
-
-            throw;
-        }
+        await this._azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, cancellationToken);
     }
 
     private static IEnumerable<EventGridEvent> GetEventGridEventsFromRequestContent(object requestContent)
     {
         return EventGridEvent.ParseMany(BinaryData.FromString(requestContent.ToString()));
-    }
-
-    private static void SetRequestTelemetrySuccessStatus(RequestTelemetry requestTelemetry, bool status)
-    {
-        if (requestTelemetry != null)
-        {
-            requestTelemetry.Success = status;
-        }
     }
 }

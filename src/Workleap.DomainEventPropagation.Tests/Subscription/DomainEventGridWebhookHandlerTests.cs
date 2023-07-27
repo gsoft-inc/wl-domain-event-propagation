@@ -3,7 +3,6 @@ using System.Text.Json;
 using Azure.Messaging.EventGrid;
 using FakeItEasy;
 using Microsoft.Extensions.DependencyInjection;
-using OpenTelemetry.Trace;
 using Workleap.DomainEventPropagation.Extensions;
 using Workleap.DomainEventPropagation.Tests.Subscription.Mocks;
 
