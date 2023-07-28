@@ -3,8 +3,6 @@ using System.Reflection;
 using System.Text.Json;
 using Azure.Messaging.EventGrid;
 
-using Microsoft.ApplicationInsights.DataContracts;
-
 namespace Workleap.DomainEventPropagation;
 
 internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHandler
@@ -17,17 +15,14 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
 
     private readonly IServiceProvider _serviceProvider;
     private readonly ISubscriptionTopicValidator _subscriptionTopicValidator;
-    private readonly ITelemetryClientProvider _telemetryClientProvider;
     private readonly ConcurrentDictionary<Type, MethodInfo> _handlerDictionary = new();
 
     public DomainEventGridWebhookHandler(
         IServiceProvider serviceProvider,
-        ISubscriptionTopicValidator subscriptionTopicValidator,
-        ITelemetryClientProvider telemetryClientProvider)
+        ISubscriptionTopicValidator subscriptionTopicValidator)
     {
         this._serviceProvider = serviceProvider;
         this._subscriptionTopicValidator = subscriptionTopicValidator;
-        this._telemetryClientProvider = telemetryClientProvider;
 
         DomainEventAssemblies = GetAssemblies();
     }
@@ -36,8 +31,6 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
     {
         if (!this._subscriptionTopicValidator.IsSubscribedToTopic(eventGridEvent.Topic))
         {
-            this._telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventRejectedBasedOnTopic, $"Domain event received and ignored based on topic. Topic: ­{eventGridEvent.Topic}", eventGridEvent.EventType);
-
             return;
         }
 
@@ -56,8 +49,6 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
 
             return;
         }
-
-        this._telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventDeserializationFailed, "Domain event received. Cannot deserialize object", eventGridEvent.EventType);
     }
 
     private async Task HandleDomainEventAsync(IDomainEvent domainEvent, Type domainEventType, CancellationToken cancellationToken)
@@ -68,23 +59,16 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
 
         if (handler == null)
         {
-            this._telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventNoHandlerFound, $"No domain event handler found of type {handlerType.FullName}.", domainEventType.FullName);
-
             return;
         }
 
-        using (this._telemetryClientProvider.StartOperation(new DependencyTelemetry("DomainEventHandler", domainEventType.Name, handler.GetType().Name, handler.GetType().FullName)))
+        var handlerMethod = this._handlerDictionary.GetOrAdd(handlerType, static type =>
         {
-            var handlerMethod = this._handlerDictionary.GetOrAdd(handlerType, static type =>
-            {
-                return type.GetMethod(DomainEventHandlerHandleMethod, BindingFlags.Public | BindingFlags.Instance) ??
-                       throw new InvalidOperationException($"No public method found with name {DomainEventHandlerHandleMethod} on type {type.FullName}.");
-            });
+            return type.GetMethod(DomainEventHandlerHandleMethod, BindingFlags.Public | BindingFlags.Instance) ??
+                   throw new InvalidOperationException($"No public method found with name {DomainEventHandlerHandleMethod} on type {type.FullName}.");
+        });
 
-            await (Task)handlerMethod.Invoke(handler, new object[] { domainEvent, cancellationToken });
-        }
-
-        this._telemetryClientProvider.TrackEvent(TelemetryConstants.DomainEventHandled, $"Domain event received and handled by domain event handler: {handlerType}", domainEventType.FullName);
+        await (Task)handlerMethod.Invoke(handler, new object[] { domainEvent, cancellationToken });
     }
 
     private static IEnumerable<Assembly> GetAssemblies()

@@ -3,17 +3,13 @@ using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
 using FakeItEasy;
 using Microsoft.Extensions.DependencyInjection;
-using OpenTelemetry.Trace;
 using Workleap.DomainEventPropagation.AzureSystemEvents;
 using Workleap.DomainEventPropagation.Extensions;
-using Workleap.DomainEventPropagation.Tests.Subscription.AzureSystemEvents.Mocks;
 
 namespace Workleap.DomainEventPropagation.Tests.Subscription.AzureSystemEvents;
 
 public class AzureSystemEventGridWebhookHandlerTests
 {
-    private readonly ITelemetryClientProvider _telemetryClientProvider = A.Fake<ITelemetryClientProvider>();
-
     [Fact]
     public async Task GivenAzureSystemEventIsFired_WhenTopicIsNotSubscribedTo_ThenAzureSystemEventIsIgnored()
     {
@@ -29,7 +25,7 @@ public class AzureSystemEventGridWebhookHandlerTests
         var azureSystemEventHandler = A.Fake<IAzureSystemEventHandler<MediaJobFinishedEventData>>();
         services.AddSingleton<IAzureSystemEventHandler<MediaJobFinishedEventData>>(azureSystemEventHandler);
 
-        var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
+        var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
         var eventGridEvent = new EventGridEvent("subject", SystemEventNames.MediaJobFinished, "version", BinaryData.FromString(@"{ ""outputs"": [] }"))
         {
             Topic = "UnregisteredTopic"
@@ -62,7 +58,7 @@ public class AzureSystemEventGridWebhookHandlerTests
         //No eventHandler is registered
         var azureSystemEventHandler = A.Fake<IAzureSystemEventHandler<MediaJobFinishedEventData>>();
 
-        var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
+        var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
         var eventGridEvent = new EventGridEvent("subject", SystemEventNames.MediaJobFinished, "version", BinaryData.FromString(@"{ ""outputs"": [] }"))
         {
             Topic = $"xzxzxzx{systemTopicPattern}xzxzxzx"
@@ -77,7 +73,6 @@ public class AzureSystemEventGridWebhookHandlerTests
         await azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None);
 
         A.CallTo(() => azureSystemEventHandler.HandleAzureSystemEventAsync(A<MediaJobFinishedEventData>._, A<CancellationToken>._)).MustNotHaveHappened();
-        A.CallTo(() => _telemetryClientProvider.TrackEvent(TelemetryConstants.AzureSystemEventNoHandlerFound, A<string>._, eventGridEvent.EventType, A<TelemetrySpan>._)).MustHaveHappenedOnceExactly();
     }
 
     [Fact]
@@ -97,7 +92,7 @@ public class AzureSystemEventGridWebhookHandlerTests
         var azureSystemEventHandler = A.Fake<IAzureSystemEventHandler<MediaJobFinishedEventData>>();
         services.AddSingleton<IAzureSystemEventHandler<MediaJobFinishedEventData>>(azureSystemEventHandler);
 
-        var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
+        var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
         var eventGridEvent = new EventGridEvent("subject", SystemEventNames.MediaJobFinished, "version", BinaryData.FromString(@"{ ""outputs"": [] }"))
         {
             Topic = $"xzxzxzx{systemTopicPattern}xzxzxzx"
@@ -169,7 +164,7 @@ public class AzureSystemEventGridWebhookHandlerTests
         A.CallTo(() => azureSystemEventHandler.HandleAzureSystemEventAsync(A<MediaJobCanceledEventData>._, A<CancellationToken>._)).Throws(new Exception("Test exception"));
         services.AddSingleton<IAzureSystemEventHandler<MediaJobCanceledEventData>>(azureSystemEventHandler);
 
-        var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
+        var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
         var eventGridEvent = new EventGridEvent("subject", SystemEventNames.MediaJobCanceled, "version", BinaryData.FromString(@"{ ""outputs"": [] }"))
         {
             Topic = $"xzxzxzx{systemTopicPattern}xzxzxzx"
@@ -201,7 +196,7 @@ public class AzureSystemEventGridWebhookHandlerTests
         var azureSystemEventHandler = A.Fake<IAzureSystemEventHandler<MediaJobFinishedEventData>>();
         services.AddSingleton<IAzureSystemEventHandler<MediaJobFinishedEventData>>(azureSystemEventHandler);
 
-        var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator, _telemetryClientProvider);
+        var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
         var eventGridEvent = new EventGridEvent("subject", SystemEventNames.RedisPatchingCompleted, "version", BinaryData.FromString(@"{ ""name"": ""name"", ""timestamp"": ""timestamp"", ""status"": ""status"" }"))
         {
             Topic = $"SomeRedisTopic"
@@ -209,8 +204,5 @@ public class AzureSystemEventGridWebhookHandlerTests
 
         eventGridEvent.TryGetSystemEventData(out var systemEventData);
         await azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None);
-
-        // "Azure System event received. Cannot deserialize object"
-        A.CallTo(() => _telemetryClientProvider.TrackEvent(TelemetryConstants.AzureSystemEventDeserializationFailed, A<string>._, SystemEventNames.RedisPatchingCompleted, A<TelemetrySpan>._)).MustHaveHappenedOnceExactly();
     }
 }
