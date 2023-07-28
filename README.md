@@ -5,6 +5,12 @@
 
 ## Getting started
 
+|Package| Download Link                                                                                        | Description                                                                |
+|----|------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
+|Workleap.DomainEventPropagation.Abstractions| ![nuget](https://img.shields.io/nuget/v/Workleap.DomainEventPropagation.Abscratcions.svg?logo=nuget) | Contains abstractions that are used for publishing and recieveing messages |
+|Workleap.DomainEventPropagation.Publishing| ![nuget](https://img.shields.io/nuget/v/Workleap.DomainEventPropagation.Publishing.svg?logo=nuget)   | Contains classes for message publishing                                    |
+|Workleap.DomainEventPropagation.Subscription| ![nuget](https://img.shields.io/nuget/v/Workleap.DomainEventPropagation.Subscription.svg?logo=nuget) |  Contains classes for subscriptions                                        |
+
 ### What does the Workleap.DomainEventPropagation package do?
 * Provides list of existing Topics
 * Serializes domain events
