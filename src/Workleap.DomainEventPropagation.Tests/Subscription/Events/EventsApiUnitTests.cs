@@ -1,7 +1,6 @@
 using System.Net;
 using Azure.Messaging.EventGrid.SystemEvents;
 using FakeItEasy;
-using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Features;
 using Workleap.DomainEventPropagation.Events;
@@ -24,10 +23,8 @@ public class EventsApiUnitTests
     public async Task GivenEventsApiHandleEvent_WhenResultRequestTypeIsSubscription_ThenReturnsOkResultWithValidationCode()
     {
         // Given
-        var requestTelemetry = new RequestTelemetry();
         var httpContextFeatures = A.Fake<IFeatureCollection>();
 
-        A.CallTo(() => httpContextFeatures.Get<RequestTelemetry>()).Returns(requestTelemetry);
         A.CallTo(() => this._httpContext.Features).Returns(httpContextFeatures);
 
         var subscriptionValidationResponse = new SubscriptionValidationResponse
@@ -41,7 +38,7 @@ public class EventsApiUnitTests
             Response = subscriptionValidationResponse,
         };
 
-        A.CallTo(() => this._eventGridRequestHandler.HandleRequestAsync(A<object>._, A<CancellationToken>._, requestTelemetry)).Returns(Task.FromResult(eventGridRequestResult));
+        A.CallTo(() => this._eventGridRequestHandler.HandleRequestAsync(A<object>._, A<CancellationToken>._)).Returns(Task.FromResult(eventGridRequestResult));
 
         // When
         var actualResult = await EventsApi.HandleEventGridEvent(new object(), this._httpContext, this._eventGridRequestHandler, CancellationToken.None);
@@ -58,10 +55,8 @@ public class EventsApiUnitTests
     public async Task GivenEventsApiHandleEvent_WhenResultRequestTypeIsNotSubscription_ThenReturnsOkResult()
     {
         // Given
-        var requestTelemetry = new RequestTelemetry();
         var httpContextFeatures = A.Fake<IFeatureCollection>();
 
-        A.CallTo(() => httpContextFeatures.Get<RequestTelemetry>()).Returns(requestTelemetry);
         A.CallTo(() => this._httpContext.Features).Returns(httpContextFeatures);
 
         var eventGridRequestResult = new EventGridRequestResult
@@ -69,7 +64,7 @@ public class EventsApiUnitTests
             EventGridRequestType = EventGridRequestType.Event,
         };
 
-        A.CallTo(() => this._eventGridRequestHandler.HandleRequestAsync(A<object>._, A<CancellationToken>._, requestTelemetry)).Returns(Task.FromResult(eventGridRequestResult));
+        A.CallTo(() => this._eventGridRequestHandler.HandleRequestAsync(A<object>._, A<CancellationToken>._)).Returns(Task.FromResult(eventGridRequestResult));
 
         // When
         var actualResult = await EventsApi.HandleEventGridEvent(new object(), this._httpContext, this._eventGridRequestHandler, CancellationToken.None);

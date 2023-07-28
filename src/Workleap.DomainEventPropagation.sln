@@ -13,8 +13,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workleap.DomainEventPropaga
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workleap.DomainEventPropagation.Abstractions", "Workleap.DomainEventPropagation.Abstractions\Workleap.DomainEventPropagation.Abstractions.csproj", "{0E6521C9-28A3-40BC-B960-F558322E58E4}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workleap.DomainEventPropagation.Telemetry", "Workleap.DomainEventPropagation.Telemetry\Workleap.DomainEventPropagation.Telemetry.csproj", "{ED39F118-7E4B-4809-AC29-4D1EB9F4CF47}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workleap.DomainEventPropagation.Publishing", "Workleap.DomainEventPropagation.Publishing\Workleap.DomainEventPropagation.Publishing.csproj", "{C67FD6F4-FD02-4E5E-92A3-DAD15DD1DBBF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workleap.DomainEventPropagation.Subscription", "Workleap.DomainEventPropagation.Subscription\Workleap.DomainEventPropagation.Subscription.csproj", "{1109EBB3-EF74-4C84-85B5-FDE7975FC705}"
@@ -33,10 +31,6 @@ Global
 		{0E6521C9-28A3-40BC-B960-F558322E58E4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0E6521C9-28A3-40BC-B960-F558322E58E4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0E6521C9-28A3-40BC-B960-F558322E58E4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ED39F118-7E4B-4809-AC29-4D1EB9F4CF47}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ED39F118-7E4B-4809-AC29-4D1EB9F4CF47}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ED39F118-7E4B-4809-AC29-4D1EB9F4CF47}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ED39F118-7E4B-4809-AC29-4D1EB9F4CF47}.Release|Any CPU.Build.0 = Release|Any CPU
 		{C67FD6F4-FD02-4E5E-92A3-DAD15DD1DBBF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{C67FD6F4-FD02-4E5E-92A3-DAD15DD1DBBF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C67FD6F4-FD02-4E5E-92A3-DAD15DD1DBBF}.Release|Any CPU.ActiveCfg = Release|Any CPU

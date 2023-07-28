@@ -29,7 +29,6 @@ public static class ServiceCollectionEventPropagationExtensions
         services.AddSingleton<IDomainEventGridWebhookHandler, DomainEventGridWebhookHandler>();
         services.AddSingleton<IAzureSystemEventGridWebhookHandler, AzureSystemEventGridWebhookHandler>();
         services.AddSingleton<ISubscriptionTopicValidator, SubscriptionTopicValidator>();
-        services.AddSingleton<ITelemetryClientProvider, TelemetryClientProvider>();
         services.AddSingleton<IEventGridRequestHandler, EventGridRequestHandler>();
 
         services

@@ -32,9 +32,7 @@ public class EventPropagationClientTests
         this._eventGridPublisherClientFactory = A.Fake<IAzureClientFactory<EventGridPublisherClient>>(opts => opts.Strict());
         this._eventGridPublisherClient = A.Fake<EventGridPublisherClient>(opts => opts.Strict());
 
-        var telemetryClientProvider = A.Fake<ITelemetryClientProvider>();
-
-        this._eventPropagationClient = new EventPropagationClient(this._eventGridPublisherClientFactory, Options.Create(this._eventPropagationPublisherOptions), telemetryClientProvider);
+        this._eventPropagationClient = new EventPropagationClient(this._eventGridPublisherClientFactory, Options.Create(this._eventPropagationPublisherOptions));
     }
 
     [Fact]
@@ -43,7 +41,7 @@ public class EventPropagationClientTests
         A.CallTo(() => this._eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName)).Returns(this._eventGridPublisherClient);
 
         A.CallTo(() => this._eventGridPublisherClient.SendEventsAsync(
-                A<IEnumerable<EventGridEvent>>.That.Matches(events => events.Count() == 1), 
+                A<IEnumerable<EventGridEvent>>.That.Matches(events => events.Count() == 1),
                 A<CancellationToken>._))
             .Throws(A.Fake<Exception>());
 

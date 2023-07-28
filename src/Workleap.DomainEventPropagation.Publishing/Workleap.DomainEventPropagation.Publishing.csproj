@@ -37,7 +37,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Workleap.DomainEventPropagation.Abstractions\Workleap.DomainEventPropagation.Abstractions.csproj" />
-    <ProjectReference Include="..\Workleap.DomainEventPropagation.Telemetry\Workleap.DomainEventPropagation.Telemetry.csproj" />
   </ItemGroup>
 
   <ItemGroup>
