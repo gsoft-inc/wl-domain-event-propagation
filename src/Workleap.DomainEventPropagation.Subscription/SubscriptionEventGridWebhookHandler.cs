@@ -21,7 +21,7 @@ internal sealed class SubscriptionEventGridWebhookHandler : ISubscriptionEventGr
 
         var responseData = new SubscriptionValidationResponse
         {
-            ValidationResponse = subscriptionValidationEventData.ValidationCode
+            ValidationResponse = subscriptionValidationEventData.ValidationCode,
         };
 
         return responseData;

@@ -4,13 +4,6 @@ namespace Workleap.DomainEventPropagation.Events;
 
 internal static class EventsApi
 {
-    internal static class Routes
-    {
-        internal const string DomainEvents = "eventgrid/domainevents";
-
-        internal const string SystemEvents = "eventgrid/systemevents";
-    }
-
     internal static async Task<IResult> HandleEventGridEvent(
         object requestContent,
         HttpContext httpContext,
@@ -24,5 +17,12 @@ internal static class EventsApi
             EventGridRequestType.Subscription => Results.Ok(result.Response),
             _ => Results.Ok(),
         };
+    }
+
+    internal static class Routes
+    {
+        internal const string DomainEvents = "eventgrid/domainevents";
+
+        internal const string SystemEvents = "eventgrid/systemevents";
     }
 }

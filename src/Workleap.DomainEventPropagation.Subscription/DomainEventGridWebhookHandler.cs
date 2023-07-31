@@ -11,8 +11,7 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
 
     private static readonly JsonSerializerOptions SerializerOptions = new();
 
-    private static IEnumerable<Assembly> DomainEventAssemblies;
-
+    private static readonly IEnumerable<Assembly> DomainEventAssemblies = GetAssemblies();
     private readonly IServiceProvider _serviceProvider;
     private readonly ISubscriptionTopicValidator _subscriptionTopicValidator;
     private readonly ConcurrentDictionary<Type, MethodInfo> _handlerDictionary = new();
@@ -23,8 +22,6 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
     {
         this._serviceProvider = serviceProvider;
         this._subscriptionTopicValidator = subscriptionTopicValidator;
-
-        DomainEventAssemblies = GetAssemblies();
     }
 
     public async Task HandleEventGridWebhookEventAsync(EventGridEvent eventGridEvent, CancellationToken cancellationToken)
@@ -43,7 +40,11 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
                 continue;
             }
 
-            var domainEvent = (IDomainEvent)JsonSerializer.Deserialize(eventGridEvent.Data.ToString(), domainEventType, SerializerOptions);
+            var domainEvent = (IDomainEvent?)JsonSerializer.Deserialize(eventGridEvent.Data.ToString(), domainEventType, SerializerOptions);
+            if (domainEvent == null)
+            {
+                continue;
+            }
 
             await this.HandleDomainEventAsync(domainEvent, domainEventType, cancellationToken);
 

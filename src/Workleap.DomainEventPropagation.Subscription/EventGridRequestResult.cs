@@ -8,10 +8,3 @@ public sealed class EventGridRequestResult
 
     public EventGridRequestType EventGridRequestType { get; set; }
 }
-
-public enum EventGridRequestType
-{
-    Unknown,
-    Event,
-    Subscription,
-}

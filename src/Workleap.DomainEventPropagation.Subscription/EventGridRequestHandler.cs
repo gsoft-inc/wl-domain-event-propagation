@@ -47,7 +47,7 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
 
         return new EventGridRequestResult
         {
-            EventGridRequestType = EventGridRequestType.Event
+            EventGridRequestType = EventGridRequestType.Event,
         };
     }
 
@@ -60,7 +60,7 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
             return new EventGridRequestResult
             {
                 EventGridRequestType = EventGridRequestType.Subscription,
-                Response = response
+                Response = response,
             };
         }
         catch (Exception ex)
