@@ -97,7 +97,7 @@ public class ExampleDomainEventHandler : IDomainEventHandler<ExampleDomainEvent>
 }
 ```
 #### Restrictions
-* You may only define 1 domain event handler per domain event you wish to handle. If you would require more, use the 1 allowed domain event handler as a façade for multiple operations.
+* You may only define one domain event handler per domain event you wish to handle. If you would require more, use the single allowed domain event handler as a facade for multiple operations.
 * DomainEventHandlers must have idempotent behavior (you could execute it multiple times for the same event and the result would always be the same).
 * DomainEventHandlers should use the property DataVersion (when necessary)
 
