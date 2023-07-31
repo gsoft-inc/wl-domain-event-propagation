@@ -15,7 +15,7 @@
 * Provides list of existing Topics
 * Serializes domain events
 * Manages publication fields
-* Provides webhook endpoint (.net core only)
+* Provides webhook endpoint (.NET 6+ only)
 * Provides IDomainEvent and IDomainEventHandler<> interfaces
 * Deserializes domain events
 * Mediates call to DomainEventHandlers
