@@ -22,7 +22,7 @@ internal static class EventsApi
         return result.EventGridRequestType switch
         {
             EventGridRequestType.Subscription => Results.Ok(result.Response),
-            _ => Results.Ok()
+            _ => Results.Ok(),
         };
     }
 }

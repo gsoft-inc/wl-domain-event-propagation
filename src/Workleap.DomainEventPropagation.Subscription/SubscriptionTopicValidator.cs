@@ -18,7 +18,7 @@ internal sealed class SubscriptionTopicValidator : ISubscriptionTopicValidator
     {
         foreach (var subscribedTopic in this._eventPropagationSubscriberOptions.SubscribedTopics)
         {
-            foreach(var topicProvider in this._topicProviders)
+            foreach (var topicProvider in this._topicProviders)
             {
                 var topicValidationPattern = topicProvider.GetTopicValidationPattern(subscribedTopic);
                 if (topic.ToLowerInvariant().Contains(topicValidationPattern.ToLowerInvariant()))

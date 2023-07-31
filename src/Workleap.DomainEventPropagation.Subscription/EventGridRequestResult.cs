@@ -13,5 +13,5 @@ public enum EventGridRequestType
 {
     Unknown,
     Event,
-    Subscription
+    Subscription,
 }

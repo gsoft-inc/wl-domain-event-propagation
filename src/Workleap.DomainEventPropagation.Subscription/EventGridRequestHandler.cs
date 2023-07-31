@@ -34,7 +34,7 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
             {
                 if (systemEventData is SubscriptionValidationEventData subscriptionValidationEventData)
                 {
-                    return ProcessSubscriptionEvent(subscriptionValidationEventData, eventGridEvent.EventType, eventGridEvent.Topic);
+                    return this.ProcessSubscriptionEvent(subscriptionValidationEventData, eventGridEvent.EventType, eventGridEvent.Topic);
                 }
 
                 await this.ProcessAzureSystemEventAsync(eventGridEvent, systemEventData, cancellationToken);
