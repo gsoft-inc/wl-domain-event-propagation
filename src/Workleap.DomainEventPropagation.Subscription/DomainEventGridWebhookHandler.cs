@@ -78,7 +78,7 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
         // has references that would make a .Net Framework (as opposed to netstandard or core) project to fail
         var domainEventType = typeof(IDomainEvent);
         var domainEventAssemblies = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(x => x.FullName.StartsWith("Workleap") && !x.FullName.StartsWith("Workleap.EventPropagation.Common,"))
+            .Where(x => x.FullName != null && x.FullName.StartsWith("Workleap") && !x.FullName.StartsWith("Workleap.EventPropagation.Common,"))
             .SelectMany(s => s.GetTypes())
             .Where(p => !p.IsInterface && !p.IsAbstract && domainEventType.IsAssignableFrom(p))
             .Select(x => x.Assembly)
