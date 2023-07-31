@@ -12,7 +12,7 @@
 
 ### What does the Workleap.DomainEventPropagation package do?
 * Provides list of existing topics
-* Provides webhook endpoint (.NET 6+ only)
+* Provides webhook endpoint
 * Provides IDomainEvent and IDomainEventHandler<> interfaces
 * Deserializes domain events
 * Mediates call to DomainEventHandlers
