@@ -9,7 +9,7 @@
 |----|------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
 |Workleap.DomainEventPropagation.Abstractions| ![nuget](https://img.shields.io/nuget/v/Workleap.DomainEventPropagation.Abstractions.svg?logo=nuget) | Contains abstractions that are used for publishing and receiving events |
 |Workleap.DomainEventPropagation.Publishing| ![nuget](https://img.shields.io/nuget/v/Workleap.DomainEventPropagation.Publishing.svg?logo=nuget)   | Contains classes to publish events                                    |
-|Workleap.DomainEventPropagation.Subscription| ![nuget](https://img.shields.io/nuget/v/Workleap.DomainEventPropagation.Subscription.svg?logo=nuget) |  Contains classes for subscriptions                                        |
+|Workleap.DomainEventPropagation.Subscription| ![nuget](https://img.shields.io/nuget/v/Workleap.DomainEventPropagation.Subscription.svg?logo=nuget) |  Contains classes to subscribe to topics and receive events                                        |
 
 ### What does the Workleap.DomainEventPropagation package do?
 * Provides list of existing Topics
