@@ -105,7 +105,7 @@ public class ExampleDomainEventHandler : IDomainEventHandler<ExampleDomainEvent>
 
 To expose your service’s domain events, you must provide a NuGet package with all domain (class) definitions. Your project must reference the Workleap.EventPropagation package and your domain events must implement the IDomainEvent interface.
 
-```
+```csharp
 public class ExampleDomainEvent : IDomainEvent
 {
     public string CoolId { get; set; }
