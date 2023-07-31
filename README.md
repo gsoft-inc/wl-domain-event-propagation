@@ -1,6 +1,5 @@
 # Workleap.DomainEventPropagation
 
-[![nuget](https://img.shields.io/nuget/v/Workleap.DomainEventPropagation.svg?logo=nuget)](https://www.nuget.org/packages/Workleap.DomainEventPropagation/)
 [![build](https://img.shields.io/github/actions/workflow/status/gsoft-inc/workleap-domain-event-propagation/publish.yml?logo=github&branch=main)](https://github.com/gsoft-inc/workleap-domain-event-propagation/actions/workflows/publish.yml)
 
 ## Getting started
