@@ -25,3 +25,7 @@ Workleap.DomainEventPropagation.Extensions.EventPropagationSubscriberBuilderExte
 Workleap.DomainEventPropagation.Extensions.IEventPropagationSubscriberBuilder
 Workleap.DomainEventPropagation.Extensions.IEventPropagationSubscriberBuilder.Services.get -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 Workleap.DomainEventPropagation.Extensions.ServiceCollectionEventPropagationExtensions
+Workleap.DomainEventPropagation.EventGridRequestResult.EventGridRequestType.init -> void
+Workleap.DomainEventPropagation.EventGridRequestResult.Response.get -> Azure.Messaging.EventGrid.SystemEvents.SubscriptionValidationResponse?
+Workleap.DomainEventPropagation.EventGridRequestResult.Response.init -> void
+Workleap.DomainEventPropagation.EventGridRequestType
