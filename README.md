@@ -85,9 +85,9 @@ services.AddControllers().PartManager.ApplicationParts.Add(new AssemblyPart(type
 
 You must define domain event handlers for events you wish to handle. You are not obligated to handle every possible event from a topic.
 
-Domain event handlers must implement the IDomainEventHandler<> interface.
+Domain event handlers must implement the `IDomainEventHandler<>` interface.
 
-```
+```csharp
 public class ExampleDomainEventHandler : IDomainEventHandler<ExampleDomainEvent>
 {
     public Task HandleDomainEventAsync(ExampleDomainEvent domainEvent, CancellationToken cancellationToken)
