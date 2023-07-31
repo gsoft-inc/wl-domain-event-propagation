@@ -29,13 +29,13 @@ internal sealed class AzureSystemEventGridWebhookHandler : IAzureSystemEventGrid
 
         if (EventTypeMapping.TryGetEventDataTypeForEventType(eventGridEvent.EventType, out var eventDataType))
         {
-            await this.HandleAzureSystemEventAsync(systemEventData, eventGridEvent.EventType, eventDataType, cancellationToken);
+            await this.HandleAzureSystemEventAsync(systemEventData, eventDataType!, cancellationToken);
 
             return;
         }
     }
 
-    private async Task HandleAzureSystemEventAsync(object eventData, string eventGridEventType, Type eventDataType, CancellationToken cancellationToken)
+    private async Task HandleAzureSystemEventAsync(object eventData, Type eventDataType, CancellationToken cancellationToken)
     {
         var handlerType = typeof(IAzureSystemEventHandler<>).MakeGenericType(eventDataType);
 
@@ -52,6 +52,6 @@ internal sealed class AzureSystemEventGridWebhookHandler : IAzureSystemEventGrid
                    throw new InvalidOperationException($"No public method found with name {AzureSystemEventHandlerHandleMethod} on type {type.FullName}.");
         });
 
-        await (Task)handlerMethod.Invoke(handler, new object[] { eventData, cancellationToken });
+        await (Task)handlerMethod.Invoke(handler, new[] { eventData, cancellationToken })!;
     }
 }

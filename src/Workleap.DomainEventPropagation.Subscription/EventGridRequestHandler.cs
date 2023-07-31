@@ -86,6 +86,12 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
 
     private static IEnumerable<EventGridEvent> GetEventGridEventsFromRequestContent(object requestContent)
     {
-        return EventGridEvent.ParseMany(BinaryData.FromString(requestContent.ToString()));
+        var content = requestContent.ToString();
+        if (content == null)
+        {
+            throw new InvalidOperationException("Request content can't be null");
+        }
+        
+        return EventGridEvent.ParseMany(BinaryData.FromString(content));
     }
 }

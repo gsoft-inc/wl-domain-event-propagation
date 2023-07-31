@@ -69,7 +69,7 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
                    throw new InvalidOperationException($"No public method found with name {DomainEventHandlerHandleMethod} on type {type.FullName}.");
         });
 
-        await (Task)handlerMethod.Invoke(handler, new object[] { domainEvent, cancellationToken });
+        await (Task)handlerMethod.Invoke(handler, new object[] { domainEvent, cancellationToken })!;
     }
 
     private static IEnumerable<Assembly> GetAssemblies()
