@@ -51,15 +51,14 @@ Configuration is required. Configuration can be loaded from the appsettings file
 ```
 To publish an event, use the IEventPropagationClient interface (via injection). Use the PublishDomainEventAsync to publish the event. The required Subject field is a string description to provide context for the event.
 
-```
+```csharp
 var domainEvent = new ExampleDomainEvent
 {
     Id = Guid.NewGuid().ToString(),
     Date = DateTime.UtcNow
 };
 
-await this._eventPropagationClient.PublishDomainEventAsync(subject: "TestEventPublication", coolCandorEvent);
-```
+await this._eventPropagationClient.PublishDomainEventAsync(subject: "TestEventPublication", domainEvent);
 
 #### Restrictions
 * Your service can publish events on only 1 topic.
