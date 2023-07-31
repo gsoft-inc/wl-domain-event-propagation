@@ -69,8 +69,7 @@ When using ASP.NET Core with .NET 6+, you can register event propagation subscri
 ```csharp
 services
     .AddEventPropagationSubscriber()
-    .AddDomainEventHandlersFromAssembly(Assembly.GetExecutingAssembly())
-    .Configure(new[] { Topics.Organisation, Topics.Candor });
+    .AddDomainEventHandlersFromAssembly(Assembly.GetExecutingAssembly());
 
 // or add a single domain event handler
 .AddDomainEventHandler<ExampleDomainEventHandler>()
