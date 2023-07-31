@@ -67,7 +67,7 @@ await this._eventPropagationClient.PublishDomainEventAsync(subject: "TestEventPu
 ### Using the Workleap.EventPropagation package to subscribe to events
 When using ASP.NET Core with .NET 6+, you can register event propagation subscriptions at startup in the service collection. To configure the subscriber, the list of subscribed topics is required.
 
-```
+```csharp
 services
     .AddEventPropagationSubscriber()
     .AddDomainEventHandlersFromAssembly(Assembly.GetExecutingAssembly())
