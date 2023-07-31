@@ -25,7 +25,7 @@
 ### Using the Workleap.DomainEventPropagation.Publishing package to publish events
 
 When using dotnet core, you can register event propagation at startup in the service collection.
-```
+```csharp
 // Method 1: Lazily bind the options to a configuration section
 services.AddEventPropagationPublisher();
 services.AddOptions<EventPropagationPublisherOptions>().BindConfiguration(EventPropagationPublisherOptions.SectionName);
