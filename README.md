@@ -109,13 +109,13 @@ public class ExampleDomainEvent : IDomainEvent
 {
     public string CoolId { get; set; }
 
-    public DateTime CoolDate { get; set; }
+    public DateTime Date { get; set; }
 
     public string DataVersion => "1";
 }
 ```
 
-It is recommended to use a seperate pipeline to publish domain event definitions. Any existing pipeline can be reused with minor tweaks to achieve this.
+It is recommended to use a separate pipeline to publish domain event definitions. Any existing pipeline can be reused with minor tweaks to achieve this.
 
 #### Restrictions
 * Domain events must only contain Ids and types (any content is optional). In some rare cases, an immutable field could be added to the event, however this comes at risk of exposing PII information.
