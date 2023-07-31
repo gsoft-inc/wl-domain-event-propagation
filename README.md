@@ -123,7 +123,7 @@ It is recommended to use a seperate pipeline to publish domain event definitions
 * Changes to domain events should be additive
 * Domain events must implement the DataVersion property
 * Domain event projects should follow the pattern Workleap.[Service].[DomainEvents] (Service would usually match the topic name).
-* EventGrid limits event size to 64 kb. This means a regular event could contain a maximum of about 1500 Guid ids. Keep in mind the size restriction when sending batch events. Do not hesitate to split a larger event into multiple, smaller domain events.
+* Event Grid limits event size to 64 kb. This means a regular event could contain a maximum of about 1500 Guid ids. Keep in mind the size restriction when sending batch events. Do not hesitate to split a larger event into multiple, smaller domain events.
 
 ## Building, releasing and versioning
 
