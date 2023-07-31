@@ -11,14 +11,12 @@
 |Workleap.DomainEventPropagation.Subscription| ![nuget](https://img.shields.io/nuget/v/Workleap.DomainEventPropagation.Subscription.svg?logo=nuget) |  Contains classes to subscribe to topics and receive events                                        |
 
 ### What does the Workleap.DomainEventPropagation package do?
-* Provides list of existing Topics
-* Serializes domain events
-* Manages publication fields
+* Provides list of existing topics
 * Provides webhook endpoint (.NET 6+ only)
 * Provides IDomainEvent and IDomainEventHandler<> interfaces
 * Deserializes domain events
 * Mediates call to DomainEventHandlers
-* Validates configurations
+* Validates configuration
 * Handles topic subscriptions
 
 ### Using the Workleap.DomainEventPropagation.Publishing package to publish events
@@ -39,7 +37,6 @@ services.AddEventPropagationPublisher(opt =>
 ```
 Configuration is required. Configuration can be loaded from the appsettings file by passing the IConfiguration instance (see above). The topic access key should be stored securely in a key vault.
 ```json
-// appsettings.json
 {
   "EventPropagation": {
     "TopicName": "<topic_name_to_publish_to>",
