@@ -14,14 +14,11 @@ Workleap.DomainEventPropagation.EventPropagationPublisherOptionsValidator
 Workleap.DomainEventPropagation.EventPropagationPublisherOptionsValidator.EventPropagationPublisherOptionsValidator(System.Collections.Generic.IEnumerable<Workleap.DomainEventPropagation.ITopicProvider!>! topicProvider) -> void
 Workleap.DomainEventPropagation.EventPropagationPublisherOptionsValidator.Validate(string! name, Workleap.DomainEventPropagation.EventPropagationPublisherOptions! options) -> Microsoft.Extensions.Options.ValidateOptionsResult!
 Workleap.DomainEventPropagation.Exceptions.EventPropagationPublishingException
-Workleap.DomainEventPropagation.Exceptions.EventPropagationPublishingException.EventPropagationPublishingException(string! message, System.Exception! innerException) -> void
 Workleap.DomainEventPropagation.Exceptions.EventPropagationPublishingException.Subject.get -> string!
-Workleap.DomainEventPropagation.Exceptions.EventPropagationPublishingException.Subject.set -> void
 Workleap.DomainEventPropagation.Exceptions.EventPropagationPublishingException.TopicEndpoint.get -> string!
-Workleap.DomainEventPropagation.Exceptions.EventPropagationPublishingException.TopicEndpoint.set -> void
 Workleap.DomainEventPropagation.Exceptions.EventPropagationPublishingException.TopicName.get -> string!
-Workleap.DomainEventPropagation.Exceptions.EventPropagationPublishingException.TopicName.set -> void
 Workleap.DomainEventPropagation.Extensions.EventPropagationPublisherBuilderExtensions
 Workleap.DomainEventPropagation.Extensions.IEventPropagationPublisherBuilder
 Workleap.DomainEventPropagation.Extensions.IEventPropagationPublisherBuilder.Services.get -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 Workleap.DomainEventPropagation.Extensions.ServiceCollectionEventPropagationExtensions
+Workleap.DomainEventPropagation.Exceptions.EventPropagationPublishingException.EventPropagationPublishingException(string! message, System.Exception! innerException, string! topicName, string! subject, string! topicEndpoint) -> void
