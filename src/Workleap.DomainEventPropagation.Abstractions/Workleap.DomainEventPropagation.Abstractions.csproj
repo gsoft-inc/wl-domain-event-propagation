@@ -11,9 +11,6 @@
     <AssemblyOriginatorKeyFile>../Workleap.DomainEventPropagation.snk</AssemblyOriginatorKeyFile>
     <RootNamespace>Workleap.DomainEventPropagation</RootNamespace>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <NoWarn></NoWarn>
-  </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4">
