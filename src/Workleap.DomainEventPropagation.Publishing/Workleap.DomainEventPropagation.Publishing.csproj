@@ -19,6 +19,10 @@
     <Description>Domain event propagation publisher. Includes built-in EventGrid client and list of topics. Contact the Core team for any questions.</Description>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+    <NoWarn />
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Azure.Messaging.EventGrid" Version="4.17.0" />
     <PackageReference Include="GSoft.ComponentModel.DataAnnotations" Version="1.1.0" />
