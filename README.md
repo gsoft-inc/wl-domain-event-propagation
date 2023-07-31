@@ -49,7 +49,7 @@ Configuration is required. Configuration can be loaded from the appsettings file
   }
 }
 ```
-To publish an event, use the IEventPropagationClient interface (via injection). Use the PublishDomainEventAsync to publish the event. The required Subject field is a string description to provide context for the event.
+To publish an event, use the `IEventPropagationClient` interface (via dependency injection). Use the `PublishDomainEventAsync` to publish the event. The required subject parameter is a string description to provide context for the event.
 
 ```csharp
 var domainEvent = new ExampleDomainEvent
