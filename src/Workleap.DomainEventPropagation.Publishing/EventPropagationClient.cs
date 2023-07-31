@@ -33,7 +33,15 @@ internal sealed class EventPropagationClient : IEventPropagationClient
         => this.PublishDomainEventAsync(typeof(T).FullName, domainEvent, cancellationToken);
 
     public Task PublishDomainEventsAsync<T>(IEnumerable<T> domainEvents, CancellationToken cancellationToken) where T : IDomainEvent
-        => this.PublishDomainEventsAsync(typeof(T).FullName, domainEvents as IEnumerable<IDomainEvent>, cancellationToken);
+    {
+        var events = domainEvents as IEnumerable<IDomainEvent>;
+        if (events == null)
+        {
+            throw new InvalidOperationException("Can't cast domainEvents to IEnumerable<IDomainEvent>");
+        }
+
+        return this.PublishDomainEventsAsync(typeof(T).FullName, events, cancellationToken);
+    }
 
     public async Task PublishDomainEventsAsync(string subject, IEnumerable<IDomainEvent> domainEvents, CancellationToken cancellationToken)
     {
@@ -41,17 +49,13 @@ internal sealed class EventPropagationClient : IEventPropagationClient
         {
             var eventGridEvents = this.GetEventsList(subject, domainEvents);
 
-            await this._eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName).SendEventsAsync(eventGridEvents, cancellationToken);
-
+            await this._eventGridPublisherClientFactory
+                .CreateClient(EventPropagationPublisherOptions.ClientName)
+                .SendEventsAsync(eventGridEvents, cancellationToken);
         }
         catch (Exception ex)
         {
-            var exception = new EventPropagationPublishingException("An error occured while publishing events to EventGrid", ex)
-            {
-                TopicName = this.TopicName,
-                Subject = subject,
-                TopicEndpoint = this._eventPropagationPublisherOptions.TopicEndpoint
-            };
+            var exception = new EventPropagationPublishingException("An error occured while publishing events to EventGrid", ex, this.TopicName, subject, this._eventPropagationPublisherOptions.TopicEndpoint);
 
             throw exception;
         }
