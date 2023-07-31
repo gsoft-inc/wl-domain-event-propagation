@@ -8,7 +8,7 @@
 |Package| Download Link                                                                                        | Description                                                                |
 |----|------------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------|
 |Workleap.DomainEventPropagation.Abstractions| ![nuget](https://img.shields.io/nuget/v/Workleap.DomainEventPropagation.Abstractions.svg?logo=nuget) | Contains abstractions that are used for publishing and receiving events |
-|Workleap.DomainEventPropagation.Publishing| ![nuget](https://img.shields.io/nuget/v/Workleap.DomainEventPropagation.Publishing.svg?logo=nuget)   | Contains classes for message publishing                                    |
+|Workleap.DomainEventPropagation.Publishing| ![nuget](https://img.shields.io/nuget/v/Workleap.DomainEventPropagation.Publishing.svg?logo=nuget)   | Contains classes to publish events                                    |
 |Workleap.DomainEventPropagation.Subscription| ![nuget](https://img.shields.io/nuget/v/Workleap.DomainEventPropagation.Subscription.svg?logo=nuget) |  Contains classes for subscriptions                                        |
 
 ### What does the Workleap.DomainEventPropagation package do?
