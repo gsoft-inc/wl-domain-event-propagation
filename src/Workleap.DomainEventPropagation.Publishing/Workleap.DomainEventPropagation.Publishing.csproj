@@ -19,8 +19,8 @@
     <Description>Domain event propagation publisher. Includes built-in EventGrid client and list of topics. Contact the Core team for any questions.</Description>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-    <NoWarn />
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
+    <AnalysisLevel>6.0-All</AnalysisLevel>
   </PropertyGroup>
 
   <ItemGroup>
