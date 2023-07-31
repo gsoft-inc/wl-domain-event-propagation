@@ -33,7 +33,7 @@ services.AddOptions<EventPropagationPublisherOptions>().BindConfiguration(EventP
 // Method 2: Set options values directly in C#
 services.AddEventPropagationPublisher(opt =>
 {
-  opt.TopicName = "<topic_name_to _publish_to>",
+  opt.TopicName = "<topic_name_to_publish_to>",
   opt.TopicAccessKey = "<provided from keyVault>",
   opt.TopicEndpoint = "<azure_topic_uri>"
 });
