@@ -51,7 +51,8 @@ internal sealed class EventPropagationClient : IEventPropagationClient
 
             await this._eventGridPublisherClientFactory
                 .CreateClient(EventPropagationPublisherOptions.ClientName)
-                .SendEventsAsync(eventGridEvents, cancellationToken);
+                .SendEventsAsync(eventGridEvents, cancellationToken)
+                .ConfigureAwait(false);
         }
         catch (Exception ex)
         {
