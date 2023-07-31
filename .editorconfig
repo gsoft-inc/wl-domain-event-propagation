@@ -4,13 +4,10 @@ root = true
 indent_style = space
 charset = utf-8
 
-[*.{csproj,yml,yaml,conf}]
+[*.{csproj,yml,yaml,conf,targets,json}]
 indent_size = 2
 
 [Directory.Build.props]
-indent_size = 2
-
-[nuget.config]
 indent_size = 2
 
 [*.{css,scss,js,ps1}]
