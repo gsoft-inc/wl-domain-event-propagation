@@ -14,9 +14,6 @@ Workleap.DomainEventPropagation.EventGridRequestResult
 Workleap.DomainEventPropagation.EventGridRequestResult.EventGridRequestResult() -> void
 Workleap.DomainEventPropagation.EventGridRequestResult.EventGridRequestType.get -> Workleap.DomainEventPropagation.EventGridRequestType
 Workleap.DomainEventPropagation.EventGridRequestResult.EventGridRequestType.set -> void
-Workleap.DomainEventPropagation.EventGridRequestResult.Response.get -> Azure.Messaging.EventGrid.SystemEvents.SubscriptionValidationResponse!
-Workleap.DomainEventPropagation.EventGridRequestResult.Response.set -> void
-Workleap.DomainEventPropagation.EventGridRequestType
 Workleap.DomainEventPropagation.EventGridRequestType.Event = 1 -> Workleap.DomainEventPropagation.EventGridRequestType
 Workleap.DomainEventPropagation.EventGridRequestType.Subscription = 2 -> Workleap.DomainEventPropagation.EventGridRequestType
 Workleap.DomainEventPropagation.EventGridRequestType.Unknown = 0 -> Workleap.DomainEventPropagation.EventGridRequestType
