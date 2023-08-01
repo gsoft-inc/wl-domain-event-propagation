@@ -56,10 +56,6 @@ var domainEvent = new ExampleDomainEvent
 
 await this._eventPropagationClient.PublishDomainEventAsync(subject: "TestEventPublication", domainEvent);
 
-#### Restrictions
-* Your service can publish events on only 1 topic.
-* The topic the service publishes to must be in the Topics class provided by the Workleap.EventPropagation package.
-
 ### Using the Workleap.EventPropagation package to subscribe to events
 When using ASP.NET Core with .NET 6+, you can register event propagation subscriptions at startup in the service collection. To configure the subscriber, the list of subscribed topics is required.
 
