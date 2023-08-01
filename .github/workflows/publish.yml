@@ -19,9 +19,8 @@ jobs:
         with:
           dotnet-version: "6.0.x"
       
-      # TODO: Enable back once packages are ready to be published
-      # - run: ./Build.ps1
-      #   shell: pwsh
-      #   env:
-      #     NUGET_SOURCE: ${{ secrets.NUGET_SOURCE }}
-      #     NUGET_API_KEY: ${{ secrets.GSOFTINC_NUGET_API_KEY }}
+      - run: ./Build.ps1
+        shell: pwsh
+        env:
+          NUGET_SOURCE: ${{ secrets.NUGET_SOURCE }}
+          NUGET_API_KEY: ${{ secrets.WORKLEAP_NUGET_API_KEY }}
