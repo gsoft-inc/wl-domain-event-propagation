@@ -25,10 +25,9 @@ Process {
         Exec { & dotnet test  -c Release --no-build --results-directory "$outputDir" --no-restore -l "trx" -l "console;verbosity=detailed" }
         Exec { & dotnet pack  -c Release --no-build -o "$outputDir" }
 
-        # TODO: Re-enable once packages are ready to be published
-        # if (($null -ne $env:NUGET_SOURCE ) -and ($null -ne $env:NUGET_API_KEY)) {
-        #     Exec { & dotnet nuget push "$nupkgsPath" -s $env:NUGET_SOURCE -k $env:NUGET_API_KEY }
-        # }
+        if (($null -ne $env:NUGET_SOURCE ) -and ($null -ne $env:NUGET_API_KEY)) {
+            Exec { & dotnet nuget push "$nupkgsPath" -s $env:NUGET_SOURCE -k $env:NUGET_API_KEY }
+        }
     }
     finally {
         Pop-Location
