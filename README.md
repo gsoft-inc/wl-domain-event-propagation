@@ -67,9 +67,12 @@ services
 // or add a single domain event handler
 .AddDomainEventHandler<ExampleDomainEventHandler>()
 ```
-An API endpoint must be made available to receive events from the Event Grid topic. The package provides this endpoint for ASP.NET Core projects. It can be added like so:
+This can be used to register endpoint to receive events
 ```
-services.AddControllers().PartManager.ApplicationParts.Add(new AssemblyPart(typeof(EventGridController).Assembly));
+app.UseEndpoints(builder =>
+{
+    builder.AddEventPropagationEndpoints();
+});
 ```
 
 #### Define domain event handlers
