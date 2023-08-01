@@ -7,6 +7,9 @@ charset = utf-8
 [*.{csproj,yml,yaml,conf,targets,json}]
 indent_size = 2
 
+[nuget.config]
+indent_size = 2
+
 [Directory.Build.props]
 indent_size = 2
 
