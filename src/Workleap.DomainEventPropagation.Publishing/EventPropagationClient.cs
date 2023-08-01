@@ -37,7 +37,7 @@ internal sealed class EventPropagationClient : IEventPropagationClient
         var events = domainEvents as IEnumerable<IDomainEvent>;
         if (events == null)
         {
-            throw new InvalidOperationException("Can't cast domainEvents to IEnumerable<IDomainEvent>");
+            throw new ArgumentException("Can't cast domainEvents to IEnumerable<IDomainEvent>");
         }
 
         return this.PublishDomainEventsAsync(typeof(T).FullName, events, cancellationToken);
