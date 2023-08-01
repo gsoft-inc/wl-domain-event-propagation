@@ -29,7 +29,7 @@ public class RegistrationTest
         services.AddEventPropagationSubscriber()
             .AddDomainEventHandlersFromAssembly(typeof(DomainEventHandler).Assembly);
 
-        await using var serviceProvider = services.BuildServiceProvider();
+        using var serviceProvider = services.BuildServiceProvider();
         var domainEventGridWebhookHandler = serviceProvider.GetRequiredService<IDomainEventGridWebhookHandler>();
 
         try
