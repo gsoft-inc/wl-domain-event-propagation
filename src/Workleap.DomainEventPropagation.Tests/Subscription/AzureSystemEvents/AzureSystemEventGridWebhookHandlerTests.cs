@@ -37,7 +37,7 @@ public class AzureSystemEventGridWebhookHandlerTests
             Assert.Fail("Could not deserialize the event data of type 'MediaJobFinishedEventData' as a valid Azure System Event");
         }
 
-        await azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None);
+        await azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None).ConfigureAwait(false);
 
         A.CallTo(() => azureSystemEventHandler.HandleAzureSystemEventAsync(A<MediaJobFinishedEventData>._, A<CancellationToken>._)).MustNotHaveHappened();
     }
@@ -70,7 +70,7 @@ public class AzureSystemEventGridWebhookHandlerTests
             Assert.Fail("Could not deserialize the event data of type 'MediaJobFinishedEventData' as a valid Azure System Event");
         }
 
-        await azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None);
+        await azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None).ConfigureAwait(false);
 
         A.CallTo(() => azureSystemEventHandler.HandleAzureSystemEventAsync(A<MediaJobFinishedEventData>._, A<CancellationToken>._)).MustNotHaveHappened();
     }
@@ -104,7 +104,7 @@ public class AzureSystemEventGridWebhookHandlerTests
             Assert.Fail("Could not deserialize the event data of type 'MediaJobFinishedEventData' as a valid Azure System Event");
         }
 
-        await azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None);
+        await azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None).ConfigureAwait(false);
 
         A.CallTo(() => azureSystemEventHandler.HandleAzureSystemEventAsync(A<MediaJobFinishedEventData>._, A<CancellationToken>._)).MustHaveHappenedOnceExactly();
     }
@@ -176,7 +176,7 @@ public class AzureSystemEventGridWebhookHandlerTests
             Assert.Fail("Could not deserialize the event data of type 'MediaJobCanceledEventData' as a valid Azure System Event");
         }
 
-        await Assert.ThrowsAsync<TargetInvocationException>(() => azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None));
+        await Assert.ThrowsAsync<TargetInvocationException>(() => azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None)).ConfigureAwait(false);
 
         A.CallTo(() => azureSystemEventHandler.HandleAzureSystemEventAsync(A<MediaJobCanceledEventData>._, A<CancellationToken>._)).MustHaveHappenedOnceExactly();
     }
@@ -203,6 +203,6 @@ public class AzureSystemEventGridWebhookHandlerTests
         };
 
         eventGridEvent.TryGetSystemEventData(out var systemEventData);
-        await azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None);
+        await azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None).ConfigureAwait(false);
     }
 }

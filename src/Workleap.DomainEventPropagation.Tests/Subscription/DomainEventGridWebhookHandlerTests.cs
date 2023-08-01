@@ -31,7 +31,7 @@ public class DomainEventGridWebhookHandlerTests
         await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", new TestDomainEvent { Number = 1, Text = "Hello" })
         {
             Topic = "UnregisteredTopic"
-        }, CancellationToken.None);
+        }, CancellationToken.None).ConfigureAwait(false);
 
         A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestDomainEvent>._, A<CancellationToken>._)).MustNotHaveHappened();
     }
@@ -55,7 +55,7 @@ public class DomainEventGridWebhookHandlerTests
         await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }))
         {
             Topic = OrganizationTopicName
-        }, CancellationToken.None);
+        }, CancellationToken.None).ConfigureAwait(false);
 
         A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestDomainEvent>._, A<CancellationToken>._)).MustNotHaveHappened();
     }
@@ -79,7 +79,7 @@ public class DomainEventGridWebhookHandlerTests
         await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }))
         {
             Topic = OrganizationTopicName
-        }, CancellationToken.None);
+        }, CancellationToken.None).ConfigureAwait(false);
 
         A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestDomainEvent>._, CancellationToken.None)).MustHaveHappenedOnceExactly();
     }
@@ -103,7 +103,7 @@ public class DomainEventGridWebhookHandlerTests
         await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }))
         {
             Topic = OrganizationTopicName
-        }, CancellationToken.None);
+        }, CancellationToken.None).ConfigureAwait(false);
 
         A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestDomainEvent>._, CancellationToken.None)).MustHaveHappenedOnceExactly();
     }
@@ -166,7 +166,7 @@ public class DomainEventGridWebhookHandlerTests
         await Assert.ThrowsAsync<TargetInvocationException>(() => domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestExceptionDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestExceptionDomainEvent { Number = 1, Text = "Hello" }))
         {
             Topic = OrganizationTopicName
-        }, CancellationToken.None));
+        }, CancellationToken.None)).ConfigureAwait(false);
 
         A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestExceptionDomainEvent>._, CancellationToken.None)).MustHaveHappenedOnceExactly();
     }
@@ -190,6 +190,6 @@ public class DomainEventGridWebhookHandlerTests
         await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", "SomeNamepsace.OhNo.Hohoa", "version", JsonSerializer.Serialize(new TestDomainEvent { Number = 1, Text = "Hello" }))
         {
             Topic = OrganizationTopicName
-        }, CancellationToken.None);
+        }, CancellationToken.None).ConfigureAwait(false);
     }
 }

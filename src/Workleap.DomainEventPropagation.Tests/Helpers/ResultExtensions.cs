@@ -36,7 +36,7 @@ internal static class ResultExtensions
             }
         };
 
-        await result.ExecuteAsync(tempContext);
+        await result.ExecuteAsync(tempContext).ConfigureAwait(false);
 
         var status = (HttpStatusCode)tempContext.Response.StatusCode;
 
@@ -44,7 +44,7 @@ internal static class ResultExtensions
 
         using var streamReader = new StreamReader(tempContext.Response.Body);
 
-        var body = await streamReader.ReadToEndAsync();
+        var body = await streamReader.ReadToEndAsync().ConfigureAwait(false);
 
         if (body is not { Length: > 0 })
         {

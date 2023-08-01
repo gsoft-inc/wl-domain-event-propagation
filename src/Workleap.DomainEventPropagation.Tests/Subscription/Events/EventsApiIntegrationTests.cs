@@ -69,12 +69,12 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
         var content = new StringContent(serializedContent, Encoding.UTF8, MediaTypeNames.Application.Json);
 
         // When
-        var response = await this._httpClient.PostAsync("/eventgrid/domainevents", content);
+        var response = await this._httpClient.PostAsync("/eventgrid/domainevents", content).ConfigureAwait(false);
 
         // Then
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var subscriptionValidationResponse = await response.Content.ReadFromJsonAsync<SubscriptionValidationResponse>(SerializerOptions);
+        var subscriptionValidationResponse = await response.Content.ReadFromJsonAsync<SubscriptionValidationResponse>(SerializerOptions).ConfigureAwait(false);
 
         Assert.Equal(subscriptionValidationEventData.ValidationCode, subscriptionValidationResponse.ValidationResponse);
     }
@@ -103,7 +103,7 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
         var content = new StringContent(JsonSerializer.Serialize(eventGridEvent), Encoding.UTF8, MediaTypeNames.Application.Json);
 
         // When
-        var response = await this._httpClient.PostAsync("/eventgrid/domainevents", content);
+        var response = await this._httpClient.PostAsync("/eventgrid/domainevents", content).ConfigureAwait(false);
 
         // Then
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

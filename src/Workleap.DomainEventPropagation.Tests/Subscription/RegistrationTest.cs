@@ -43,7 +43,7 @@ public class RegistrationTest
                 Topic = OrganizationTopicName
             };
 
-            await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, CancellationToken.None);
+            await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, CancellationToken.None).ConfigureAwait(false);
         }
         catch (Exception e)
         {
@@ -61,7 +61,7 @@ public class RegistrationTest
                 Topic = OrganizationTopicName
             };
 
-            await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, CancellationToken.None);
+            await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, CancellationToken.None).ConfigureAwait(false);
         }
         catch (Exception e)
         {
@@ -99,7 +99,7 @@ public class RegistrationTest
                 Assert.Fail("Could not deserialize the event data of type 'MediaJobFinishedEventData' as a valid Azure System Event");
             }
 
-            await azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None);
+            await azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None).ConfigureAwait(false);
         }
         catch (Exception e)
         {
@@ -123,7 +123,7 @@ public class RegistrationTest
                 Assert.Fail("Could not deserialize the event data of type 'MediaJobErroredEventData' as a valid Azure System Event");
             }
 
-            await azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None);
+            await azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, CancellationToken.None).ConfigureAwait(false);
         }
         catch (Exception e)
         {
