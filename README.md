@@ -31,7 +31,7 @@ services.AddEventPropagationPublisher(opt =>
 });
 
 // Method 3: Use RBAC
-
+services.AddEventPropagationPublisher(o => o.TokenCredential = new ManagedIdentityCredential());
 ```
 Configuration is required. Configuration can be loaded from the appsettings file by passing the IConfiguration instance (see above). The topic access key should be stored securely in a key vault.
 ```json
@@ -53,8 +53,9 @@ var domainEvent = new ExampleDomainEvent
 };
 
 await this._eventPropagationClient.PublishDomainEventAsync(subject: "TestEventPublication", domainEvent);
+```
 
-### Using the Workleap.EventPropagation package to subscribe to events
+### Using the Workleap.EventPropagation.Subscription package to subscribe to events
 When using ASP.NET Core with .NET 6+, you can register event propagation subscriptions at startup in the service collection. To configure the subscriber, the list of subscribed topics is required.
 
 ```csharp
@@ -100,7 +101,7 @@ To expose your service’s domain events, you must provide a NuGet package with 
 ```csharp
 public class ExampleDomainEvent : IDomainEvent
 {
-    public string CoolId { get; set; }
+    public string Id { get; set; }
 
     public DateTime Date { get; set; }
 
