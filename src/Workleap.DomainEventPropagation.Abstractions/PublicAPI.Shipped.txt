@@ -11,3 +11,4 @@ Workleap.DomainEventPropagation.ITopicProvider
 Workleap.DomainEventPropagation.ITopicProvider.GetAllTopicsNames() -> System.Collections.Generic.IEnumerable<string!>!
 Workleap.DomainEventPropagation.ITopicProvider.GetAllTopicValidationPatterns() -> System.Collections.Generic.IEnumerable<string!>!
 Workleap.DomainEventPropagation.ITopicProvider.GetTopicValidationPattern(string! topicName) -> string!
+Workleap.DomainEventPropagation.IEventPropagationClient.PublishDomainEventsAsync<T>(string! subject, System.Collections.Generic.IEnumerable<T>! domainEvents, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
