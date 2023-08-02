@@ -43,7 +43,7 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
             var domainEvent = (IDomainEvent?)JsonSerializer.Deserialize(eventGridEvent.Data.ToString(), domainEventType, SerializerOptions);
             if (domainEvent == null)
             {
-                continue;
+                throw new InvalidOperationException($"Can't deserialize event Id: {eventGridEvent.Id}; Subject: {eventGridEvent.Subject}; Data version: {eventGridEvent.DataVersion}.");
             }
 
             await this.HandleDomainEventAsync(domainEvent, domainEventType, cancellationToken).ConfigureAwait(false);
