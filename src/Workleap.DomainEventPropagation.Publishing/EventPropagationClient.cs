@@ -33,13 +33,19 @@ internal sealed class EventPropagationClient : IEventPropagationClient
         => this.PublishDomainEventAsync(typeof(T).FullName, domainEvent, cancellationToken);
 
     public Task PublishDomainEventsAsync<T>(IEnumerable<T> domainEvents, CancellationToken cancellationToken) where T : IDomainEvent
-        => this.PublishDomainEventsAsync(typeof(T).FullName, domainEvents as IEnumerable<IDomainEvent>, cancellationToken);
+        => this.PublishDomainEventsAsync(typeof(T).FullName, domainEvents, cancellationToken);
 
-    public async Task PublishDomainEventsAsync(string subject, IEnumerable<IDomainEvent> domainEvents, CancellationToken cancellationToken)
+    public async Task PublishDomainEventsAsync<T>(string subject, IEnumerable<T> domainEvents, CancellationToken cancellationToken) where T : IDomainEvent
     {
+        var events = domainEvents as IEnumerable<IDomainEvent>;
+        if (events == null)
+        {
+            throw new ArgumentException($"Can't cast domainEvents to {nameof(IEnumerable<IDomainEvent>)}");
+        }
+        
         try
         {
-            var eventGridEvents = this.GetEventsList(subject, domainEvents);
+            var eventGridEvents = this.GetEventsList(subject, events);
 
             await this._eventGridPublisherClientFactory
                 .CreateClient(EventPropagationPublisherOptions.ClientName)
