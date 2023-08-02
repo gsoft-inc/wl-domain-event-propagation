@@ -10,7 +10,7 @@ internal static class EventsApi
         IEventGridRequestHandler eventGridRequestHandler,
         CancellationToken cancellationToken)
     {
-        var result = await eventGridRequestHandler.HandleRequestAsync(requestContent, cancellationToken);
+        var result = await eventGridRequestHandler.HandleRequestAsync(requestContent, cancellationToken).ConfigureAwait(false);
 
         return result.EventGridRequestType switch
         {

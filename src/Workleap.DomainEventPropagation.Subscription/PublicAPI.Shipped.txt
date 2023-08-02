@@ -1,5 +1,4 @@
 #nullable enable
-
 const Workleap.DomainEventPropagation.EventPropagationSubscriberOptions.SectionName = "EventPropagation:Subscriber" -> string!
 static Workleap.DomainEventPropagation.AzureSystemEvents.EventTypeMapping.TryGetEventDataTypeForEventType(string! eventType, out System.Type? eventDataType) -> bool
 static Workleap.DomainEventPropagation.Extensions.EventPropagationSubscriberBuilderExtensions.AddAzureSystemEventHandler<TAzureSystemEventHandler>(this Workleap.DomainEventPropagation.Extensions.IEventPropagationSubscriberBuilder! builder) -> Workleap.DomainEventPropagation.Extensions.IEventPropagationSubscriberBuilder!
@@ -14,6 +13,10 @@ Workleap.DomainEventPropagation.AzureSystemEvents.EventTypeMapping
 Workleap.DomainEventPropagation.EventGridRequestResult
 Workleap.DomainEventPropagation.EventGridRequestResult.EventGridRequestResult() -> void
 Workleap.DomainEventPropagation.EventGridRequestResult.EventGridRequestType.get -> Workleap.DomainEventPropagation.EventGridRequestType
+Workleap.DomainEventPropagation.EventGridRequestResult.EventGridRequestType.init -> void
+Workleap.DomainEventPropagation.EventGridRequestResult.Response.get -> Azure.Messaging.EventGrid.SystemEvents.SubscriptionValidationResponse?
+Workleap.DomainEventPropagation.EventGridRequestResult.Response.init -> void
+Workleap.DomainEventPropagation.EventGridRequestType
 Workleap.DomainEventPropagation.EventGridRequestType.Event = 1 -> Workleap.DomainEventPropagation.EventGridRequestType
 Workleap.DomainEventPropagation.EventGridRequestType.Subscription = 2 -> Workleap.DomainEventPropagation.EventGridRequestType
 Workleap.DomainEventPropagation.EventGridRequestType.Unknown = 0 -> Workleap.DomainEventPropagation.EventGridRequestType
@@ -25,7 +28,3 @@ Workleap.DomainEventPropagation.Extensions.EventPropagationSubscriberBuilderExte
 Workleap.DomainEventPropagation.Extensions.IEventPropagationSubscriberBuilder
 Workleap.DomainEventPropagation.Extensions.IEventPropagationSubscriberBuilder.Services.get -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 Workleap.DomainEventPropagation.Extensions.ServiceCollectionEventPropagationExtensions
-Workleap.DomainEventPropagation.EventGridRequestResult.EventGridRequestType.init -> void
-Workleap.DomainEventPropagation.EventGridRequestResult.Response.get -> Azure.Messaging.EventGrid.SystemEvents.SubscriptionValidationResponse?
-Workleap.DomainEventPropagation.EventGridRequestResult.Response.init -> void
-Workleap.DomainEventPropagation.EventGridRequestType

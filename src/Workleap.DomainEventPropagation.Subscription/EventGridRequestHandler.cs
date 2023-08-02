@@ -37,11 +37,11 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
                     return this.ProcessSubscriptionEvent(subscriptionValidationEventData, eventGridEvent.EventType, eventGridEvent.Topic);
                 }
 
-                await this.ProcessAzureSystemEventAsync(eventGridEvent, systemEventData, cancellationToken);
+                await this.ProcessAzureSystemEventAsync(eventGridEvent, systemEventData, cancellationToken).ConfigureAwait(false);
             }
             else if (!string.IsNullOrEmpty(eventGridEvent.Topic))
             {
-                await this.ProcessDomainEventAsync(eventGridEvent, cancellationToken);
+                await this.ProcessDomainEventAsync(eventGridEvent, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -53,20 +53,13 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
 
     private EventGridRequestResult ProcessSubscriptionEvent(SubscriptionValidationEventData subscriptionValidationEventData, string eventType, string eventTopic)
     {
-        try
-        {
-            var response = this._subscriptionEventGridWebhookHandler.HandleEventGridSubscriptionEvent(subscriptionValidationEventData, eventType, eventTopic);
+        var response = this._subscriptionEventGridWebhookHandler.HandleEventGridSubscriptionEvent(subscriptionValidationEventData, eventType, eventTopic);
 
-            return new EventGridRequestResult
-            {
-                EventGridRequestType = EventGridRequestType.Subscription,
-                Response = response,
-            };
-        }
-        catch (Exception ex)
+        return new EventGridRequestResult
         {
-            throw;
-        }
+            EventGridRequestType = EventGridRequestType.Subscription,
+            Response = response,
+        };
     }
 
     private async Task ProcessDomainEventAsync(EventGridEvent eventGridEvent, CancellationToken cancellationToken)
@@ -76,12 +69,12 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
         Activity.Current?.AddBaggage("EventId", eventGridEvent.Id);
 
         // TODO: Assign the correlation ID to the request telemetry when OpenTelemetry is fully supported
-        await this._domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, cancellationToken);
+        await this._domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task ProcessAzureSystemEventAsync(EventGridEvent eventGridEvent, object systemEventData, CancellationToken cancellationToken)
     {
-        await this._azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, cancellationToken);
+        await this._azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, cancellationToken).ConfigureAwait(false);
     }
 
     private static IEnumerable<EventGridEvent> GetEventGridEventsFromRequestContent(object requestContent)
