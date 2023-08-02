@@ -22,3 +22,5 @@ Workleap.DomainEventPropagation.Extensions.IEventPropagationPublisherBuilder
 Workleap.DomainEventPropagation.Extensions.IEventPropagationPublisherBuilder.Services.get -> Microsoft.Extensions.DependencyInjection.IServiceCollection!
 Workleap.DomainEventPropagation.Extensions.ServiceCollectionEventPropagationExtensions
 Workleap.DomainEventPropagation.Exceptions.EventPropagationPublishingException.EventPropagationPublishingException(string! message, System.Exception! innerException, string! topicName, string! subject, string! topicEndpoint) -> void
+Workleap.DomainEventPropagation.EventPropagationPublisherOptions.TokenCredential.get -> Azure.Core.TokenCredential?
+Workleap.DomainEventPropagation.EventPropagationPublisherOptions.TokenCredential.set -> void
