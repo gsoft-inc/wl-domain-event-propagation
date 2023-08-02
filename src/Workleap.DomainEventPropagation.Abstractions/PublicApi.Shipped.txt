@@ -6,7 +6,6 @@ Workleap.DomainEventPropagation.IDomainEventHandler<TDomainEvent>.HandleDomainEv
 Workleap.DomainEventPropagation.IEventPropagationClient
 Workleap.DomainEventPropagation.IEventPropagationClient.PublishDomainEventAsync(string! subject, Workleap.DomainEventPropagation.IDomainEvent! domainEvent, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 Workleap.DomainEventPropagation.IEventPropagationClient.PublishDomainEventAsync<T>(T domainEvent, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
-Workleap.DomainEventPropagation.IEventPropagationClient.PublishDomainEventsAsync(string! subject, System.Collections.Generic.IEnumerable<Workleap.DomainEventPropagation.IDomainEvent!>! domainEvents, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 Workleap.DomainEventPropagation.IEventPropagationClient.PublishDomainEventsAsync<T>(System.Collections.Generic.IEnumerable<T>! domainEvents, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 Workleap.DomainEventPropagation.ITopicProvider
 Workleap.DomainEventPropagation.ITopicProvider.GetAllTopicsNames() -> System.Collections.Generic.IEnumerable<string!>!
