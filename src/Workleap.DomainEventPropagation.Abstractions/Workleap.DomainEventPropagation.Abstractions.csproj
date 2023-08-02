@@ -1,7 +1,5 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <!-- Temporarily disable public API analyzers until API has been stabilized -->
-    <NoWarn>RS0016,RS0037,$(NoWarn)</NoWarn>
     <TargetFramework>netstandard2.0</TargetFramework>
     <IsPackable>true</IsPackable>
     <IncludeSymbols>true</IncludeSymbols>
