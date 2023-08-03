@@ -41,10 +41,10 @@ public class EventsApiUnitTests
         A.CallTo(() => this._eventGridRequestHandler.HandleRequestAsync(A<object>._, A<CancellationToken>._)).Returns(Task.FromResult(eventGridRequestResult));
 
         // When
-        var actualResult = await EventsApi.HandleEventGridEvent(new object(), this._httpContext, this._eventGridRequestHandler, CancellationToken.None).ConfigureAwait(false);
+        var actualResult = await EventsApi.HandleEventGridEvent(new object(), this._httpContext, this._eventGridRequestHandler, CancellationToken.None);
 
         // Then
-        var (data, statusCode) = await actualResult.GetResponseAsync<SubscriptionValidationResponse>().ConfigureAwait(false);
+        var (data, statusCode) = await actualResult.GetResponseAsync<SubscriptionValidationResponse>();
 
         Assert.Equal(HttpStatusCode.OK, statusCode);
         Assert.NotNull(data);
@@ -67,10 +67,10 @@ public class EventsApiUnitTests
         A.CallTo(() => this._eventGridRequestHandler.HandleRequestAsync(A<object>._, A<CancellationToken>._)).Returns(Task.FromResult(eventGridRequestResult));
 
         // When
-        var actualResult = await EventsApi.HandleEventGridEvent(new object(), this._httpContext, this._eventGridRequestHandler, CancellationToken.None).ConfigureAwait(false);
+        var actualResult = await EventsApi.HandleEventGridEvent(new object(), this._httpContext, this._eventGridRequestHandler, CancellationToken.None);
 
         // Then
-        var (data, statusCode) = await actualResult.GetResponseAsync<object>().ConfigureAwait(false);
+        var (data, statusCode) = await actualResult.GetResponseAsync<object>();
 
         Assert.Equal(HttpStatusCode.OK, statusCode);
         Assert.Null(data);

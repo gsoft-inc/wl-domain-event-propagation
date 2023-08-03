@@ -11,10 +11,6 @@
     <Description>Domain event propagation subscriber. Includes controller, handlers and list of topics. Contact the Core team for any questions.</Description>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
-    <AnalysisLevel>6.0-All</AnalysisLevel>
-  </PropertyGroup>
-
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>

@@ -16,15 +16,6 @@ public class EventPropagationClientTests
     private readonly EventGridPublisherClient _eventGridPublisherClient;
     private readonly PublishTestDomainEvent _domainEvent;
 
-    internal class PublishTestDomainEvent : IDomainEvent
-    {
-        public string Text { get; set; }
-
-        public int Number { get; set; }
-
-        public string DataVersion => "1";
-    }
-
     public EventPropagationClientTests()
     {
         this._domainEvent = new PublishTestDomainEvent();
@@ -45,7 +36,7 @@ public class EventPropagationClientTests
                 A<CancellationToken>._))
             .Throws(A.Fake<Exception>());
 
-        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(() => this._eventPropagationClient.PublishDomainEventAsync(Subject, this._domainEvent, CancellationToken.None)).ConfigureAwait(false);
+        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(() => this._eventPropagationClient.PublishDomainEventAsync(Subject, this._domainEvent, CancellationToken.None));
 
         Assert.Equal(this._eventPropagationPublisherOptions.TopicEndpoint, exception.TopicEndpoint);
         Assert.Equal(Subject, exception.Subject);
@@ -62,7 +53,7 @@ public class EventPropagationClientTests
                 A<CancellationToken>._))
             .Throws(A.Fake<Exception>());
 
-        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(() => this._eventPropagationClient.PublishDomainEventAsync(new PublishTestDomainEvent(), CancellationToken.None)).ConfigureAwait(false);
+        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(() => this._eventPropagationClient.PublishDomainEventAsync(new PublishTestDomainEvent(), CancellationToken.None));
 
         Assert.Equal(this._eventPropagationPublisherOptions.TopicEndpoint, exception.TopicEndpoint);
         Assert.Equal(typeof(PublishTestDomainEvent).FullName, exception.Subject);
@@ -81,7 +72,7 @@ public class EventPropagationClientTests
 
         var domainEvents = new List<PublishTestDomainEvent> { this._domainEvent, new() };
 
-        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(() => this._eventPropagationClient.PublishDomainEventsAsync(domainEvents, CancellationToken.None)).ConfigureAwait(false);
+        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(() => this._eventPropagationClient.PublishDomainEventsAsync(domainEvents, CancellationToken.None));
 
         Assert.Equal(this._eventPropagationPublisherOptions.TopicEndpoint, exception.TopicEndpoint);
         Assert.Equal(typeof(PublishTestDomainEvent).FullName, exception.Subject);
@@ -98,7 +89,7 @@ public class EventPropagationClientTests
                 A<CancellationToken>._))
             .Returns(Task.FromResult(A.Fake<Azure.Response>()));
 
-        await this._eventPropagationClient.PublishDomainEventAsync(Subject, this._domainEvent, CancellationToken.None).ConfigureAwait(false);
+        await this._eventPropagationClient.PublishDomainEventAsync(Subject, this._domainEvent, CancellationToken.None);
     }
 
     [Fact]
@@ -111,7 +102,7 @@ public class EventPropagationClientTests
                 A<CancellationToken>._))
             .Returns(Task.FromResult(A.Fake<Azure.Response>()));
 
-        await this._eventPropagationClient.PublishDomainEventAsync(this._domainEvent, CancellationToken.None).ConfigureAwait(false);
+        await this._eventPropagationClient.PublishDomainEventAsync(this._domainEvent, CancellationToken.None);
     }
 
     [Fact]
@@ -126,6 +117,15 @@ public class EventPropagationClientTests
                 A<CancellationToken>._))
             .Returns(Task.FromResult(A.Fake<Azure.Response>()));
 
-        await this._eventPropagationClient.PublishDomainEventsAsync(domainEvents, CancellationToken.None).ConfigureAwait(false);
+        await this._eventPropagationClient.PublishDomainEventsAsync(domainEvents, CancellationToken.None);
+    }
+
+    internal class PublishTestDomainEvent : IDomainEvent
+    {
+        public string Text { get; set; } = string.Empty;
+
+        public int Number { get; set; }
+
+        public string DataVersion => "1";
     }
 }

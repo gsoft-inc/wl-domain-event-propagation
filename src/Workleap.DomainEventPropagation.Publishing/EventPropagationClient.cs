@@ -26,26 +26,29 @@ internal sealed class EventPropagationClient : IEventPropagationClient
 
     private string TopicName => this._eventPropagationPublisherOptions.TopicName;
 
-    public Task PublishDomainEventAsync(string subject, IDomainEvent domainEvent, CancellationToken cancellationToken)
+    public Task PublishDomainEventAsync<T>(string subject, T domainEvent, CancellationToken cancellationToken)
+        where T : IDomainEvent
         => this.PublishDomainEventsAsync(subject, new[] { domainEvent }, cancellationToken);
 
-    public Task PublishDomainEventAsync<T>(T domainEvent, CancellationToken cancellationToken) where T : IDomainEvent
-        => this.PublishDomainEventAsync(typeof(T).FullName, domainEvent, cancellationToken);
+    public Task PublishDomainEventAsync<T>(T domainEvent, CancellationToken cancellationToken)
+        where T : IDomainEvent
+        => this.PublishDomainEventAsync(typeof(T).FullName!, domainEvent, cancellationToken);
 
-    public Task PublishDomainEventsAsync<T>(IEnumerable<T> domainEvents, CancellationToken cancellationToken) where T : IDomainEvent
-        => this.PublishDomainEventsAsync(typeof(T).FullName, domainEvents, cancellationToken);
+    public Task PublishDomainEventsAsync<T>(IEnumerable<T> domainEvents, CancellationToken cancellationToken)
+        where T : IDomainEvent
+        => this.PublishDomainEventsAsync(typeof(T).FullName!, domainEvents, cancellationToken);
 
-    public async Task PublishDomainEventsAsync<T>(string subject, IEnumerable<T> domainEvents, CancellationToken cancellationToken) where T : IDomainEvent
+    public async Task PublishDomainEventsAsync<T>(string subject, IEnumerable<T> domainEvents, CancellationToken cancellationToken)
+        where T : IDomainEvent
     {
-        var events = domainEvents as IEnumerable<IDomainEvent>;
-        if (events == null)
+        if (domainEvents == null)
         {
-            throw new ArgumentException($"Can't cast domainEvents to {nameof(IEnumerable<IDomainEvent>)}");
+            throw new ArgumentNullException(nameof(domainEvents));
         }
-        
+
         try
         {
-            var eventGridEvents = this.GetEventsList(subject, events);
+            var eventGridEvents = this.GetEventsList(subject, domainEvents);
 
             await this._eventGridPublisherClientFactory
                 .CreateClient(EventPropagationPublisherOptions.ClientName)
@@ -54,13 +57,11 @@ internal sealed class EventPropagationClient : IEventPropagationClient
         }
         catch (Exception ex)
         {
-            var exception = new EventPropagationPublishingException("An error occured while publishing events to EventGrid", ex, this.TopicName, subject, this._eventPropagationPublisherOptions.TopicEndpoint);
-
-            throw exception;
+            throw new EventPropagationPublishingException("An error occured while publishing events to EventGrid", ex, this.TopicName, subject, this._eventPropagationPublisherOptions.TopicEndpoint);
         }
     }
 
-    private IEnumerable<EventGridEvent> GetEventsList(string subject, IEnumerable<IDomainEvent> domainEvents)
+    private IEnumerable<EventGridEvent> GetEventsList<T>(string subject, IEnumerable<T> domainEvents) where T : IDomainEvent
     {
         // TODO: Propagate correlation ID by setting data with "telemetryCorrelationId" property when OpenTelemetry is fully supported
         return domainEvents.Select(domainEvent => new EventGridEvent(

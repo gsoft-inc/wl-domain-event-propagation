@@ -25,7 +25,7 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
     {
         if (requestContent == null)
         {
-            throw new ArgumentException("Request content cannot be null.");
+            throw new ArgumentNullException(nameof(requestContent));
         }
 
         foreach (var eventGridEvent in GetEventGridEventsFromRequestContent(requestContent))

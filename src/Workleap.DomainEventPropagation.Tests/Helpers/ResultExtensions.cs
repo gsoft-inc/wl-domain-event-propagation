@@ -33,10 +33,10 @@ internal static class ResultExtensions
             {
                 // The default response body is Stream.Null which would throw otherwise
                 Body = new MemoryStream(),
-            }
+            },
         };
 
-        await result.ExecuteAsync(tempContext).ConfigureAwait(false);
+        await result.ExecuteAsync(tempContext);
 
         var status = (HttpStatusCode)tempContext.Response.StatusCode;
 
@@ -44,7 +44,7 @@ internal static class ResultExtensions
 
         using var streamReader = new StreamReader(tempContext.Response.Body);
 
-        var body = await streamReader.ReadToEndAsync().ConfigureAwait(false);
+        var body = await streamReader.ReadToEndAsync();
 
         if (body is not { Length: > 0 })
         {

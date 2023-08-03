@@ -29,9 +29,13 @@ public class SubscriptionEventWebhookHandlerTests
 
         var type = typeof(SubscriptionValidationEventData);
         var subscriptionEvent = (SubscriptionValidationEventData)type.Assembly.CreateInstance(
-            type.FullName, false,
+            type.FullName!,
+            ignoreCase: false,
             BindingFlags.Instance | BindingFlags.NonPublic,
-            null, new object[] { validationCode.ToString(), "url" }, null, null);
+            binder: null,
+            new object[] { validationCode.ToString(), "url" },
+            null,
+            null)!;
 
         var subscriptionEventWebhookHandler = new SubscriptionEventGridWebhookHandler(subscriptionTopicValidatorMock.Object);
         var response = subscriptionEventWebhookHandler.HandleEventGridSubscriptionEvent(subscriptionEvent, "eventType", "SubscribedTopic");
