@@ -9,15 +9,15 @@ namespace Workleap.DomainEventPropagation.AzureSystemEvents;
 /// </summary>
 public static class EventTypeMapping
 {
-    public static bool TryGetEventDataTypeForEventType(string eventType, out Type? eventDataType)
-    {
-        return Mapping.TryGetValue(eventType, out eventDataType);
-    }
-        
     private static IDictionary<string, Type> Mapping => new Dictionary<string, Type>
     {
         { SystemEventNames.MediaJobFinished, typeof(MediaJobFinishedEventData) },
         { SystemEventNames.MediaJobCanceled, typeof(MediaJobCanceledEventData) },
-        { SystemEventNames.MediaJobErrored, typeof(MediaJobErroredEventData) }
+        { SystemEventNames.MediaJobErrored, typeof(MediaJobErroredEventData) },
     };
+
+    public static bool TryGetEventDataTypeForEventType(string eventType, out Type? eventDataType)
+    {
+        return Mapping.TryGetValue(eventType, out eventDataType);
+    }
 }

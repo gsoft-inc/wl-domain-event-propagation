@@ -17,18 +17,18 @@ public class AzureSystemEventGridWebhookHandlerTests
         var eventProcessingBuilder = services.AddEventPropagationSubscriber();
         eventProcessingBuilder.AddAzureSystemEventHandlersFromAssembly(typeof(AzureSystemEventGridWebhookHandlerTests).Assembly);
 
-        //Given 1
+        // Given 1
         var subscriptionTopicValidator = A.Fake<ISubscriptionTopicValidator>();
         A.CallTo(() => subscriptionTopicValidator.IsSubscribedToTopic(A<EventGridEvent>._)).Returns(false);
 
-        //Given 2
+        // Given 2
         var azureSystemEventHandler = A.Fake<IAzureSystemEventHandler<MediaJobFinishedEventData>>();
         services.AddSingleton<IAzureSystemEventHandler<MediaJobFinishedEventData>>(azureSystemEventHandler);
 
         var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
         var eventGridEvent = new EventGridEvent("subject", SystemEventNames.MediaJobFinished, "version", BinaryData.FromString(@"{ ""outputs"": [] }"))
         {
-            Topic = "UnregisteredTopic"
+            Topic = "UnregisteredTopic",
         };
 
         var wasParsedAsSystemEvent = eventGridEvent.TryGetSystemEventData(out var systemEventData);
@@ -51,17 +51,17 @@ public class AzureSystemEventGridWebhookHandlerTests
         var eventProcessingBuilder = services.AddEventPropagationSubscriber();
         eventProcessingBuilder.AddAzureSystemEventHandlersFromAssembly(typeof(AzureSystemEventGridWebhookHandlerTests).Assembly);
 
-        //Given 1
+        // Given 1
         var subscriptionTopicValidator = A.Fake<ISubscriptionTopicValidator>();
         A.CallTo(() => subscriptionTopicValidator.IsSubscribedToTopic(A<string>._)).Returns(true);
 
-        //No eventHandler is registered
+        // No eventHandler is registered
         var azureSystemEventHandler = A.Fake<IAzureSystemEventHandler<MediaJobFinishedEventData>>();
 
         var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
         var eventGridEvent = new EventGridEvent("subject", SystemEventNames.MediaJobFinished, "version", BinaryData.FromString(@"{ ""outputs"": [] }"))
         {
-            Topic = $"xzxzxzx{systemTopicPattern}xzxzxzx"
+            Topic = $"xzxzxzx{systemTopicPattern}xzxzxzx",
         };
 
         var wasParsedAsSystemEvent = eventGridEvent.TryGetSystemEventData(out var systemEventData);
@@ -95,7 +95,7 @@ public class AzureSystemEventGridWebhookHandlerTests
         var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
         var eventGridEvent = new EventGridEvent("subject", SystemEventNames.MediaJobFinished, "version", BinaryData.FromString(@"{ ""outputs"": [] }"))
         {
-            Topic = $"xzxzxzx{systemTopicPattern}xzxzxzx"
+            Topic = $"xzxzxzx{systemTopicPattern}xzxzxzx",
         };
 
         var wasParsedAsSystemEvent = eventGridEvent.TryGetSystemEventData(out var systemEventData);
@@ -167,7 +167,7 @@ public class AzureSystemEventGridWebhookHandlerTests
         var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
         var eventGridEvent = new EventGridEvent("subject", SystemEventNames.MediaJobCanceled, "version", BinaryData.FromString(@"{ ""outputs"": [] }"))
         {
-            Topic = $"xzxzxzx{systemTopicPattern}xzxzxzx"
+            Topic = $"xzxzxzx{systemTopicPattern}xzxzxzx",
         };
 
         var wasParsedAsSystemEvent = eventGridEvent.TryGetSystemEventData(out var systemEventData);
@@ -199,7 +199,7 @@ public class AzureSystemEventGridWebhookHandlerTests
         var azureSystemEventGridWebhookHandler = new AzureSystemEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
         var eventGridEvent = new EventGridEvent("subject", SystemEventNames.RedisPatchingCompleted, "version", BinaryData.FromString(@"{ ""name"": ""name"", ""timestamp"": ""timestamp"", ""status"": ""status"" }"))
         {
-            Topic = $"SomeRedisTopic"
+            Topic = $"SomeRedisTopic",
         };
 
         eventGridEvent.TryGetSystemEventData(out var systemEventData);

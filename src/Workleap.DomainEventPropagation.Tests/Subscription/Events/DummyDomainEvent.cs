@@ -4,7 +4,7 @@ public sealed class DummyDomainEvent : IDomainEvent
 {
     public string DataVersion => "1.0";
 
-    public string PropertyA { get; set; }
+    public string PropertyA { get; set; } = string.Empty;
 
     public int PropertyB { get; set; }
 }

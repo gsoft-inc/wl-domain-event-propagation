@@ -7,6 +7,6 @@ public sealed class RegistrationTestAzureSystemEventHandlerTwo : IAzureSystemEve
 {
     public Task HandleAzureSystemEventAsync(MapsGeofenceEnteredEventData azureSystemEvent, CancellationToken cancellationToken)
     {
-        throw new System.NotImplementedException();
+        throw new NotImplementedException();
     }
 }

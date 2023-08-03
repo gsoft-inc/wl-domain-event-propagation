@@ -12,7 +12,7 @@ internal sealed class SubscriptionEventGridWebhookHandler : ISubscriptionEventGr
         this._subscriptionTopicValidator = subscriptionTopicValidator;
     }
 
-    public SubscriptionValidationResponse HandleEventGridSubscriptionEvent(SubscriptionValidationEventData subscriptionValidationEventData, string eventType, string eventTopic)
+    public SubscriptionValidationResponse? HandleEventGridSubscriptionEvent(SubscriptionValidationEventData subscriptionValidationEventData, string eventType, string eventTopic)
     {
         if (!this._subscriptionTopicValidator.IsSubscribedToTopic(eventTopic))
         {
@@ -21,7 +21,7 @@ internal sealed class SubscriptionEventGridWebhookHandler : ISubscriptionEventGr
 
         var responseData = new SubscriptionValidationResponse
         {
-            ValidationResponse = subscriptionValidationEventData.ValidationCode
+            ValidationResponse = subscriptionValidationEventData.ValidationCode,
         };
 
         return responseData;

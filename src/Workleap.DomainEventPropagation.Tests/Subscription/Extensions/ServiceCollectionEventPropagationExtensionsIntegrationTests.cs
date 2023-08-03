@@ -7,13 +7,13 @@ namespace Workleap.DomainEventPropagation.Tests.Subscription.Extensions;
 
 public class ServiceCollectionEventPropagationExtensionsIntegrationTests
 {
-    private readonly IServiceCollection _services;
-
     private static readonly IReadOnlyList<string> AllTopics = new List<string>
     {
         "Organization",
-        "Users"
+        "Users",
     };
+
+    private readonly IServiceCollection _services;
 
     public ServiceCollectionEventPropagationExtensionsIntegrationTests()
     {

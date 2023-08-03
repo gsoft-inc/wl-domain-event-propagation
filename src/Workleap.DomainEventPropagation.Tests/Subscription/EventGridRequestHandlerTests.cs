@@ -20,7 +20,7 @@ public class EventGridRequestHandlerTests
             azureSystemEventGridWebhookHandlerMock.Object,
             subscriptionEventGridWebhookHandlerMock.Object);
 
-        await Assert.ThrowsAsync<ArgumentException>(() => eventGridRequestHandler.HandleRequestAsync(null, CancellationToken.None));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => eventGridRequestHandler.HandleRequestAsync(null!, CancellationToken.None));
     }
 
     [Fact]
@@ -45,6 +45,7 @@ public class EventGridRequestHandlerTests
 
         // Then
         Assert.NotNull(result);
+        Assert.NotNull(result.Response);
         Assert.Equal(validationCode, result.Response.ValidationResponse);
         Assert.Equal(EventGridRequestType.Subscription, result.EventGridRequestType);
     }
@@ -97,6 +98,7 @@ public class EventGridRequestHandlerTests
 
         // Then
         Assert.NotNull(result);
+        Assert.NotNull(result.Response);
         Assert.Equal(validationCode, result.Response.ValidationResponse);
         Assert.Equal(EventGridRequestType.Subscription, result.EventGridRequestType);
     }

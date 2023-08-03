@@ -19,19 +19,20 @@ public class DomainEventGridWebhookHandlerTests
         var eventProcessingBuilder = services.AddEventPropagationSubscriber();
         eventProcessingBuilder.AddDomainEventHandlersFromAssembly(typeof(DomainEventGridWebhookHandlerTests).Assembly);
 
-        //Given 1
+        // Given 1
         var subscriptionTopicValidator = A.Fake<ISubscriptionTopicValidator>();
         A.CallTo(() => subscriptionTopicValidator.IsSubscribedToTopic(A<string>._)).Returns(false);
 
-        //Given 2
+        // Given 2
         var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
         services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler);
 
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
-        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", new TestDomainEvent { Number = 1, Text = "Hello" })
+        var domainEvent = new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", new TestDomainEvent { Number = 1, Text = "Hello" })
         {
-            Topic = "UnregisteredTopic"
-        }, CancellationToken.None);
+            Topic = "UnregisteredTopic",
+        };
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
+        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(domainEvent, CancellationToken.None);
 
         A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestDomainEvent>._, A<CancellationToken>._)).MustNotHaveHappened();
     }
@@ -43,19 +44,19 @@ public class DomainEventGridWebhookHandlerTests
         var eventProcessingBuilder = services.AddEventPropagationSubscriber();
         eventProcessingBuilder.AddDomainEventHandlersFromAssembly(typeof(DomainEventGridWebhookHandlerTests).Assembly);
 
-        //Given 1
+        // Given 1
         var subscriptionTopicValidator = A.Fake<ISubscriptionTopicValidator>();
         A.CallTo(() => subscriptionTopicValidator.IsSubscribedToTopic(A<string>._)).Returns(true);
 
-        //No eventHandler is registered
+        // No eventHandler is registered
         var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
 
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
-
-        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }))
+        var domainEvent = new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }))
         {
-            Topic = OrganizationTopicName
-        }, CancellationToken.None);
+            Topic = OrganizationTopicName,
+        };
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
+        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(domainEvent, CancellationToken.None);
 
         A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestDomainEvent>._, A<CancellationToken>._)).MustNotHaveHappened();
     }
@@ -75,11 +76,12 @@ public class DomainEventGridWebhookHandlerTests
         var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
         services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler);
 
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
-        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }))
+        var domainEvent = new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }))
         {
-            Topic = OrganizationTopicName
-        }, CancellationToken.None);
+            Topic = OrganizationTopicName,
+        };
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
+        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(domainEvent, CancellationToken.None);
 
         A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestDomainEvent>._, CancellationToken.None)).MustHaveHappenedOnceExactly();
     }
@@ -91,7 +93,7 @@ public class DomainEventGridWebhookHandlerTests
         var eventProcessingBuilder = services.AddEventPropagationSubscriber();
         eventProcessingBuilder.AddDomainEventHandlersFromAssembly(typeof(DomainEventGridWebhookHandlerTests).Assembly);
 
-        //Given 1
+        // Given 1
         var subscriptionTopicValidator = A.Fake<ISubscriptionTopicValidator>();
         A.CallTo(() => subscriptionTopicValidator.IsSubscribedToTopic(A<string>._)).Returns(true);
 
@@ -99,11 +101,12 @@ public class DomainEventGridWebhookHandlerTests
         var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
         services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler);
 
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
-        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }))
+        var domainEvent = new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }))
         {
-            Topic = OrganizationTopicName
-        }, CancellationToken.None);
+            Topic = OrganizationTopicName,
+        };
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
+        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(domainEvent, CancellationToken.None);
 
         A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestDomainEvent>._, CancellationToken.None)).MustHaveHappenedOnceExactly();
     }
@@ -163,10 +166,14 @@ public class DomainEventGridWebhookHandlerTests
 
         var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
 
-        await Assert.ThrowsAsync<TargetInvocationException>(() => domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", typeof(TestExceptionDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestExceptionDomainEvent { Number = 1, Text = "Hello" }))
+        await Assert.ThrowsAsync<TargetInvocationException>(() =>
         {
-            Topic = OrganizationTopicName
-        }, CancellationToken.None));
+            var domainEvent = new EventGridEvent("subject", typeof(TestExceptionDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestExceptionDomainEvent { Number = 1, Text = "Hello" }))
+            {
+                Topic = OrganizationTopicName,
+            };
+            return domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(domainEvent, CancellationToken.None);
+        });
 
         A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestExceptionDomainEvent>._, CancellationToken.None)).MustHaveHappenedOnceExactly();
     }
@@ -186,10 +193,12 @@ public class DomainEventGridWebhookHandlerTests
         var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
         services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler);
 
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
-        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(new EventGridEvent("subject", "SomeNamepsace.OhNo.Hohoa", "version", JsonSerializer.Serialize(new TestDomainEvent { Number = 1, Text = "Hello" }))
+        var domainEvent = new EventGridEvent("subject", "SomeNamepsace.OhNo.Hohoa", "version", JsonSerializer.Serialize(new TestDomainEvent { Number = 1, Text = "Hello" }))
         {
-            Topic = OrganizationTopicName
-        }, CancellationToken.None);
+            Topic = OrganizationTopicName,
+        };
+
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), subscriptionTopicValidator);
+        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(domainEvent, CancellationToken.None);
     }
 }
