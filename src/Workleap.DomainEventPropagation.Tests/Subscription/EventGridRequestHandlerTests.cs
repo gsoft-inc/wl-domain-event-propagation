@@ -1,7 +1,6 @@
 using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
 using Moq;
-using Workleap.DomainEventPropagation.AzureSystemEvents;
 
 namespace Workleap.DomainEventPropagation.Tests.Subscription;
 
@@ -12,12 +11,10 @@ public class EventGridRequestHandlerTests
     {
         // Given
         var domainEventGridWebhookHandlerMock = new Mock<IDomainEventGridWebhookHandler>();
-        var azureSystemEventGridWebhookHandlerMock = new Mock<IAzureSystemEventGridWebhookHandler>();
         var subscriptionEventGridWebhookHandlerMock = new Mock<ISubscriptionEventGridWebhookHandler>();
 
         var eventGridRequestHandler = new EventGridRequestHandler(
             domainEventGridWebhookHandlerMock.Object,
-            azureSystemEventGridWebhookHandlerMock.Object,
             subscriptionEventGridWebhookHandlerMock.Object);
 
         await Assert.ThrowsAsync<ArgumentNullException>(() => eventGridRequestHandler.HandleRequestAsync(null!, CancellationToken.None));
@@ -29,7 +26,6 @@ public class EventGridRequestHandlerTests
         // Given
         var validationCode = Guid.NewGuid().ToString();
         var domainEventGridWebhookHandlerMock = new Mock<IDomainEventGridWebhookHandler>();
-        var azureSystemEventGridWebhookHandlerMock = new Mock<IAzureSystemEventGridWebhookHandler>();
         var subscriptionEventGridWebhookHandlerMock = new Mock<ISubscriptionEventGridWebhookHandler>();
         subscriptionEventGridWebhookHandlerMock
             .Setup(x => x.HandleEventGridSubscriptionEvent(It.IsAny<SubscriptionValidationEventData>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -38,7 +34,6 @@ public class EventGridRequestHandlerTests
         // When
         var eventGridRequestHandler = new EventGridRequestHandler(
             domainEventGridWebhookHandlerMock.Object,
-            azureSystemEventGridWebhookHandlerMock.Object,
             subscriptionEventGridWebhookHandlerMock.Object);
 
         var result = await eventGridRequestHandler.HandleRequestAsync(GetEventGridSubscriptionRequest(validationCode), CancellationToken.None);
@@ -56,7 +51,6 @@ public class EventGridRequestHandlerTests
         // Given
         var validationCode = Guid.NewGuid().ToString();
         var domainEventGridWebhookHandlerMock = new Mock<IDomainEventGridWebhookHandler>();
-        var azureSystemEventGridWebhookHandlerMock = new Mock<IAzureSystemEventGridWebhookHandler>();
         var subscriptionEventGridWebhookHandlerMock = new Mock<ISubscriptionEventGridWebhookHandler>();
         subscriptionEventGridWebhookHandlerMock
             .Setup(x => x.HandleEventGridSubscriptionEvent(It.IsAny<SubscriptionValidationEventData>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -65,7 +59,6 @@ public class EventGridRequestHandlerTests
         // When
         var eventGridRequestHandler = new EventGridRequestHandler(
             domainEventGridWebhookHandlerMock.Object,
-            azureSystemEventGridWebhookHandlerMock.Object,
             subscriptionEventGridWebhookHandlerMock.Object);
 
         var exception = await Assert.ThrowsAsync<Exception>(() => eventGridRequestHandler.HandleRequestAsync(GetEventGridSubscriptionRequest(validationCode), CancellationToken.None));
@@ -81,7 +74,6 @@ public class EventGridRequestHandlerTests
         var validationCode = Guid.NewGuid().ToString();
 
         var domainEventGridWebhookHandlerMock = new Mock<IDomainEventGridWebhookHandler>();
-        var azureSystemEventGridWebhookHandlerMock = new Mock<IAzureSystemEventGridWebhookHandler>();
         var subscriptionEventGridWebhookHandlerMock = new Mock<ISubscriptionEventGridWebhookHandler>();
         subscriptionEventGridWebhookHandlerMock
             .Setup(x => x.HandleEventGridSubscriptionEvent(It.IsAny<SubscriptionValidationEventData>(), It.IsAny<string>(), It.IsAny<string>()))
@@ -90,7 +82,6 @@ public class EventGridRequestHandlerTests
         // When
         var eventGridRequestHandler = new EventGridRequestHandler(
             domainEventGridWebhookHandlerMock.Object,
-            azureSystemEventGridWebhookHandlerMock.Object,
             subscriptionEventGridWebhookHandlerMock.Object);
 
         var request = GetEventGridSubscriptionRequest(validationCode);
@@ -108,7 +99,6 @@ public class EventGridRequestHandlerTests
     {
         // Given
         var subscriptionEventGridWebhookHandlerMock = new Mock<ISubscriptionEventGridWebhookHandler>();
-        var azureSystemEventGridWebhookHandlerMock = new Mock<IAzureSystemEventGridWebhookHandler>();
 
         var domainEventGridWebhookHandlerMock = new Mock<IDomainEventGridWebhookHandler>();
         domainEventGridWebhookHandlerMock.Setup(x => x.HandleEventGridWebhookEventAsync(It.IsAny<EventGridEvent>(), CancellationToken.None)).Returns(Task.CompletedTask);
@@ -116,7 +106,6 @@ public class EventGridRequestHandlerTests
         // When
         var eventGridRequestHandler = new EventGridRequestHandler(
             domainEventGridWebhookHandlerMock.Object,
-            azureSystemEventGridWebhookHandlerMock.Object,
             subscriptionEventGridWebhookHandlerMock.Object);
 
         var request = GetEventGridDomainEventRequest();
@@ -125,32 +114,6 @@ public class EventGridRequestHandlerTests
         // Then
         Assert.NotNull(result);
         Assert.Equal(EventGridRequestType.Event, result.EventGridRequestType);
-    }
-
-    [Fact]
-    public async Task GivenAzureSystemEventEventGridRequest_WhenRequestContentValid_ThenOperationSucceeds()
-    {
-        // Given
-        var subscriptionEventGridWebhookHandlerMock = new Mock<ISubscriptionEventGridWebhookHandler>();
-        var domainEventGridWebhookHandlerMock = new Mock<IDomainEventGridWebhookHandler>();
-
-        var azureSystemEventGridWebhookHandlerMock = new Mock<IAzureSystemEventGridWebhookHandler>();
-        azureSystemEventGridWebhookHandlerMock.Setup(x => x.HandleEventGridWebhookEventAsync(It.IsAny<EventGridEvent>(), It.IsAny<object>(), CancellationToken.None)).Returns(Task.CompletedTask);
-
-        // When
-        var eventGridRequestHandler = new EventGridRequestHandler(
-            domainEventGridWebhookHandlerMock.Object,
-            azureSystemEventGridWebhookHandlerMock.Object,
-            subscriptionEventGridWebhookHandlerMock.Object);
-
-        var request = GetEventGridAzureSystemEventRequest();
-        var result = await eventGridRequestHandler.HandleRequestAsync(request, CancellationToken.None);
-
-        // Then
-        Assert.NotNull(result);
-        Assert.Equal(EventGridRequestType.Event, result.EventGridRequestType);
-
-        azureSystemEventGridWebhookHandlerMock.Verify(x => x.HandleEventGridWebhookEventAsync(It.IsAny<EventGridEvent>(), It.IsAny<object>(), CancellationToken.None), Times.Once);
     }
 
     [Fact]
@@ -158,7 +121,6 @@ public class EventGridRequestHandlerTests
     {
         // Given
         var subscriptionEventGridWebhookHandlerMock = new Mock<ISubscriptionEventGridWebhookHandler>();
-        var azureSystemEventGridWebhookHandlerMock = new Mock<IAzureSystemEventGridWebhookHandler>();
 
         var domainEventGridWebhookHandlerMock = new Mock<IDomainEventGridWebhookHandler>();
         domainEventGridWebhookHandlerMock.Setup(x => x.HandleEventGridWebhookEventAsync(It.IsAny<EventGridEvent>(), CancellationToken.None)).Throws(new Exception("Never in a million years will I let tobbacco touch my lips"));
@@ -166,32 +128,9 @@ public class EventGridRequestHandlerTests
         // When
         var eventGridRequestHandler = new EventGridRequestHandler(
             domainEventGridWebhookHandlerMock.Object,
-            azureSystemEventGridWebhookHandlerMock.Object,
             subscriptionEventGridWebhookHandlerMock.Object);
 
         var request = GetEventGridDomainEventRequest();
-
-        // Then
-        await Assert.ThrowsAsync<Exception>(() => eventGridRequestHandler.HandleRequestAsync(request, CancellationToken.None));
-    }
-
-    [Fact]
-    public async Task GivenAzureSystemEventEventGridRequest_WhenRequestThrowsException_ThenExceptionIsTracked()
-    {
-        // Given
-        var subscriptionEventGridWebhookHandlerMock = new Mock<ISubscriptionEventGridWebhookHandler>();
-        var domainEventGridWebhookHandlerMock = new Mock<IDomainEventGridWebhookHandler>();
-
-        var azureSystemEventGridWebhookHandlerMock = new Mock<IAzureSystemEventGridWebhookHandler>();
-        azureSystemEventGridWebhookHandlerMock.Setup(x => x.HandleEventGridWebhookEventAsync(It.IsAny<EventGridEvent>(), It.IsAny<object>(), CancellationToken.None)).Throws(new Exception("Never in a million years will I let tobbacco touch my lips"));
-
-        // When
-        var eventGridRequestHandler = new EventGridRequestHandler(
-            domainEventGridWebhookHandlerMock.Object,
-            azureSystemEventGridWebhookHandlerMock.Object,
-            subscriptionEventGridWebhookHandlerMock.Object);
-
-        var request = GetEventGridAzureSystemEventRequest();
 
         // Then
         await Assert.ThrowsAsync<Exception>(() => eventGridRequestHandler.HandleRequestAsync(request, CancellationToken.None));
@@ -203,12 +142,10 @@ public class EventGridRequestHandlerTests
         // Given
         var subscriptionEventGridWebhookHandlerMock = new Mock<ISubscriptionEventGridWebhookHandler>();
         var domainEventGridWebhookHandlerMock = new Mock<IDomainEventGridWebhookHandler>();
-        var azureSystemEventGridWebhookHandlerMock = new Mock<IAzureSystemEventGridWebhookHandler>();
 
         // When
         var eventGridRequestHandler = new EventGridRequestHandler(
             domainEventGridWebhookHandlerMock.Object,
-            azureSystemEventGridWebhookHandlerMock.Object,
             subscriptionEventGridWebhookHandlerMock.Object);
 
         var request = GetEventGridDomainEventRequest();
@@ -263,25 +200,5 @@ public class EventGridRequestHandlerTests
         eventData = eventData.Replace("'", "\"");
 
         return domainEventRequest.Replace("{eventData}", eventData).Replace("'", "\"");
-    }
-
-    private static string GetEventGridAzureSystemEventRequest()
-    {
-        var subscriptionRequest = @"[{
-                'topic': '/subscriptions/1234/resourceGroups/ov-dev-something/providers/Microsoft.Media/mediaservices/xzxzxzx-egst-xzxzxz',
-                'subject': 'transforms/VideoAnalyzerTransform/jobs/12345',
-                'eventType': 'Microsoft.Media.JobFinished',
-                'eventTime': '2022-08-14T01:57:26.005121Z',
-                'id': '602a88ef-0001-00e6-1233-1646070610ea',
-                'data': {eventData},
-                'metadataVersion': '1',
-                'dataVersion': '1'
-            }]";
-
-        var eventData = @"{ 'outputs': [] }";
-
-        eventData = eventData.Replace("'", "\"");
-
-        return subscriptionRequest.Replace("{eventData}", eventData).Replace("'", "\"");
     }
 }

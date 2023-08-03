@@ -22,7 +22,5 @@ internal static class EventsApi
     internal static class Routes
     {
         internal const string DomainEvents = "eventgrid/domainevents";
-
-        internal const string SystemEvents = "eventgrid/systemevents";
     }
 }
