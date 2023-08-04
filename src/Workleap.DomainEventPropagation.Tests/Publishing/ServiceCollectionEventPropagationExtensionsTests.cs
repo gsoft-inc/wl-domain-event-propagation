@@ -133,4 +133,31 @@ public class ServiceCollectionEventPropagationExtensionsTests
         // Then
         Assert.NotNull(client);
     }
+
+    [Fact]
+    public void GivenNullServiceCollection_WhenAddEventPropagationPublisher_ThenThrowsArgumentNullException()
+    {
+        // Given
+        var services = (IServiceCollection?)null;
+
+        // When
+        var exception = Assert.Throws<ArgumentNullException>(() => services!.AddEventPropagationPublisher());
+
+        // Then
+        Assert.Equal("services", exception.ParamName);
+    }
+
+    [Fact]
+    public void GivenNullConfigure_WhenAddEventPropagationPublisher_ThenThrowsArgumentNullException()
+    {
+        // Given
+        var services = new ServiceCollection();
+        Action<EventPropagationPublisherOptions>? configure = null;
+
+        // When
+        var exception = Assert.Throws<ArgumentNullException>(() => services.AddEventPropagationPublisher(configure!));
+
+        // Then
+        Assert.Equal("configure", exception.ParamName);
+    }
 }
