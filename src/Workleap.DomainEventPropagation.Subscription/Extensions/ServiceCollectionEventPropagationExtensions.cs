@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using Workleap.DomainEventPropagation.AzureSystemEvents;
 using Workleap.DomainEventPropagation.Events;
 
 namespace Workleap.DomainEventPropagation.Extensions;
@@ -27,7 +26,6 @@ public static class ServiceCollectionEventPropagationExtensions
 
         services.AddSingleton<ISubscriptionEventGridWebhookHandler, SubscriptionEventGridWebhookHandler>();
         services.AddSingleton<IDomainEventGridWebhookHandler, DomainEventGridWebhookHandler>();
-        services.AddSingleton<IAzureSystemEventGridWebhookHandler, AzureSystemEventGridWebhookHandler>();
         services.AddSingleton<ISubscriptionTopicValidator, SubscriptionTopicValidator>();
         services.AddSingleton<IEventGridRequestHandler, EventGridRequestHandler>();
 
@@ -45,15 +43,6 @@ public static class ServiceCollectionEventPropagationExtensions
     {
         builder
             .MapPost(EventsApi.Routes.DomainEvents, (
-                [FromBody] object requestContent,
-                HttpContext httpContext,
-                IEventGridRequestHandler eventGridRequestHandler,
-                CancellationToken cancellationToken) => EventsApi.HandleEventGridEvent(requestContent, httpContext, eventGridRequestHandler, cancellationToken))
-            .AllowAnonymous()
-            .ExcludeFromDescription();
-
-        builder
-            .MapPost(EventsApi.Routes.SystemEvents, (
                 [FromBody] object requestContent,
                 HttpContext httpContext,
                 IEventGridRequestHandler eventGridRequestHandler,
