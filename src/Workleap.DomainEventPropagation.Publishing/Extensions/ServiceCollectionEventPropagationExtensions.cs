@@ -32,27 +32,21 @@ public static class ServiceCollectionEventPropagationExtensions
 
         services.AddAzureClients(builder =>
         {
-            using var sp = services.BuildServiceProvider();
+            builder
+                .AddClient((EventGridPublisherClientOptions clientOptions, IServiceProvider sp) =>
+                {
+                    var opt = sp.GetRequiredService<IOptions<EventPropagationPublisherOptions>>().Value;
+                    var topicEndpointUri = new Uri(opt.TopicEndpoint);
 
-            var options = sp.GetRequiredService<IOptions<EventPropagationPublisherOptions>>().Value;
-            var topicEndpointUri = new Uri(options.TopicEndpoint);
+                    if (opt.TokenCredential is not null)
+                    {
+                        return new EventGridPublisherClient(topicEndpointUri, opt.TokenCredential, clientOptions);
+                    }
 
-            if (options.TokenCredential is not null)
-            {
-                builder
-                    .AddEventGridPublisherClient(topicEndpointUri)
-                    .WithCredential(options.TokenCredential)
-                    .WithName(EventPropagationPublisherOptions.ClientName)
-                    .ConfigureOptions(ConfigureClientOptions());
-            }
-            else
-            {
-                var topicCredentials = new AzureKeyCredential(options.TopicAccessKey);
-                builder
-                    .AddEventGridPublisherClient(topicEndpointUri, topicCredentials)
-                    .WithName(EventPropagationPublisherOptions.ClientName)
-                    .ConfigureOptions(ConfigureClientOptions());
-            }
+                    return new EventGridPublisherClient(topicEndpointUri, new AzureKeyCredential(opt.TopicAccessKey), clientOptions);
+                })
+                .WithName(EventPropagationPublisherOptions.ClientName)
+                .ConfigureOptions(ConfigureClientOptions());
         });
 
         return new EventPropagationPublisherBuilder(services);
