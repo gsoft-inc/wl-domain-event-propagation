@@ -26,19 +26,11 @@ internal sealed class EventPropagationClient : IEventPropagationClient
 
     private string TopicName => this._eventPropagationPublisherOptions.TopicName;
 
-    public Task PublishDomainEventAsync<T>(string subject, T domainEvent, CancellationToken cancellationToken)
-        where T : IDomainEvent
-        => this.PublishDomainEventsAsync(subject, new[] { domainEvent }, cancellationToken);
-
     public Task PublishDomainEventAsync<T>(T domainEvent, CancellationToken cancellationToken)
         where T : IDomainEvent
-        => this.PublishDomainEventAsync(typeof(T).FullName!, domainEvent, cancellationToken);
+        => this.PublishDomainEventsAsync(new[] { domainEvent }, cancellationToken);
 
-    public Task PublishDomainEventsAsync<T>(IEnumerable<T> domainEvents, CancellationToken cancellationToken)
-        where T : IDomainEvent
-        => this.PublishDomainEventsAsync(typeof(T).FullName!, domainEvents, cancellationToken);
-
-    public async Task PublishDomainEventsAsync<T>(string subject, IEnumerable<T> domainEvents, CancellationToken cancellationToken)
+    public async Task PublishDomainEventsAsync<T>(IEnumerable<T> domainEvents, CancellationToken cancellationToken)
         where T : IDomainEvent
     {
         if (domainEvents == null)
@@ -48,7 +40,7 @@ internal sealed class EventPropagationClient : IEventPropagationClient
 
         try
         {
-            var eventGridEvents = this.GetEventsList(subject, domainEvents);
+            var eventGridEvents = this.GetEventsList(domainEvents);
 
             await this._eventGridPublisherClientFactory
                 .CreateClient(EventPropagationPublisherOptions.ClientName)
@@ -57,15 +49,15 @@ internal sealed class EventPropagationClient : IEventPropagationClient
         }
         catch (Exception ex)
         {
-            throw new EventPropagationPublishingException("An error occured while publishing events to EventGrid", ex, this.TopicName, subject, this._eventPropagationPublisherOptions.TopicEndpoint);
+            throw new EventPropagationPublishingException("An error occured while publishing events to EventGrid", ex, this.TopicName, typeof(T).FullName!, this._eventPropagationPublisherOptions.TopicEndpoint);
         }
     }
 
-    private IEnumerable<EventGridEvent> GetEventsList<T>(string subject, IEnumerable<T> domainEvents) where T : IDomainEvent
+    private IEnumerable<EventGridEvent> GetEventsList<T>(IEnumerable<T> domainEvents) where T : IDomainEvent
     {
         // TODO: Propagate correlation ID by setting data with "telemetryCorrelationId" property when OpenTelemetry is fully supported
         return domainEvents.Select(domainEvent => new EventGridEvent(
-            subject: $"{this.TopicName}-{subject}",
+            subject: $"{this.TopicName}-{typeof(T).FullName!}",
             eventType: domainEvent.GetType().FullName,
             dataVersion: domainEvent.DataVersion,
             data: new BinaryData(domainEvent, SerializerOptions)));
