@@ -33,7 +33,7 @@ internal static class ResultExtensions
             {
                 // The default response body is Stream.Null which would throw otherwise
                 Body = new MemoryStream(),
-            }
+            },
         };
 
         await result.ExecuteAsync(tempContext).ConfigureAwait(false);

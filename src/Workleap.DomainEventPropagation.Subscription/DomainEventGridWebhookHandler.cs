@@ -11,8 +11,7 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
 
     private static readonly JsonSerializerOptions SerializerOptions = new();
 
-    private static IEnumerable<Assembly> DomainEventAssemblies;
-
+    private static readonly IEnumerable<Assembly> DomainEventAssemblies = GetAssemblies();
     private readonly IServiceProvider _serviceProvider;
     private readonly ISubscriptionTopicValidator _subscriptionTopicValidator;
     private readonly ConcurrentDictionary<Type, MethodInfo> _handlerDictionary = new();
@@ -23,8 +22,6 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
     {
         this._serviceProvider = serviceProvider;
         this._subscriptionTopicValidator = subscriptionTopicValidator;
-
-        DomainEventAssemblies = GetAssemblies();
     }
 
     public async Task HandleEventGridWebhookEventAsync(EventGridEvent eventGridEvent, CancellationToken cancellationToken)
@@ -43,9 +40,13 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
                 continue;
             }
 
-            var domainEvent = (IDomainEvent)JsonSerializer.Deserialize(eventGridEvent.Data.ToString(), domainEventType, SerializerOptions);
+            var domainEvent = (IDomainEvent?)JsonSerializer.Deserialize(eventGridEvent.Data.ToString(), domainEventType, SerializerOptions);
+            if (domainEvent == null)
+            {
+                throw new InvalidOperationException($"Can't deserialize event Id: {eventGridEvent.Id}; Subject: {eventGridEvent.Subject}; Data version: {eventGridEvent.DataVersion}.");
+            }
 
-            await this.HandleDomainEventAsync(domainEvent, domainEventType, cancellationToken);
+            await this.HandleDomainEventAsync(domainEvent, domainEventType, cancellationToken).ConfigureAwait(false);
 
             return;
         }
@@ -68,7 +69,7 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
                    throw new InvalidOperationException($"No public method found with name {DomainEventHandlerHandleMethod} on type {type.FullName}.");
         });
 
-        await (Task)handlerMethod.Invoke(handler, new object[] { domainEvent, cancellationToken });
+        await ((Task)handlerMethod.Invoke(handler, new object[] { domainEvent, cancellationToken })!).ConfigureAwait(false);
     }
 
     private static IEnumerable<Assembly> GetAssemblies()
@@ -77,7 +78,7 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
         // has references that would make a .Net Framework (as opposed to netstandard or core) project to fail
         var domainEventType = typeof(IDomainEvent);
         var domainEventAssemblies = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(x => x.FullName.StartsWith("Workleap") && !x.FullName.StartsWith("Workleap.EventPropagation.Common,"))
+            .Where(x => x.FullName != null && x.FullName.StartsWith("Workleap") && !x.FullName.StartsWith("Workleap.EventPropagation.Common,"))
             .SelectMany(s => s.GetTypes())
             .Where(p => !p.IsInterface && !p.IsAbstract && domainEventType.IsAssignableFrom(p))
             .Select(x => x.Assembly)

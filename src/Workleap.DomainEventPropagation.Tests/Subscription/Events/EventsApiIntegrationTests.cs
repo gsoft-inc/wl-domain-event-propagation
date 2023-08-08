@@ -33,17 +33,6 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
         this._topicProvider = fixture.TopicProvider;
     }
 
-    /// <remarks>
-    /// Unfortunately, <see cref="SubscriptionValidationEventData"/> only has internal
-    /// constructors, which prevents us to use the real object. For tests purpose, it
-    /// is understandable to just a declare a similar type considering their serialized
-    /// representation will be identical.
-    /// </remarks>
-    public class SubscriptionValidationEventTestData
-    {
-        public string ValidationCode { get; init; }
-    }
-
     [Fact]
     public async Task GivenEventsApi_WhenASubscriptionEventIsPosted_ThenReturnsOkWithValidationResponse()
     {
@@ -52,7 +41,7 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
 
         var subscriptionValidationEventData = new SubscriptionValidationEventTestData
         {
-            ValidationCode = "ABC"
+            ValidationCode = "ABC",
         };
 
         var serializedContent = JsonSerializer.Serialize(
@@ -76,6 +65,7 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
 
         var subscriptionValidationResponse = await response.Content.ReadFromJsonAsync<SubscriptionValidationResponse>(SerializerOptions).ConfigureAwait(false);
 
+        Assert.NotNull(subscriptionValidationResponse);
         Assert.Equal(subscriptionValidationEventData.ValidationCode, subscriptionValidationResponse.ValidationResponse);
     }
 
@@ -88,7 +78,7 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
         var dummyDomainEvent = new DummyDomainEvent
         {
             PropertyA = "A",
-            PropertyB = 1
+            PropertyB = 1,
         };
 
         var eventGridEvent = new EventGridEvent(
@@ -108,19 +98,35 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
         // Then
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
+
+    /// <remarks>
+    /// Unfortunately, <see cref="SubscriptionValidationEventData"/> only has internal
+    /// constructors, which prevents us to use the real object. For tests purpose, it
+    /// is understandable to just a declare a similar type considering their serialized
+    /// representation will be identical.
+    /// </remarks>
+    public class SubscriptionValidationEventTestData
+    {
+        public string ValidationCode { get; init; } = string.Empty;
+    }
 }
 
 public sealed class EventsApiIntegrationTestsFixture : WebApplicationFactory<EventsApiIntegrationTestsFixture.Startup>
 {
     public const string TestTopic = "DummyTopic";
 
-    public ITopicProvider TopicProvider = A.Fake<ITopicProvider>(p => p.Strict());
+    public EventsApiIntegrationTestsFixture()
+    {
+        this.TopicProvider = A.Fake<ITopicProvider>(p => p.Strict());
+    }
+
+    public ITopicProvider TopicProvider { get; }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureTestServices(services =>
         {
-            services.AddSingleton(TopicProvider);
+            services.AddSingleton(this.TopicProvider);
         });
 
         var configuration = new ConfigurationBuilder()

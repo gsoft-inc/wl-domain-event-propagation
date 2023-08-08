@@ -24,14 +24,14 @@ public class EventPropagationPublisherOptionsValidatorTests
         var topicProviderMock = new Mock<ITopicProvider>();
         topicProviderMock.Setup(x => x.GetAllTopicsNames()).Returns(new[] { "Organization", "Signup" });
 
-        var validator = new EventPropagationPublisherOptionsValidator(new [] { topicProviderMock.Object });
+        var validator = new EventPropagationPublisherOptionsValidator(new[] { topicProviderMock.Object });
 
         var result = validator.Validate("Patato", new EventPropagationPublisherOptions
         {
             TokenCredential = useTokenCrential ? new DefaultAzureCredential() : default,
             TopicEndpoint = topicEndpoint,
             TopicName = topicName,
-            TopicAccessKey = topicAccessKey
+            TopicAccessKey = topicAccessKey,
         });
 
         Assert.True(result.Failed);
@@ -46,14 +46,14 @@ public class EventPropagationPublisherOptionsValidatorTests
         var topicProviderMock = new Mock<ITopicProvider>();
         topicProviderMock.Setup(x => x.GetAllTopicsNames()).Returns(new[] { "Organization", "Signup" });
 
-        var validator = new EventPropagationPublisherOptionsValidator(new [] { topicProviderMock.Object });
+        var validator = new EventPropagationPublisherOptionsValidator(new[] { topicProviderMock.Object });
 
         var result = validator.Validate("Patato", new EventPropagationPublisherOptions
         {
             TokenCredential = useTokenCrential ? new DefaultAzureCredential() : default,
             TopicEndpoint = topicEndpoint,
             TopicName = topicName,
-            TopicAccessKey = topicAccessKey
+            TopicAccessKey = topicAccessKey,
         });
 
         Assert.True(result.Succeeded);

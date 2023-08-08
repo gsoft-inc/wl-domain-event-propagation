@@ -2,7 +2,6 @@ namespace Workleap.DomainEventPropagation.Tests.Subscription.Models;
 
 public sealed class DomainEventHandler : IDomainEventHandler<TwoDomainEvent>,
     IDomainEventHandler<OneDomainEvent>
-
 {
     public Task HandleDomainEventAsync(OneDomainEvent domainEvent, CancellationToken cancellationToken)
     {

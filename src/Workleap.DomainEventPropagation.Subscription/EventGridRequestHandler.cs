@@ -1,23 +1,19 @@
 using System.Diagnostics;
 using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
-using Workleap.DomainEventPropagation.AzureSystemEvents;
 
 namespace Workleap.DomainEventPropagation;
 
 internal sealed class EventGridRequestHandler : IEventGridRequestHandler
 {
     private readonly IDomainEventGridWebhookHandler _domainEventGridWebhookHandler;
-    private readonly IAzureSystemEventGridWebhookHandler _azureSystemEventGridWebhookHandler;
     private readonly ISubscriptionEventGridWebhookHandler _subscriptionEventGridWebhookHandler;
 
     public EventGridRequestHandler(
         IDomainEventGridWebhookHandler domainEventGridWebhookHandler,
-        IAzureSystemEventGridWebhookHandler azureSystemEventGridWebhookHandler,
         ISubscriptionEventGridWebhookHandler subscriptionEventGridWebhookHandler)
     {
         this._domainEventGridWebhookHandler = domainEventGridWebhookHandler;
-        this._azureSystemEventGridWebhookHandler = azureSystemEventGridWebhookHandler;
         this._subscriptionEventGridWebhookHandler = subscriptionEventGridWebhookHandler;
     }
 
@@ -25,7 +21,7 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
     {
         if (requestContent == null)
         {
-            throw new ArgumentException("Request content cannot be null.");
+            throw new ArgumentNullException(nameof(requestContent));
         }
 
         foreach (var eventGridEvent in GetEventGridEventsFromRequestContent(requestContent))
@@ -34,39 +30,30 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
             {
                 if (systemEventData is SubscriptionValidationEventData subscriptionValidationEventData)
                 {
-                    return ProcessSubscriptionEvent(subscriptionValidationEventData, eventGridEvent.EventType, eventGridEvent.Topic);
+                    return this.ProcessSubscriptionEvent(subscriptionValidationEventData, eventGridEvent.EventType, eventGridEvent.Topic);
                 }
-
-                await this.ProcessAzureSystemEventAsync(eventGridEvent, systemEventData, cancellationToken);
             }
             else if (!string.IsNullOrEmpty(eventGridEvent.Topic))
             {
-                await this.ProcessDomainEventAsync(eventGridEvent, cancellationToken);
+                await this.ProcessDomainEventAsync(eventGridEvent, cancellationToken).ConfigureAwait(false);
             }
         }
 
         return new EventGridRequestResult
         {
-            EventGridRequestType = EventGridRequestType.Event
+            EventGridRequestType = EventGridRequestType.Event,
         };
     }
 
     private EventGridRequestResult ProcessSubscriptionEvent(SubscriptionValidationEventData subscriptionValidationEventData, string eventType, string eventTopic)
     {
-        try
-        {
-            var response = this._subscriptionEventGridWebhookHandler.HandleEventGridSubscriptionEvent(subscriptionValidationEventData, eventType, eventTopic);
+        var response = this._subscriptionEventGridWebhookHandler.HandleEventGridSubscriptionEvent(subscriptionValidationEventData, eventType, eventTopic);
 
-            return new EventGridRequestResult
-            {
-                EventGridRequestType = EventGridRequestType.Subscription,
-                Response = response
-            };
-        }
-        catch (Exception ex)
+        return new EventGridRequestResult
         {
-            throw;
-        }
+            EventGridRequestType = EventGridRequestType.Subscription,
+            Response = response,
+        };
     }
 
     private async Task ProcessDomainEventAsync(EventGridEvent eventGridEvent, CancellationToken cancellationToken)
@@ -76,16 +63,17 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
         Activity.Current?.AddBaggage("EventId", eventGridEvent.Id);
 
         // TODO: Assign the correlation ID to the request telemetry when OpenTelemetry is fully supported
-        await this._domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, cancellationToken);
-    }
-
-    private async Task ProcessAzureSystemEventAsync(EventGridEvent eventGridEvent, object systemEventData, CancellationToken cancellationToken)
-    {
-        await this._azureSystemEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, systemEventData, cancellationToken);
+        await this._domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, cancellationToken).ConfigureAwait(false);
     }
 
     private static IEnumerable<EventGridEvent> GetEventGridEventsFromRequestContent(object requestContent)
     {
-        return EventGridEvent.ParseMany(BinaryData.FromString(requestContent.ToString()));
+        var content = requestContent.ToString();
+        if (content == null)
+        {
+            throw new ArgumentException("Request content can't be null");
+        }
+        
+        return EventGridEvent.ParseMany(BinaryData.FromString(content));
     }
 }

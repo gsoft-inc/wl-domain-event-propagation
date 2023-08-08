@@ -3,9 +3,9 @@ using Workleap.DomainEventPropagation;
 // ReSharper disable once CheckNamespace
 namespace Workleap.AnotherAssembly.DomainEvents;
 
-public class TestDomainEvent : IDomainEvent
+public class TestDomainEventOtherAssembly : IDomainEvent
 {
-    public string Text { get; set; }
+    public string Text { get; set; } = string.Empty;
 
     public int Number { get; set; }
 

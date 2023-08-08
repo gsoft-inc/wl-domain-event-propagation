@@ -4,5 +4,5 @@ namespace Workleap.DomainEventPropagation;
 
 internal interface ISubscriptionEventGridWebhookHandler
 {
-    SubscriptionValidationResponse HandleEventGridSubscriptionEvent(SubscriptionValidationEventData subscriptionValidationEventData, string eventType, string eventTopic);
+    SubscriptionValidationResponse? HandleEventGridSubscriptionEvent(SubscriptionValidationEventData subscriptionValidationEventData, string eventType, string eventTopic);
 }

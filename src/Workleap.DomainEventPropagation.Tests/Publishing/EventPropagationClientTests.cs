@@ -16,15 +16,6 @@ public class EventPropagationClientTests
     private readonly EventGridPublisherClient _eventGridPublisherClient;
     private readonly PublishTestDomainEvent _domainEvent;
 
-    internal class PublishTestDomainEvent : IDomainEvent
-    {
-        public string Text { get; set; }
-
-        public int Number { get; set; }
-
-        public string DataVersion => "1";
-    }
-
     public EventPropagationClientTests()
     {
         this._domainEvent = new PublishTestDomainEvent();
@@ -127,5 +118,14 @@ public class EventPropagationClientTests
             .Returns(Task.FromResult(A.Fake<Azure.Response>()));
 
         await this._eventPropagationClient.PublishDomainEventsAsync(domainEvents, CancellationToken.None).ConfigureAwait(false);
+    }
+
+    internal class PublishTestDomainEvent : IDomainEvent
+    {
+        public string Text { get; set; } = string.Empty;
+
+        public int Number { get; set; }
+
+        public string DataVersion => "1";
     }
 }

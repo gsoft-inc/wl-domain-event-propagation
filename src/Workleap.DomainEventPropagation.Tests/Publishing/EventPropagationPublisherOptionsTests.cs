@@ -8,7 +8,7 @@ namespace Workleap.DomainEventPropagation.Tests.Publishing;
 
 public class EventPropagationPublisherOptionsTests
 {
-    private static readonly Mock<ITopicProvider> TopicProviderMock = new ();
+    private static readonly Mock<ITopicProvider> TopicProviderMock = new();
 
     [Theory]
     [InlineData(null, null, null)]
@@ -30,7 +30,7 @@ public class EventPropagationPublisherOptionsTests
         {
             { $"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicName)}", topicName },
             { $"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicEndpoint)}", topicEndpoint },
-            { $"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicAccessKey)}", topicAccessKey }
+            { $"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicAccessKey)}", topicAccessKey },
         };
 
         var configuration = new ConfigurationBuilder()
@@ -46,7 +46,7 @@ public class EventPropagationPublisherOptionsTests
 
         using var serviceProvider = services.BuildServiceProvider();
 
-        Assert.Throws<OptionsValidationException>(() => serviceProvider.GetService<IOptions<EventPropagationPublisherOptions>>().Value);
+        Assert.Throws<OptionsValidationException>(() => serviceProvider.GetRequiredService<IOptions<EventPropagationPublisherOptions>>().Value);
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public class EventPropagationPublisherOptionsTests
         {
             { $"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicName)}", "Organization" },
             { $"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicEndpoint)}", "http://workleap.com" },
-            { $"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicAccessKey)}", "AccessKey" }
+            { $"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicAccessKey)}", "AccessKey" },
         };
 
         var configuration = new ConfigurationBuilder()
@@ -72,7 +72,7 @@ public class EventPropagationPublisherOptionsTests
 
         using var serviceProvider = services.BuildServiceProvider();
 
-        var options = serviceProvider.GetService<IOptions<EventPropagationPublisherOptions>>().Value;
+        var options = serviceProvider.GetRequiredService<IOptions<EventPropagationPublisherOptions>>().Value;
 
         Assert.Equal(myConfiguration[$"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicName)}"], options.TopicName);
         Assert.Equal(myConfiguration[$"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicEndpoint)}"], options.TopicEndpoint);

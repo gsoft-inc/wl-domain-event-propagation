@@ -9,7 +9,7 @@ public class ServiceCollectionEventPropagationExtensionsUnitTests
     [Fact]
     public void AddEventPropagationSubscriber_WhenServicesIsNull_ThenThrowsArgumentNullException()
     {
-        IServiceCollection services = null;
+        IServiceCollection services = null!;
 
         Assert.Throws<ArgumentNullException>(() => services.AddEventPropagationSubscriber());
     }
