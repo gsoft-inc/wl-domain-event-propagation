@@ -17,7 +17,7 @@ public class EventGridRequestHandlerTests
             domainEventGridWebhookHandlerMock.Object,
             subscriptionEventGridWebhookHandlerMock.Object);
 
-        await Assert.ThrowsAsync<ArgumentNullException>(() => eventGridRequestHandler.HandleRequestAsync(null!, CancellationToken.None));
+        await Assert.ThrowsAsync<ArgumentNullException>(() => eventGridRequestHandler.HandleRequestAsync(null!, CancellationToken.None)).ConfigureAwait(false);
     }
 
     [Fact]
@@ -36,7 +36,7 @@ public class EventGridRequestHandlerTests
             domainEventGridWebhookHandlerMock.Object,
             subscriptionEventGridWebhookHandlerMock.Object);
 
-        var result = await eventGridRequestHandler.HandleRequestAsync(GetEventGridSubscriptionRequest(validationCode), CancellationToken.None);
+        var result = await eventGridRequestHandler.HandleRequestAsync(GetEventGridSubscriptionRequest(validationCode), CancellationToken.None).ConfigureAwait(false);
 
         // Then
         Assert.NotNull(result);
@@ -61,7 +61,7 @@ public class EventGridRequestHandlerTests
             domainEventGridWebhookHandlerMock.Object,
             subscriptionEventGridWebhookHandlerMock.Object);
 
-        var exception = await Assert.ThrowsAsync<Exception>(() => eventGridRequestHandler.HandleRequestAsync(GetEventGridSubscriptionRequest(validationCode), CancellationToken.None));
+        var exception = await Assert.ThrowsAsync<Exception>(() => eventGridRequestHandler.HandleRequestAsync(GetEventGridSubscriptionRequest(validationCode), CancellationToken.None)).ConfigureAwait(false);
 
         // Then
         Assert.NotNull(exception);
@@ -85,7 +85,7 @@ public class EventGridRequestHandlerTests
             subscriptionEventGridWebhookHandlerMock.Object);
 
         var request = GetEventGridSubscriptionRequest(validationCode);
-        var result = await eventGridRequestHandler.HandleRequestAsync(request, CancellationToken.None);
+        var result = await eventGridRequestHandler.HandleRequestAsync(request, CancellationToken.None).ConfigureAwait(false);
 
         // Then
         Assert.NotNull(result);
@@ -109,7 +109,7 @@ public class EventGridRequestHandlerTests
             subscriptionEventGridWebhookHandlerMock.Object);
 
         var request = GetEventGridDomainEventRequest();
-        var result = await eventGridRequestHandler.HandleRequestAsync(request, CancellationToken.None);
+        var result = await eventGridRequestHandler.HandleRequestAsync(request, CancellationToken.None).ConfigureAwait(false);
 
         // Then
         Assert.NotNull(result);
@@ -133,7 +133,7 @@ public class EventGridRequestHandlerTests
         var request = GetEventGridDomainEventRequest();
 
         // Then
-        await Assert.ThrowsAsync<Exception>(() => eventGridRequestHandler.HandleRequestAsync(request, CancellationToken.None));
+        await Assert.ThrowsAsync<Exception>(() => eventGridRequestHandler.HandleRequestAsync(request, CancellationToken.None)).ConfigureAwait(false);
     }
 
     [Fact]
@@ -150,7 +150,7 @@ public class EventGridRequestHandlerTests
 
         var request = GetEventGridDomainEventRequest();
 
-        await eventGridRequestHandler.HandleRequestAsync(request, CancellationToken.None);
+        await eventGridRequestHandler.HandleRequestAsync(request, CancellationToken.None).ConfigureAwait(false);
 
         // Then
         domainEventGridWebhookHandlerMock.Verify(x => x.HandleEventGridWebhookEventAsync(It.IsAny<EventGridEvent>(), CancellationToken.None), Times.Once);

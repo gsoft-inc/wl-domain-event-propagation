@@ -42,7 +42,7 @@ public class RegistrationTest
                 Topic = OrganizationTopicName,
             };
 
-            await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, CancellationToken.None);
+            await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, CancellationToken.None).ConfigureAwait(false);
         }
         catch (Exception e)
         {
@@ -60,7 +60,7 @@ public class RegistrationTest
                 Topic = OrganizationTopicName,
             };
 
-            await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, CancellationToken.None);
+            await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, CancellationToken.None).ConfigureAwait(false);
         }
         catch (Exception e)
         {
