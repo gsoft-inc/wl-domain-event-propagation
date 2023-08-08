@@ -13,7 +13,6 @@ public sealed class EventPropagationPublisherOptions
     [Required]
     public string TopicName { get; set; } = string.Empty;
 
-    [Required]
     public string TopicAccessKey { get; set; } = string.Empty;
 
     public TokenCredential? TokenCredential { get; set; }

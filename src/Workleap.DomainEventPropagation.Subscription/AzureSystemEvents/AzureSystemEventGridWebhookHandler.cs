@@ -9,24 +9,16 @@ internal sealed class AzureSystemEventGridWebhookHandler : IAzureSystemEventGrid
     private const string AzureSystemEventHandlerHandleMethod = "HandleAzureSystemEventAsync";
 
     private readonly IServiceProvider _serviceProvider;
-    private readonly ISubscriptionTopicValidator _subscriptionTopicValidator;
     private readonly ConcurrentDictionary<Type, MethodInfo> _handlerDictionary = new();
 
     public AzureSystemEventGridWebhookHandler(
-        IServiceProvider serviceProvider,
-        ISubscriptionTopicValidator subscriptionTopicValidator)
+        IServiceProvider serviceProvider)
     {
         this._serviceProvider = serviceProvider;
-        this._subscriptionTopicValidator = subscriptionTopicValidator;
     }
 
     public async Task HandleEventGridWebhookEventAsync(EventGridEvent eventGridEvent, object systemEventData, CancellationToken cancellationToken)
     {
-        if (!this._subscriptionTopicValidator.IsSubscribedToTopic(eventGridEvent.Topic))
-        {
-            return;
-        }
-
         if (EventTypeMapping.TryGetEventDataTypeForEventType(eventGridEvent.EventType, out var eventDataType))
         {
             await this.HandleAzureSystemEventAsync(systemEventData, eventDataType!, cancellationToken).ConfigureAwait(false);

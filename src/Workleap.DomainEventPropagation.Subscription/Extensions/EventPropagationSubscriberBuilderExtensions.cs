@@ -15,19 +15,6 @@ public static class EventPropagationSubscriberBuilderExtensions
     private static readonly Type AzureSystemEventHandlerOpenGenericInterface = typeof(IAzureSystemEventHandler<>);
 
     /// <summary>
-    /// Adds the given handler to the DI container if it implements <see cref="IAzureSystemEventHandler{TDomainEvent}"/>.
-    /// </summary>
-    /// <param name="builder"></param>
-    /// <typeparam name="T"></typeparam>
-    /// <returns></returns>
-    public static IEventPropagationSubscriberBuilder AddTopicProvider<T>(this IEventPropagationSubscriberBuilder builder) where T : class, ITopicProvider
-    {
-        builder.Services.AddSingleton<ITopicProvider, T>();
-
-        return builder;
-    }
-
-    /// <summary>
     /// Adds the given handler to the DI container if it implements <see cref="IDomainEventHandler{TDomainEvent}"/>.
     /// </summary>
     /// <param name="builder"></param>
