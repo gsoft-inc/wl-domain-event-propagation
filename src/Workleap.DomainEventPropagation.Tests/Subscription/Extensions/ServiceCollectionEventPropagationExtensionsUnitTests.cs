@@ -26,19 +26,11 @@ public class ServiceCollectionEventPropagationExtensionsUnitTests
     }
 
     [Fact]
-    public void AddEventPropagationSubscriber_WhenConfigureIsNull_ThenThrowsArgumentNullException()
-    {
-        var services = A.Fake<IServiceCollection>();
-
-        Assert.Throws<ArgumentNullException>(() => services.AddEventPropagationSubscriber(null!));
-    }
-
-    [Fact]
     public void AddEventPropagationSubscriber_WhenServicesAndConfigureAreDefined_ThenReturnsEventPropagationSubscriberBuilderInstance()
     {
         var services = A.Fake<IServiceCollection>();
 
-        var builder = services.AddEventPropagationSubscriber(_ => { });
+        var builder = services.AddEventPropagationSubscriber();
 
         Assert.NotNull(builder);
         Assert.IsType<EventPropagationSubscriberBuilder>(builder);

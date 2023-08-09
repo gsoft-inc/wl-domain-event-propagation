@@ -1,29 +1,21 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Moq;
 using Workleap.DomainEventPropagation.Extensions;
 
 namespace Workleap.DomainEventPropagation.Tests.Publishing;
 
 public class EventPropagationPublisherOptionsTests
 {
-    private static readonly Mock<ITopicProvider> TopicProviderMock = new();
-
     [Theory]
     [InlineData(null, null, null)]
-    [InlineData(" ", "whatever", "http://workleap.com")]
-    [InlineData("unrecognizedTopic", "whatever", "http://workleap.com")]
-    [InlineData("Signup", null, "http://workleap.com")]
-    [InlineData("Signup", "whatever", null)]
-    [InlineData("InvalidTopic", "AccessKey", "http://workleap.com")]
-    [InlineData(" ", "AccessKey", "http://workleap.com")]
-    [InlineData(null, "AccessKey", "http://workleap.com")]
-    [InlineData("Organization", "AccessKey", null)]
-    [InlineData("Organization", "AccessKey", "")]
-    [InlineData("Organization", "AccessKey", "AAAAAAABBBBBCCCCCCDEEEEE")]
-    [InlineData("Organization", "  ", "AAAAAAABBBBBCCCCCCDEEEEE")]
-    [InlineData("Organization", null, "http://workleap.com")]
+    [InlineData(" ", "accessKey", "http://topicurl.com")]
+    [InlineData(null, "accessKey", "http://topicurl.com")]
+    [InlineData("topicName", " ", "http://topicurl.com")]
+    [InlineData("topicName", null, "http://topicurl.com")]
+    [InlineData("topicName", "accessKey", " ")]
+    [InlineData("topicName", "accessKey", null)]
+    [InlineData("topicName", "accessKey", "topicEndpoint")]
     public void GivenEventPropagationConfiguration_WhenOptionsAreInvalid_ThrowsException(string topicName, string topicAccessKey, string topicEndpoint)
     {
         var myConfiguration = new Dictionary<string, string>
@@ -39,8 +31,6 @@ public class EventPropagationPublisherOptionsTests
 
         var services = new ServiceCollection();
 
-        TopicProviderMock.Setup(x => x.GetAllTopicsNames()).Returns(new[] { "Organization", "Signup" });
-        services.AddSingleton(TopicProviderMock.Object);
         services.AddSingleton<IConfiguration>(configuration);
         services.AddEventPropagationPublisherOptions(_ => { });
 
@@ -54,9 +44,9 @@ public class EventPropagationPublisherOptionsTests
     {
         var myConfiguration = new Dictionary<string, string>
         {
-            { $"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicName)}", "Organization" },
-            { $"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicEndpoint)}", "http://workleap.com" },
-            { $"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicAccessKey)}", "AccessKey" },
+            { $"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicName)}", "topicName" },
+            { $"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicAccessKey)}", "accessKey" },
+            { $"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicEndpoint)}", "http://topicurl.com" },
         };
 
         var configuration = new ConfigurationBuilder()
@@ -65,8 +55,6 @@ public class EventPropagationPublisherOptionsTests
 
         var services = new ServiceCollection();
 
-        TopicProviderMock.Setup(x => x.GetAllTopicsNames()).Returns(new[] { "Organization", "Signup" });
-        services.AddSingleton(TopicProviderMock.Object);
         services.AddSingleton<IConfiguration>(configuration);
         services.AddEventPropagationPublisherOptions(_ => { });
 

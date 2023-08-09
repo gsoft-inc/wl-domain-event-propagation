@@ -22,13 +22,9 @@ public class ServiceCollectionEventPropagationExtensionsTests
             [$"{EventPropagationPublisherOptions.SectionName}:TopicAccessKey"] = "topicAccessKey",
         };
 
-        var topicProvider = A.Fake<ITopicProvider>();
-        A.CallTo(() => topicProvider.GetAllTopicsNames()).Returns(new[] { "topicName" });
-
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
         services.AddSingleton<IConfiguration>(configuration);
-        services.AddSingleton(topicProvider);
 
         // When
         services.AddEventPropagationPublisher();
@@ -52,13 +48,9 @@ public class ServiceCollectionEventPropagationExtensionsTests
             [$"{EventPropagationPublisherOptions.SectionName}:TopicAccessKey"] = "topicAccessKey",
         };
 
-        var topicProvider = A.Fake<ITopicProvider>();
-        A.CallTo(() => topicProvider.GetAllTopicsNames()).Returns(new[] { "topicName" });
-
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
         services.AddSingleton<IConfiguration>(configuration);
-        services.AddSingleton(topicProvider);
 
         // When
         services.AddEventPropagationPublisher(opt =>
@@ -85,13 +77,9 @@ public class ServiceCollectionEventPropagationExtensionsTests
             [$"{EventPropagationPublisherOptions.SectionName}:TopicAccessKey"] = "topicAccessKey",
         };
 
-        var topicProvider = A.Fake<ITopicProvider>();
-        A.CallTo(() => topicProvider.GetAllTopicsNames()).Returns(new[] { "topicName" });
-
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
         services.AddSingleton<IConfiguration>(configuration);
-        services.AddSingleton(topicProvider);
 
         // When
         services.AddEventPropagationPublisher();
@@ -113,13 +101,9 @@ public class ServiceCollectionEventPropagationExtensionsTests
             [$"{EventPropagationPublisherOptions.SectionName}:TopicEndpoint"] = "http://topicEndpoint.io",
         };
 
-        var topicProvider = A.Fake<ITopicProvider>();
-        A.CallTo(() => topicProvider.GetAllTopicsNames()).Returns(new[] { "topicName" });
-
         var services = new ServiceCollection();
         var configuration = new ConfigurationBuilder().AddInMemoryCollection(inMemorySettings).Build();
         services.AddSingleton<IConfiguration>(configuration);
-        services.AddSingleton(topicProvider);
 
         // When
         services.AddEventPropagationPublisher(opt =>
