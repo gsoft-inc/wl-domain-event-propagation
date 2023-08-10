@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Http;
 
 namespace Workleap.DomainEventPropagation.Events;
 
-internal static class EventsApi
+    internal static class EventsApi
 {
     internal static async Task<IResult> HandleEventGridEvent(
         object requestContent,

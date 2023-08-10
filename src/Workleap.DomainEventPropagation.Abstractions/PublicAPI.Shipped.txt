@@ -1,10 +1,7 @@
-#nullable enable
 Workleap.DomainEventPropagation.IDomainEvent
 Workleap.DomainEventPropagation.IDomainEvent.DataVersion.get -> string!
 Workleap.DomainEventPropagation.IDomainEventHandler<TDomainEvent>
 Workleap.DomainEventPropagation.IDomainEventHandler<TDomainEvent>.HandleDomainEventAsync(TDomainEvent domainEvent, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 Workleap.DomainEventPropagation.IEventPropagationClient
-Workleap.DomainEventPropagation.IEventPropagationClient.PublishDomainEventAsync<T>(string! subject, T domainEvent, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 Workleap.DomainEventPropagation.IEventPropagationClient.PublishDomainEventAsync<T>(T domainEvent, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
-Workleap.DomainEventPropagation.IEventPropagationClient.PublishDomainEventsAsync<T>(string! subject, System.Collections.Generic.IEnumerable<T>! domainEvents, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 Workleap.DomainEventPropagation.IEventPropagationClient.PublishDomainEventsAsync<T>(System.Collections.Generic.IEnumerable<T>! domainEvents, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!

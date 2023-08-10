@@ -8,8 +8,6 @@ namespace Workleap.DomainEventPropagation.Tests.Publishing;
 
 public class EventPropagationClientTests
 {
-    private const string Subject = nameof(Subject);
-
     private readonly EventPropagationPublisherOptions _eventPropagationPublisherOptions;
     private readonly EventPropagationClient _eventPropagationClient;
     private readonly IAzureClientFactory<EventGridPublisherClient> _eventGridPublisherClientFactory;
@@ -24,23 +22,6 @@ public class EventPropagationClientTests
         this._eventGridPublisherClient = A.Fake<EventGridPublisherClient>(opts => opts.Strict());
 
         this._eventPropagationClient = new EventPropagationClient(this._eventGridPublisherClientFactory, Options.Create(this._eventPropagationPublisherOptions));
-    }
-
-    [Fact]
-    public async Task GivenEventPropagationClient_WhenErrorDuringPublication_ThenThrowsEventPropagationPublishingException()
-    {
-        A.CallTo(() => this._eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName)).Returns(this._eventGridPublisherClient);
-
-        A.CallTo(() => this._eventGridPublisherClient.SendEventsAsync(
-                A<IEnumerable<EventGridEvent>>.That.Matches(events => events.Count() == 1),
-                A<CancellationToken>._))
-            .Throws(A.Fake<Exception>());
-
-        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(() => this._eventPropagationClient.PublishDomainEventAsync(Subject, this._domainEvent, CancellationToken.None));
-
-        Assert.Equal(this._eventPropagationPublisherOptions.TopicEndpoint, exception.TopicEndpoint);
-        Assert.Equal(Subject, exception.Subject);
-        Assert.Equal(this._eventPropagationPublisherOptions.TopicName, exception.TopicName);
     }
 
     [Fact]
@@ -81,19 +62,6 @@ public class EventPropagationClientTests
 
     [Fact]
     public async Task GivenEventPropagationClient_WhenEventsAreSuccessfullySentWithEventGridPublisher_ThenNoErrors()
-    {
-        A.CallTo(() => this._eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName)).Returns(this._eventGridPublisherClient);
-
-        A.CallTo(() => this._eventGridPublisherClient.SendEventsAsync(
-                A<IEnumerable<EventGridEvent>>.That.Matches(events => events.Count() == 1),
-                A<CancellationToken>._))
-            .Returns(Task.FromResult(A.Fake<Azure.Response>()));
-
-        await this._eventPropagationClient.PublishDomainEventAsync(Subject, this._domainEvent, CancellationToken.None);
-    }
-
-    [Fact]
-    public async Task GivenGenericPublishDomainEventAsync_WhenEventsAreSuccessfullySentWithEventGridPublisher_ThenNoErrors()
     {
         A.CallTo(() => this._eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName)).Returns(this._eventGridPublisherClient);
 
