@@ -68,6 +68,8 @@ services
 ```
 This can be used to register endpoint to receive events
 ```
+app.UseRouting();
+...
 app.UseEndpoints(builder =>
 {
     builder.AddEventPropagationEndpoints();
