@@ -73,7 +73,7 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
         {
             throw new ArgumentException("Request content can't be null");
         }
-        
+
         return EventGridEvent.ParseMany(BinaryData.FromString(content));
     }
 }

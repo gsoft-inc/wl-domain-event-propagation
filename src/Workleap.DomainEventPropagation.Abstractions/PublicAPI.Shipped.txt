@@ -1,4 +1,3 @@
-#nullable enable
 Workleap.DomainEventPropagation.IDomainEvent
 Workleap.DomainEventPropagation.IDomainEvent.DataVersion.get -> string!
 Workleap.DomainEventPropagation.IDomainEventHandler<TDomainEvent>
@@ -6,7 +5,3 @@ Workleap.DomainEventPropagation.IDomainEventHandler<TDomainEvent>.HandleDomainEv
 Workleap.DomainEventPropagation.IEventPropagationClient
 Workleap.DomainEventPropagation.IEventPropagationClient.PublishDomainEventAsync<T>(T domainEvent, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 Workleap.DomainEventPropagation.IEventPropagationClient.PublishDomainEventsAsync<T>(System.Collections.Generic.IEnumerable<T>! domainEvents, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
-Workleap.DomainEventPropagation.ITopicProvider
-Workleap.DomainEventPropagation.ITopicProvider.GetAllTopicsNames() -> System.Collections.Generic.IEnumerable<string!>!
-Workleap.DomainEventPropagation.ITopicProvider.GetAllTopicValidationPatterns() -> System.Collections.Generic.IEnumerable<string!>!
-Workleap.DomainEventPropagation.ITopicProvider.GetTopicValidationPattern(string! topicName) -> string!

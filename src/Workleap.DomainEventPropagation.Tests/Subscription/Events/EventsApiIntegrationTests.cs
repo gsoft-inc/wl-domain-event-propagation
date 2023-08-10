@@ -5,7 +5,6 @@ using System.Text;
 using System.Text.Json;
 using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
-using FakeItEasy;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
@@ -20,7 +19,6 @@ namespace Workleap.DomainEventPropagation.Tests.Subscription.Events;
 public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTestsFixture>
 {
     private readonly HttpClient _httpClient;
-    private readonly ITopicProvider _topicProvider;
 
     private static readonly JsonSerializerOptions SerializerOptions = new()
     {
@@ -30,15 +28,12 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
     public EventsApiIntegrationTests(EventsApiIntegrationTestsFixture fixture)
     {
         this._httpClient = fixture.CreateClient();
-        this._topicProvider = fixture.TopicProvider;
     }
 
     [Fact]
     public async Task GivenEventsApi_WhenASubscriptionEventIsPosted_ThenReturnsOkWithValidationResponse()
     {
         // Given
-        A.CallTo(() => this._topicProvider.GetTopicValidationPattern(A<string>._)).Returns("dummytopic");
-
         var subscriptionValidationEventData = new SubscriptionValidationEventTestData
         {
             ValidationCode = "ABC",
@@ -51,7 +46,7 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
                 dataVersion: "1.0",
                 data: new BinaryData(subscriptionValidationEventData, SerializerOptions))
                 {
-                  Topic = EventsApiIntegrationTestsFixture.TestTopic,  
+                  Topic = EventsApiIntegrationTestsFixture.TestTopic,
                 },
             SerializerOptions);
 
@@ -73,8 +68,6 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
     public async Task GivenEventsApi_WhenADomainEventIsPosted_ThenReturnsOk()
     {
         // Given
-        A.CallTo(() => this._topicProvider.GetTopicValidationPattern(A<string>._)).Returns("dummytopic");
-
         var dummyDomainEvent = new DummyDomainEvent
         {
             PropertyA = "A",
@@ -115,26 +108,13 @@ public sealed class EventsApiIntegrationTestsFixture : WebApplicationFactory<Eve
 {
     public const string TestTopic = "DummyTopic";
 
-    public EventsApiIntegrationTestsFixture()
-    {
-        this.TopicProvider = A.Fake<ITopicProvider>(p => p.Strict());
-    }
-
-    public ITopicProvider TopicProvider { get; }
-
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.ConfigureTestServices(services =>
         {
-            services.AddSingleton(this.TopicProvider);
         });
 
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string>
-            {
-                [$"{EventPropagationSubscriberOptions.SectionName}:SubscribedTopics:0"] = TestTopic,
-            })
-            .Build();
+        var configuration = new ConfigurationBuilder().Build();
 
         builder.UseConfiguration(configuration);
 
@@ -144,7 +124,7 @@ public sealed class EventsApiIntegrationTestsFixture : WebApplicationFactory<Eve
     /// <remarks>
     /// Given we are in a test assembly and that we don't have a typical entry point project,
     /// we manually create a host like it would be done in consuming applications, which would
-    /// register the dependencies pertaining to the subscriber capabilities. 
+    /// register the dependencies pertaining to the subscriber capabilities.
     /// </summary>
     protected override IHostBuilder CreateHostBuilder()
     {

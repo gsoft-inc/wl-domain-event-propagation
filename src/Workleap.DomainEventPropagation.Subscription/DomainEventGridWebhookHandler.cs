@@ -13,24 +13,16 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
 
     private static readonly IEnumerable<Assembly> DomainEventAssemblies = GetAssemblies();
     private readonly IServiceProvider _serviceProvider;
-    private readonly ISubscriptionTopicValidator _subscriptionTopicValidator;
     private readonly ConcurrentDictionary<Type, MethodInfo> _handlerDictionary = new();
 
     public DomainEventGridWebhookHandler(
-        IServiceProvider serviceProvider,
-        ISubscriptionTopicValidator subscriptionTopicValidator)
+        IServiceProvider serviceProvider)
     {
         this._serviceProvider = serviceProvider;
-        this._subscriptionTopicValidator = subscriptionTopicValidator;
     }
 
     public async Task HandleEventGridWebhookEventAsync(EventGridEvent eventGridEvent, CancellationToken cancellationToken)
     {
-        if (!this._subscriptionTopicValidator.IsSubscribedToTopic(eventGridEvent.Topic))
-        {
-            return;
-        }
-
         foreach (var assembly in DomainEventAssemblies)
         {
             var domainEventType = assembly.GetType(eventGridEvent.EventType);
