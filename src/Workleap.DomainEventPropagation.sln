@@ -17,14 +17,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workleap.DomainEventPropaga
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workleap.DomainEventPropagation.Subscription", "Workleap.DomainEventPropagation.Subscription\Workleap.DomainEventPropagation.Subscription.csproj", "{1109EBB3-EF74-4C84-85B5-FDE7975FC705}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceA", "ServiceA\ServiceA.csproj", "{2EA4720D-B1DE-4997-ADDA-427A7AD72F3A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceB", "ServiceB\ServiceB.csproj", "{485A6CBA-65F3-4E1B-8B8F-2582FC2A6666}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceA.Contracts", "ServiceA.Contracts\ServiceA.Contracts.csproj", "{B57B9688-22B1-46D6-9C52-BC4C6F585036}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceB.Contracts", "ServiceB.Contracts\ServiceB.Contracts.csproj", "{CB93B77C-0903-4C27-8B26-28C72031B3F5}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -47,22 +39,6 @@ Global
 		{1109EBB3-EF74-4C84-85B5-FDE7975FC705}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1109EBB3-EF74-4C84-85B5-FDE7975FC705}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1109EBB3-EF74-4C84-85B5-FDE7975FC705}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2EA4720D-B1DE-4997-ADDA-427A7AD72F3A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2EA4720D-B1DE-4997-ADDA-427A7AD72F3A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2EA4720D-B1DE-4997-ADDA-427A7AD72F3A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2EA4720D-B1DE-4997-ADDA-427A7AD72F3A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{485A6CBA-65F3-4E1B-8B8F-2582FC2A6666}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{485A6CBA-65F3-4E1B-8B8F-2582FC2A6666}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{485A6CBA-65F3-4E1B-8B8F-2582FC2A6666}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{485A6CBA-65F3-4E1B-8B8F-2582FC2A6666}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B57B9688-22B1-46D6-9C52-BC4C6F585036}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B57B9688-22B1-46D6-9C52-BC4C6F585036}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B57B9688-22B1-46D6-9C52-BC4C6F585036}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B57B9688-22B1-46D6-9C52-BC4C6F585036}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CB93B77C-0903-4C27-8B26-28C72031B3F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CB93B77C-0903-4C27-8B26-28C72031B3F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CB93B77C-0903-4C27-8B26-28C72031B3F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CB93B77C-0903-4C27-8B26-28C72031B3F5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
