@@ -1,5 +1,4 @@
 using System.Reflection;
-using System.Text.Json;
 using Azure.Messaging.EventGrid;
 using FakeItEasy;
 using Microsoft.Extensions.DependencyInjection;
@@ -22,7 +21,7 @@ public class DomainEventGridWebhookHandlerTests
         // No eventHandler is registered
         var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
 
-        var domainEvent = new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }))
+        var domainEvent = new EventGridEvent("subject", typeof(TestDomainEvent).AssemblyQualifiedName, "version", BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }))
         {
             Topic = TopicName,
         };
@@ -43,7 +42,7 @@ public class DomainEventGridWebhookHandlerTests
         var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
         services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler);
 
-        var domainEvent = new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }))
+        var domainEvent = new EventGridEvent("subject", typeof(TestDomainEvent).AssemblyQualifiedName, "version", BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }))
         {
             Topic = TopicName,
         };
@@ -51,6 +50,52 @@ public class DomainEventGridWebhookHandlerTests
         await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(domainEvent, CancellationToken.None);
 
         A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestDomainEvent>._, CancellationToken.None)).MustHaveHappenedOnceExactly();
+    }
+
+    [Fact]
+    public async Task GivenDomainEventIsFired_WhenDomainEventTypeNotFound_ThenException()
+    {
+        var services = new ServiceCollection();
+        var eventProcessingBuilder = services.AddEventPropagationSubscriber();
+        eventProcessingBuilder.AddDomainEventHandlersFromAssembly(typeof(DomainEventGridWebhookHandlerTests).Assembly);
+
+        // No eventHandler is registered
+        var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
+
+        var domainEvent = new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestDomainEvent { Number = 1, Text = "Hello" }))
+        {
+            Topic = TopicName,
+        };
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider());
+
+        await Assert.ThrowsAsync<TypeLoadException>(() => domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(domainEvent, CancellationToken.None));
+        A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestDomainEvent>._, A<CancellationToken>._)).MustNotHaveHappened();
+    }
+
+    [Fact]
+    public async Task GivenDomainEventIsFired_WhenExceptionOccurs_ThenExceptionIsThrown()
+    {
+        var services = new ServiceCollection();
+        var eventProcessingBuilder = services.AddEventPropagationSubscriber();
+        eventProcessingBuilder.AddDomainEventHandlersFromAssembly(typeof(DomainEventGridWebhookHandlerTests).Assembly);
+
+        // Given
+        var domainEventHandler = A.Fake<IDomainEventHandler<TestExceptionDomainEvent>>();
+        A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestExceptionDomainEvent>._, A<CancellationToken>._)).Throws(new Exception("Test exception"));
+        services.AddSingleton<IDomainEventHandler<TestExceptionDomainEvent>>(domainEventHandler);
+
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider());
+
+        await Assert.ThrowsAsync<TargetInvocationException>(() =>
+        {
+            var domainEvent = new EventGridEvent("subject", typeof(TestExceptionDomainEvent).AssemblyQualifiedName, "version", BinaryData.FromObjectAsJson(new TestExceptionDomainEvent { Number = 1, Text = "Hello" }))
+            {
+                Topic = TopicName,
+            };
+            return domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(domainEvent, CancellationToken.None);
+        });
+
+        A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestExceptionDomainEvent>._, CancellationToken.None)).MustHaveHappenedOnceExactly();
     }
 
     [Fact]
@@ -88,51 +133,5 @@ public class DomainEventGridWebhookHandlerTests
         {
             Assert.Fail($"Some domain event handlers, or their dependencies, were not registered: {string.Join(", ", unregisteredDomainEventHandlerTypes.Select(x => x.FullName))}");
         }
-    }
-
-    [Fact]
-    public async Task GivenDomainEventIsFired_WhenExceptionOccurs_ThenExceptionIsThrown()
-    {
-        var services = new ServiceCollection();
-        var eventProcessingBuilder = services.AddEventPropagationSubscriber();
-        eventProcessingBuilder.AddDomainEventHandlersFromAssembly(typeof(DomainEventGridWebhookHandlerTests).Assembly);
-
-        // Given
-        var domainEventHandler = A.Fake<IDomainEventHandler<TestExceptionDomainEvent>>();
-        A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestExceptionDomainEvent>._, A<CancellationToken>._)).Throws(new Exception("Test exception"));
-        services.AddSingleton<IDomainEventHandler<TestExceptionDomainEvent>>(domainEventHandler);
-
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider());
-
-        await Assert.ThrowsAsync<TargetInvocationException>(() =>
-        {
-            var domainEvent = new EventGridEvent("subject", typeof(TestExceptionDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(new TestExceptionDomainEvent { Number = 1, Text = "Hello" }))
-            {
-                Topic = TopicName,
-            };
-            return domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(domainEvent, CancellationToken.None);
-        });
-
-        A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestExceptionDomainEvent>._, CancellationToken.None)).MustHaveHappenedOnceExactly();
-    }
-
-    [Fact]
-    public async Task GivenDomainEventIsFired_WhenEventCannotBeDeserialized_ThenTelemetryEventIsTracked()
-    {
-        var services = new ServiceCollection();
-        var eventProcessingBuilder = services.AddEventPropagationSubscriber();
-        eventProcessingBuilder.AddDomainEventHandlersFromAssembly(typeof(DomainEventGridWebhookHandlerTests).Assembly);
-
-        // Given
-        var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
-        services.AddSingleton<IDomainEventHandler<TestDomainEvent>>(domainEventHandler);
-
-        var domainEvent = new EventGridEvent("subject", "SomeNamepsace.OhNo.Hohoa", "version", JsonSerializer.Serialize(new TestDomainEvent { Number = 1, Text = "Hello" }))
-        {
-            Topic = TopicName,
-        };
-
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider());
-        await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(domainEvent, CancellationToken.None);
     }
 }

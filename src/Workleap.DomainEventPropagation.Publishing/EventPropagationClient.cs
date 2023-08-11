@@ -58,7 +58,7 @@ internal sealed class EventPropagationClient : IEventPropagationClient
         // TODO: Propagate correlation ID by setting data with "telemetryCorrelationId" property when OpenTelemetry is fully supported
         return domainEvents.Select(domainEvent => new EventGridEvent(
             subject: $"{this.TopicName}-{typeof(T).FullName!}",
-            eventType: domainEvent.GetType().FullName,
+            eventType: domainEvent.GetType().AssemblyQualifiedName,
             dataVersion: domainEvent.DataVersion,
             data: new BinaryData(domainEvent, SerializerOptions)));
     }
