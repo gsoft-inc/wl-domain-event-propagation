@@ -11,7 +11,6 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
 
     private static readonly JsonSerializerOptions SerializerOptions = new();
 
-    private static readonly IEnumerable<Assembly> DomainEventAssemblies = GetAssemblies();
     private readonly IServiceProvider _serviceProvider;
     private readonly ConcurrentDictionary<Type, MethodInfo> _handlerDictionary = new();
 
@@ -23,25 +22,15 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
 
     public async Task HandleEventGridWebhookEventAsync(EventGridEvent eventGridEvent, CancellationToken cancellationToken)
     {
-        foreach (var assembly in DomainEventAssemblies)
+        var domainEventType = Type.GetType(eventGridEvent.EventType, true)!;
+
+        var domainEvent = (IDomainEvent?)JsonSerializer.Deserialize(eventGridEvent.Data.ToString(), domainEventType, SerializerOptions);
+        if (domainEvent == null)
         {
-            var domainEventType = assembly.GetType(eventGridEvent.EventType);
-
-            if (domainEventType is null)
-            {
-                continue;
-            }
-
-            var domainEvent = (IDomainEvent?)JsonSerializer.Deserialize(eventGridEvent.Data.ToString(), domainEventType, SerializerOptions);
-            if (domainEvent == null)
-            {
-                throw new InvalidOperationException($"Can't deserialize event Id: {eventGridEvent.Id}; Subject: {eventGridEvent.Subject}; Data version: {eventGridEvent.DataVersion}.");
-            }
-
-            await this.HandleDomainEventAsync(domainEvent, domainEventType, cancellationToken).ConfigureAwait(false);
-
-            return;
+            throw new InvalidOperationException($"Can't deserialize event Id: {eventGridEvent.Id}; Subject: {eventGridEvent.Subject}; Data version: {eventGridEvent.DataVersion}.");
         }
+
+        await this.HandleDomainEventAsync(domainEvent, domainEventType, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task HandleDomainEventAsync(IDomainEvent domainEvent, Type domainEventType, CancellationToken cancellationToken)
@@ -62,27 +51,5 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
         });
 
         await ((Task)handlerMethod.Invoke(handler, new object[] { domainEvent, cancellationToken })!).ConfigureAwait(false);
-    }
-
-    private static IEnumerable<Assembly> GetAssemblies()
-    {
-        // we target Workleap assemblies to limit processing time and exclude Workleap.EventPropagation.Common because it
-        // has references that would make a .Net Framework (as opposed to netstandard or core) project to fail
-        var domainEventType = typeof(IDomainEvent);
-        var domainEventAssemblies = AppDomain.CurrentDomain.GetAssemblies()
-            .Where(x => x.FullName != null && x.FullName.StartsWith("Workleap") && !x.FullName.StartsWith("Workleap.EventPropagation.Common,"))
-            .SelectMany(s => s.GetTypes())
-            .Where(p => !p.IsInterface && !p.IsAbstract && domainEventType.IsAssignableFrom(p))
-            .Select(x => x.Assembly)
-            .Distinct()
-            .ToArray();
-
-        if (domainEventAssemblies.Any())
-        {
-            return domainEventAssemblies;
-        }
-
-        // return nothing, there are no domain events in entire project
-        return Enumerable.Empty<Assembly>();
     }
 }

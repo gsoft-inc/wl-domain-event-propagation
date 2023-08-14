@@ -76,7 +76,7 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
 
         var eventGridEvent = new EventGridEvent(
             subject: typeof(DummyDomainEvent).FullName,
-            eventType: typeof(DummyDomainEvent).FullName,
+            eventType: typeof(DummyDomainEvent).AssemblyQualifiedName,
             dataVersion: "1.0",
             data: new BinaryData(dummyDomainEvent, SerializerOptions))
         {
