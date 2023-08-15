@@ -3,7 +3,6 @@ using Azure.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Moq;
 using Workleap.DomainEventPropagation.Extensions;
 
 namespace Workleap.DomainEventPropagation.Tests.Publishing;

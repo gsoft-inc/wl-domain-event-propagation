@@ -1,5 +1,4 @@
 using Azure.Messaging.EventGrid.SystemEvents;
-using Moq;
 using BindingFlags = System.Reflection.BindingFlags;
 
 namespace Workleap.DomainEventPropagation.Tests.Subscription;
