@@ -1,6 +1,6 @@
 using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
-using Moq;
+using FakeItEasy;
 
 namespace Workleap.DomainEventPropagation.Tests.Subscription;
 
@@ -10,12 +10,12 @@ public class EventGridRequestHandlerTests
     public async Task GivenEventGridRequest_WhenRequestContentNull_ThenThrowsException()
     {
         // Given
-        var domainEventGridWebhookHandlerMock = new Mock<IDomainEventGridWebhookHandler>();
-        var subscriptionEventGridWebhookHandlerMock = new Mock<ISubscriptionEventGridWebhookHandler>();
+        var domainEventGridWebhookHandler = A.Fake<IDomainEventGridWebhookHandler>();
+        var subscriptionEventGridWebhookHandler = A.Fake<ISubscriptionEventGridWebhookHandler>();
 
         var eventGridRequestHandler = new EventGridRequestHandler(
-            domainEventGridWebhookHandlerMock.Object,
-            subscriptionEventGridWebhookHandlerMock.Object);
+            domainEventGridWebhookHandler,
+            subscriptionEventGridWebhookHandler);
 
         await Assert.ThrowsAsync<ArgumentNullException>(() => eventGridRequestHandler.HandleRequestAsync(null!, CancellationToken.None));
     }
@@ -25,16 +25,16 @@ public class EventGridRequestHandlerTests
     {
         // Given
         var validationCode = Guid.NewGuid().ToString();
-        var domainEventGridWebhookHandlerMock = new Mock<IDomainEventGridWebhookHandler>();
-        var subscriptionEventGridWebhookHandlerMock = new Mock<ISubscriptionEventGridWebhookHandler>();
-        subscriptionEventGridWebhookHandlerMock
-            .Setup(x => x.HandleEventGridSubscriptionEvent(It.IsAny<SubscriptionValidationEventData>(), It.IsAny<string>(), It.IsAny<string>()))
+        var domainEventGridWebhookHandler = A.Fake<IDomainEventGridWebhookHandler>();
+        var subscriptionEventGridWebhookHandler = A.Fake<ISubscriptionEventGridWebhookHandler>();
+
+        A.CallTo(() => subscriptionEventGridWebhookHandler.HandleEventGridSubscriptionEvent(A<SubscriptionValidationEventData>._, A<string>._, A<string>._))
             .Returns(new SubscriptionValidationResponse { ValidationResponse = validationCode });
 
         // When
         var eventGridRequestHandler = new EventGridRequestHandler(
-            domainEventGridWebhookHandlerMock.Object,
-            subscriptionEventGridWebhookHandlerMock.Object);
+            domainEventGridWebhookHandler,
+            subscriptionEventGridWebhookHandler);
 
         var result = await eventGridRequestHandler.HandleRequestAsync(GetEventGridSubscriptionRequest(validationCode), CancellationToken.None);
 
@@ -50,16 +50,16 @@ public class EventGridRequestHandlerTests
     {
         // Given
         var validationCode = Guid.NewGuid().ToString();
-        var domainEventGridWebhookHandlerMock = new Mock<IDomainEventGridWebhookHandler>();
-        var subscriptionEventGridWebhookHandlerMock = new Mock<ISubscriptionEventGridWebhookHandler>();
-        subscriptionEventGridWebhookHandlerMock
-            .Setup(x => x.HandleEventGridSubscriptionEvent(It.IsAny<SubscriptionValidationEventData>(), It.IsAny<string>(), It.IsAny<string>()))
-            .Throws(new Exception("Cool exception"));
+        var domainEventGridWebhookHandler = A.Fake<IDomainEventGridWebhookHandler>();
+        var subscriptionEventGridWebhookHandler = A.Fake<ISubscriptionEventGridWebhookHandler>();
+
+        A.CallTo(() => subscriptionEventGridWebhookHandler.HandleEventGridSubscriptionEvent(A<SubscriptionValidationEventData>._, A<string>._, A<string>._))
+            .Throws(new Exception("An exception was thrown"));
 
         // When
         var eventGridRequestHandler = new EventGridRequestHandler(
-            domainEventGridWebhookHandlerMock.Object,
-            subscriptionEventGridWebhookHandlerMock.Object);
+            domainEventGridWebhookHandler,
+            subscriptionEventGridWebhookHandler);
 
         var exception = await Assert.ThrowsAsync<Exception>(() => eventGridRequestHandler.HandleRequestAsync(GetEventGridSubscriptionRequest(validationCode), CancellationToken.None));
 
@@ -72,17 +72,16 @@ public class EventGridRequestHandlerTests
     {
         // Given
         var validationCode = Guid.NewGuid().ToString();
+        var domainEventGridWebhookHandler = A.Fake<IDomainEventGridWebhookHandler>();
+        var subscriptionEventGridWebhookHandler = A.Fake<ISubscriptionEventGridWebhookHandler>();
 
-        var domainEventGridWebhookHandlerMock = new Mock<IDomainEventGridWebhookHandler>();
-        var subscriptionEventGridWebhookHandlerMock = new Mock<ISubscriptionEventGridWebhookHandler>();
-        subscriptionEventGridWebhookHandlerMock
-            .Setup(x => x.HandleEventGridSubscriptionEvent(It.IsAny<SubscriptionValidationEventData>(), It.IsAny<string>(), It.IsAny<string>()))
+        A.CallTo(() => subscriptionEventGridWebhookHandler.HandleEventGridSubscriptionEvent(A<SubscriptionValidationEventData>._, A<string>._, A<string>._))
             .Returns(new SubscriptionValidationResponse { ValidationResponse = validationCode });
 
         // When
         var eventGridRequestHandler = new EventGridRequestHandler(
-            domainEventGridWebhookHandlerMock.Object,
-            subscriptionEventGridWebhookHandlerMock.Object);
+            domainEventGridWebhookHandler,
+            subscriptionEventGridWebhookHandler);
 
         var request = GetEventGridSubscriptionRequest(validationCode);
         var result = await eventGridRequestHandler.HandleRequestAsync(request, CancellationToken.None);
@@ -98,15 +97,16 @@ public class EventGridRequestHandlerTests
     public async Task GivenDomainEventEventGridRequest_WhenRequestContentValidAndContainsTelemetryCorrelationId_ThenRequestTelemetryParentIdIsSet()
     {
         // Given
-        var subscriptionEventGridWebhookHandlerMock = new Mock<ISubscriptionEventGridWebhookHandler>();
+        var domainEventGridWebhookHandler = A.Fake<IDomainEventGridWebhookHandler>();
+        var subscriptionEventGridWebhookHandler = A.Fake<ISubscriptionEventGridWebhookHandler>();
 
-        var domainEventGridWebhookHandlerMock = new Mock<IDomainEventGridWebhookHandler>();
-        domainEventGridWebhookHandlerMock.Setup(x => x.HandleEventGridWebhookEventAsync(It.IsAny<EventGridEvent>(), CancellationToken.None)).Returns(Task.CompletedTask);
+        A.CallTo(() => domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(A<EventGridEvent>._, CancellationToken.None))
+            .Returns(Task.CompletedTask);
 
         // When
         var eventGridRequestHandler = new EventGridRequestHandler(
-            domainEventGridWebhookHandlerMock.Object,
-            subscriptionEventGridWebhookHandlerMock.Object);
+            domainEventGridWebhookHandler,
+            subscriptionEventGridWebhookHandler);
 
         var request = GetEventGridDomainEventRequest();
         var result = await eventGridRequestHandler.HandleRequestAsync(request, CancellationToken.None);
@@ -120,15 +120,15 @@ public class EventGridRequestHandlerTests
     public async Task GivenDomainEventEventGridRequest_WhenRequestThrowsExceptionAndContainsTelemetryCorrelationId_ThenRequestTelemetryIsTracked()
     {
         // Given
-        var subscriptionEventGridWebhookHandlerMock = new Mock<ISubscriptionEventGridWebhookHandler>();
-
-        var domainEventGridWebhookHandlerMock = new Mock<IDomainEventGridWebhookHandler>();
-        domainEventGridWebhookHandlerMock.Setup(x => x.HandleEventGridWebhookEventAsync(It.IsAny<EventGridEvent>(), CancellationToken.None)).Throws(new Exception("Never in a million years will I let tobbacco touch my lips"));
+        var domainEventGridWebhookHandler = A.Fake<IDomainEventGridWebhookHandler>();
+        var subscriptionEventGridWebhookHandler = A.Fake<ISubscriptionEventGridWebhookHandler>();
+        A.CallTo(() => domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(A<EventGridEvent>._, CancellationToken.None))
+            .Throws(new Exception("An exception was thrown"));
 
         // When
         var eventGridRequestHandler = new EventGridRequestHandler(
-            domainEventGridWebhookHandlerMock.Object,
-            subscriptionEventGridWebhookHandlerMock.Object);
+            domainEventGridWebhookHandler,
+            subscriptionEventGridWebhookHandler);
 
         var request = GetEventGridDomainEventRequest();
 
@@ -140,20 +140,21 @@ public class EventGridRequestHandlerTests
     public async Task GivenDomainEventEventGridRequest_WhenRequestTelemetryNull_ThenOperationSucceeds()
     {
         // Given
-        var subscriptionEventGridWebhookHandlerMock = new Mock<ISubscriptionEventGridWebhookHandler>();
-        var domainEventGridWebhookHandlerMock = new Mock<IDomainEventGridWebhookHandler>();
+        var domainEventGridWebhookHandler = A.Fake<IDomainEventGridWebhookHandler>();
+        var subscriptionEventGridWebhookHandler = A.Fake<ISubscriptionEventGridWebhookHandler>();
 
         // When
         var eventGridRequestHandler = new EventGridRequestHandler(
-            domainEventGridWebhookHandlerMock.Object,
-            subscriptionEventGridWebhookHandlerMock.Object);
+            domainEventGridWebhookHandler,
+            subscriptionEventGridWebhookHandler);
 
         var request = GetEventGridDomainEventRequest();
 
         await eventGridRequestHandler.HandleRequestAsync(request, CancellationToken.None);
 
         // Then
-        domainEventGridWebhookHandlerMock.Verify(x => x.HandleEventGridWebhookEventAsync(It.IsAny<EventGridEvent>(), CancellationToken.None), Times.Once);
+        A.CallTo(() => domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(A<EventGridEvent>._, CancellationToken.None))
+            .MustHaveHappenedOnceExactly();
     }
 
     private static string GetEventGridSubscriptionRequest(string validationCode)
