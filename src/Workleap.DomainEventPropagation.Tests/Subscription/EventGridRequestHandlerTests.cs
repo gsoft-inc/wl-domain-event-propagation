@@ -160,7 +160,7 @@ public class EventGridRequestHandlerTests
     private static string GetEventGridSubscriptionRequest(string validationCode)
     {
         var subscriptionRequest = @"[{
-                'topic': '/subscriptions/Organization-egt-',
+                'topic': '/subscriptions/topic-egt-',
                 'subject': '',
                 'eventType': 'Microsoft.EventGrid.SubscriptionValidationEvent',
                 'eventTime': '2017-08-16T01:57:26.005121Z',
@@ -172,7 +172,7 @@ public class EventGridRequestHandlerTests
 
         var eventData = @"{
                   'validationCode': '{validationCode}',
-                  'validationUrl': 'https://rp-eastus2.eventgrid.azure.net:553/eventsubscriptions/estest/validate?id=512d38b6-c7b8-40c8-89fe-f46f9e9622b6&t=2018-04-26T20:30:54.4538837Z&apiVersion=2018-05-01-preview&token=1A1A1A1A'
+                  'validationUrl': 'https://validationurl.io'
             }";
 
         eventData = eventData.Replace("'", "\"");
@@ -183,7 +183,7 @@ public class EventGridRequestHandlerTests
     private static string GetEventGridDomainEventRequest()
     {
         var domainEventRequest = @"[{
-                'topic': '/subscriptions/Organization-egt-',
+                'topic': '/subscriptions/topic-egt-',
                 'subject': 'Test',
                 'eventType': 'Workleap.Organization.DomainEvents.ExampleDomainEvent',
                 'eventTime': '2017-08-16T01:57:26.005121Z',
@@ -194,8 +194,8 @@ public class EventGridRequestHandlerTests
              }]";
 
         var eventData = @"{
-                  'coolDate': '2017-08-16T01:57:26.005121Z',
-                  'coolId': 'b59ff87c-9bfb-46b7-9092-04735202d2f6'
+                  'eventDate': '2017-08-16T01:57:26.005121Z',
+                  'eventId': 'b59ff87c-9bfb-46b7-9092-04735202d2f6'
                 }";
 
         eventData = eventData.Replace("'", "\"");
