@@ -1,1 +1,2 @@
 #nullable enable
+*REMOVED*Workleap.DomainEventPropagation.IDomainEvent.DataVersion.get -> string!
