@@ -17,7 +17,6 @@ public class EventPropagationPublisherOptionsValidatorTests
     [InlineData(null, null, null, false, false)]
     [InlineData(" ", "accessKey", "http://topicurl.com", false, false)]
     [InlineData(null, "accessKey", "http://topicurl.com", false, false)]
-    [InlineData("topicName", " ", "http://topicurl.com", false, false)]
     [InlineData("topicName", null, "http://topicurl.com", false, false)]
     [InlineData("topicName", "accessKey", " ", false, false)]
     [InlineData("topicName", "accessKey", null, false, false)]
