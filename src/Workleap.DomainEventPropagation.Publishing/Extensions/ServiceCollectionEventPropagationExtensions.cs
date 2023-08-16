@@ -58,7 +58,6 @@ public static class ServiceCollectionEventPropagationExtensions
             .AddOptions<EventPropagationPublisherOptions>()
             .BindConfiguration(EventPropagationPublisherOptions.SectionName)
             .Configure(configure)
-            .ValidateDataAnnotations()
             .ValidateOnStart();
 
         services.AddSingleton<IValidateOptions<EventPropagationPublisherOptions>, EventPropagationPublisherOptionsValidator>();
