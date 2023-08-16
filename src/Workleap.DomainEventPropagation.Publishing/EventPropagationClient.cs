@@ -11,6 +11,7 @@ namespace Workleap.DomainEventPropagation;
 /// </summary>
 internal sealed class EventPropagationClient : IEventPropagationClient
 {
+    private const string DomainEventDefaultVersion = "1.0";
     private static readonly JsonSerializerOptions SerializerOptions = new();
 
     private readonly EventPropagationPublisherOptions _eventPropagationPublisherOptions;
@@ -59,7 +60,7 @@ internal sealed class EventPropagationClient : IEventPropagationClient
         return domainEvents.Select(domainEvent => new EventGridEvent(
             subject: $"{this.TopicName}-{typeof(T).FullName!}",
             eventType: domainEvent.GetType().AssemblyQualifiedName,
-            dataVersion: domainEvent.DataVersion,
+            dataVersion: DomainEventDefaultVersion,
             data: new BinaryData(domainEvent, SerializerOptions)));
     }
 }

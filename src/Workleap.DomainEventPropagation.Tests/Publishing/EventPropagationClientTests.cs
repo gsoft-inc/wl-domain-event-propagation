@@ -3,6 +3,7 @@ using FakeItEasy;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Options;
 using Workleap.DomainEventPropagation.Exceptions;
+using Workleap.DomainEventPropagation.Tests.Subscription.Mocks;
 
 namespace Workleap.DomainEventPropagation.Tests.Publishing;
 
@@ -82,6 +83,21 @@ public class EventPropagationClientTests
 
         A.CallTo(() => this._eventGridPublisherClient.SendEventsAsync(
                 A<IEnumerable<EventGridEvent>>.That.Matches(events => events.Count() == domainEvents.Count),
+                A<CancellationToken>._))
+            .Returns(Task.FromResult(A.Fake<Azure.Response>()));
+
+        await this._eventPropagationClient.PublishDomainEventsAsync(domainEvents, CancellationToken.None);
+    }
+
+    [Fact]
+    public async Task GivenGenericPublishDomainEventsAsync_WhenEventsAreSuccessfullySentWithEventGridPublisher_DataVersion_ShouldBe_1_0()
+    {
+        A.CallTo(() => this._eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName)).Returns(this._eventGridPublisherClient);
+
+        var domainEvents = new List<PublishTestDomainEvent> { this._domainEvent, new() };
+
+        A.CallTo(() => this._eventGridPublisherClient.SendEventsAsync(
+                A<IEnumerable<EventGridEvent>>.That.Matches(events => events.All(e => e.DataVersion == "1.0")),
                 A<CancellationToken>._))
             .Returns(Task.FromResult(A.Fake<Azure.Response>()));
 
