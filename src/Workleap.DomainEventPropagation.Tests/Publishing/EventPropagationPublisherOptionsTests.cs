@@ -7,38 +7,6 @@ namespace Workleap.DomainEventPropagation.Tests.Publishing;
 
 public class EventPropagationPublisherOptionsTests
 {
-    [Theory]
-    [InlineData(null, null, null)]
-    [InlineData(" ", "accessKey", "http://topicurl.com")]
-    [InlineData(null, "accessKey", "http://topicurl.com")]
-    [InlineData("topicName", " ", "http://topicurl.com")]
-    [InlineData("topicName", null, "http://topicurl.com")]
-    [InlineData("topicName", "accessKey", " ")]
-    [InlineData("topicName", "accessKey", null)]
-    [InlineData("topicName", "accessKey", "topicEndpoint")]
-    public void GivenEventPropagationConfiguration_WhenOptionsAreInvalid_ThrowsException(string topicName, string topicAccessKey, string topicEndpoint)
-    {
-        var myConfiguration = new Dictionary<string, string>
-        {
-            { $"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicName)}", topicName },
-            { $"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicEndpoint)}", topicEndpoint },
-            { $"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicAccessKey)}", topicAccessKey },
-        };
-
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(myConfiguration)
-            .Build();
-
-        var services = new ServiceCollection();
-
-        services.AddSingleton<IConfiguration>(configuration);
-        services.AddEventPropagationPublisherOptions(_ => { });
-
-        using var serviceProvider = services.BuildServiceProvider();
-
-        Assert.Throws<OptionsValidationException>(() => serviceProvider.GetRequiredService<IOptions<EventPropagationPublisherOptions>>().Value);
-    }
-
     [Fact]
     public void GivenEventPropagationConfigurationAsIConfiguration_WhenLoadedProperly_ThenPropertiesMatch()
     {

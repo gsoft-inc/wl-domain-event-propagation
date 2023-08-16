@@ -16,19 +16,12 @@ public sealed class EventPropagationPublisherOptionsValidator : IValidateOptions
             return ValidateOptionsResult.Fail("A topic name is required");
         }
 
-        if (options.TopicEndpoint is null or { Length: 0 })
+        if (string.IsNullOrWhiteSpace(options.TopicEndpoint))
         {
             return ValidateOptionsResult.Fail("A topic endpoint is required");
         }
 
-        try
-        {
-            if (new Uri(options.TopicEndpoint).IsAbsoluteUri == false)
-            {  
-                return ValidateOptionsResult.Fail("The topic endpoint must be an absolute URI");
-            }
-        }
-        catch (UriFormatException)
+        if (!Uri.TryCreate(options.TopicEndpoint, UriKind.Absolute, out var uri))
         {
             return ValidateOptionsResult.Fail("The topic endpoint must be an absolute URI");
         }
