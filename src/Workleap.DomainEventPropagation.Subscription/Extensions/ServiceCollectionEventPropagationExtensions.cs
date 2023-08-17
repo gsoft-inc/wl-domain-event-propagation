@@ -23,18 +23,20 @@ public static class ServiceCollectionEventPropagationExtensions
         return new EventPropagationSubscriberBuilder(services);
     }
 
-    public static IEndpointRouteBuilder AddEventPropagationEndpoints(this IEndpointRouteBuilder builder)
+    public static RouteHandlerBuilder AddEventPropagationEndpoint(this IEndpointRouteBuilder builder)
     {
-        builder
+        return builder
             .MapPost(EventsApi.Routes.DomainEvents, (
                 [FromBody] object requestContent,
                 HttpContext httpContext,
                 IEventGridRequestHandler eventGridRequestHandler,
                 CancellationToken cancellationToken) => EventsApi.HandleEventGridEvent(requestContent, httpContext, eventGridRequestHandler, cancellationToken))
-            .AllowAnonymous()
             .ExcludeFromDescription();
+    }
 
-        return builder;
+    public static void WithAuthorization(this RouteHandlerBuilder builder)
+    {
+        builder.RequireAuthorization();
     }
 }
 
