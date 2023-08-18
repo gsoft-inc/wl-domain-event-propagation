@@ -150,7 +150,7 @@ public sealed class EventsApiIntegrationTestsFixture : WebApplicationFactory<Eve
 
             app.UseEndpoints(endpoints =>
             {
-                endpoints.AddEventPropagationEndpoints();
+                endpoints.AddEventPropagationEndpoint();
             });
         }
     }
