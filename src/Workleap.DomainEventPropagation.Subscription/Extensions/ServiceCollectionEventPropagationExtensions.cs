@@ -1,9 +1,4 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using Workleap.DomainEventPropagation.Events;
 
 namespace Workleap.DomainEventPropagation.Extensions;
 
@@ -22,17 +17,6 @@ public static class ServiceCollectionEventPropagationExtensions
 
         return new EventPropagationSubscriberBuilder(services);
     }
-
-    public static RouteHandlerBuilder AddEventPropagationEndpoint(this IEndpointRouteBuilder builder) =>
-        builder
-            .MapPost(EventsApi.Routes.DomainEvents, (
-                [FromBody] object requestContent,
-                HttpContext httpContext,
-                IEventGridRequestHandler eventGridRequestHandler,
-                CancellationToken cancellationToken) => EventsApi.HandleEventGridEvent(requestContent, httpContext, eventGridRequestHandler, cancellationToken))
-            .ExcludeFromDescription();
-
-    public static RouteHandlerBuilder WithAuthorization(this RouteHandlerBuilder builder) => builder.RequireAuthorization();
 }
 
 internal sealed class EventPropagationSubscriberBuilder : IEventPropagationSubscriberBuilder
