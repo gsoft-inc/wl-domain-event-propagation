@@ -1,6 +1,7 @@
 using System.Text.Json;
 using Azure.Messaging.EventGrid;
 using Microsoft.Extensions.Azure;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Workleap.DomainEventPropagation.Exceptions;
 
@@ -16,13 +17,16 @@ internal sealed class EventPropagationClient : IEventPropagationClient
 
     private readonly EventPropagationPublisherOptions _eventPropagationPublisherOptions;
     private readonly IAzureClientFactory<EventGridPublisherClient> _eventGridPublisherClientFactory;
+    private readonly IEnumerable<IPublishingDomainEventBehavior> _publishingDomainEventBehaviors;
 
     public EventPropagationClient(
         IAzureClientFactory<EventGridPublisherClient> eventGridPublisherClientFactory,
-        IOptions<EventPropagationPublisherOptions> eventPropagationPublisherOptions)
+        IOptions<EventPropagationPublisherOptions> eventPropagationPublisherOptions,
+        IEnumerable<IPublishingDomainEventBehavior> publishingDomainEventBehaviors)
     {
         this._eventPropagationPublisherOptions = eventPropagationPublisherOptions.Value;
         this._eventGridPublisherClientFactory = eventGridPublisherClientFactory;
+        this._publishingDomainEventBehaviors = publishingDomainEventBehaviors;
     }
 
     private string TopicName => this._eventPropagationPublisherOptions.TopicName;
@@ -41,12 +45,22 @@ internal sealed class EventPropagationClient : IEventPropagationClient
 
         try
         {
-            var eventGridEvents = this.GetEventsList(domainEvents);
+            async Task Handler(IEnumerable<IDomainEvent> events)
+            {
+                var eventGridEvents = this.GetEventsList(events);
+                await this._eventGridPublisherClientFactory
+                    .CreateClient(EventPropagationPublisherOptions.ClientName)
+                    .SendEventsAsync(eventGridEvents, cancellationToken)
+                    .ConfigureAwait(false);
+            }
 
-            await this._eventGridPublisherClientFactory
-                .CreateClient(EventPropagationPublisherOptions.ClientName)
-                .SendEventsAsync(eventGridEvents, cancellationToken)
-                .ConfigureAwait(false);
+            var accumulator = this._publishingDomainEventBehaviors
+                .Reverse()
+                .Aggregate(
+                    Handler,
+                    (DomainEventsHandlerDelegate next, IPublishingDomainEventBehavior pipeline) => (events) => pipeline.Handle(events, next, cancellationToken));
+
+            await accumulator((IEnumerable<IDomainEvent>)domainEvents).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -56,7 +70,6 @@ internal sealed class EventPropagationClient : IEventPropagationClient
 
     private IEnumerable<EventGridEvent> GetEventsList<T>(IEnumerable<T> domainEvents) where T : IDomainEvent
     {
-        // TODO: Propagate correlation ID by setting data with "telemetryCorrelationId" property when OpenTelemetry is fully supported
         return domainEvents.Select(domainEvent => new EventGridEvent(
             subject: $"{this.TopicName}-{typeof(T).FullName!}",
             eventType: domainEvent.GetType().AssemblyQualifiedName,

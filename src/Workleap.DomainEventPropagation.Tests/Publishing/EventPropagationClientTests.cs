@@ -1,9 +1,9 @@
 using Azure.Messaging.EventGrid;
 using FakeItEasy;
 using Microsoft.Extensions.Azure;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Workleap.DomainEventPropagation.Exceptions;
-using Workleap.DomainEventPropagation.Tests.Subscription.Mocks;
 
 namespace Workleap.DomainEventPropagation.Tests.Publishing;
 
@@ -22,7 +22,10 @@ public class EventPropagationClientTests
         this._eventGridPublisherClientFactory = A.Fake<IAzureClientFactory<EventGridPublisherClient>>(opts => opts.Strict());
         this._eventGridPublisherClient = A.Fake<EventGridPublisherClient>(opts => opts.Strict());
 
-        this._eventPropagationClient = new EventPropagationClient(this._eventGridPublisherClientFactory, Options.Create(this._eventPropagationPublisherOptions));
+        this._eventPropagationClient = new EventPropagationClient(
+            this._eventGridPublisherClientFactory,
+            Options.Create(this._eventPropagationPublisherOptions),
+            Array.Empty<IPublishingDomainEventBehavior>());
     }
 
     [Fact]
@@ -104,6 +107,28 @@ public class EventPropagationClientTests
         await this._eventPropagationClient.PublishDomainEventsAsync(domainEvents, CancellationToken.None);
     }
 
+    [Fact]
+    public async Task GivenTracingPipeline_WhenPublishDomainEventAsync_ThenPipelineHandle()
+    {
+        // Given
+        var publisherBehavior = A.Fake<IPublishingDomainEventBehavior>();
+
+        var publisherClient = A.Fake<EventGridPublisherClient>();
+        var clientFactory = A.Fake<IAzureClientFactory<EventGridPublisherClient>>();
+        A.CallTo(() => clientFactory.CreateClient(EventPropagationPublisherOptions.ClientName)).Returns(publisherClient);
+
+        var propagationClient = new EventPropagationClient(
+            clientFactory,
+            Options.Create(this._eventPropagationPublisherOptions),
+            new[] { publisherBehavior });
+
+        // When
+        await propagationClient.PublishDomainEventAsync(this._domainEvent, CancellationToken.None);
+
+        // Then
+        A.CallTo(() => publisherBehavior.Handle(A<IEnumerable<PublishTestDomainEvent>>._, A<DomainEventsHandlerDelegate>._, A<CancellationToken>._)).MustHaveHappened();
+    }
+
     internal class PublishTestDomainEvent : IDomainEvent
     {
         public string Text { get; set; } = string.Empty;
@@ -111,5 +136,7 @@ public class EventPropagationClientTests
         public int Number { get; set; }
 
         public string DataVersion => "1";
+
+        public IDictionary<string, string>? ExtensionAttributes { get; set; } = new Dictionary<string, string>();
     }
 }

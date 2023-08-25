@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text.Json;
 using Azure.Messaging.EventGrid;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Workleap.DomainEventPropagation;
 
@@ -33,23 +34,36 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
         await this.HandleDomainEventAsync(domainEvent, domainEventType, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task HandleDomainEventAsync(IDomainEvent domainEvent, Type domainEventType, CancellationToken cancellationToken)
+    private async Task HandleDomainEventAsync<T>(T eventGridDomainEvent, Type domainEventType, CancellationToken cancellationToken)
+        where T : IDomainEvent
     {
-        var handlerType = typeof(IDomainEventHandler<>).MakeGenericType(domainEventType);
-
-        var handler = this._serviceProvider.GetService(handlerType);
-
-        if (handler == null)
+        async Task Handler(IDomainEvent domainEvent)
         {
-            return;
+            var handlerType = typeof(IDomainEventHandler<>).MakeGenericType(domainEventType);
+
+            var handler = this._serviceProvider.GetService(handlerType);
+
+            if (handler == null)
+            {
+                return;
+            }
+
+            var handlerMethod = this._handlerDictionary.GetOrAdd(handlerType, static type =>
+            {
+                return type.GetMethod(DomainEventHandlerHandleMethod, BindingFlags.Public | BindingFlags.Instance) ??
+                       throw new InvalidOperationException($"No public method found with name {DomainEventHandlerHandleMethod} on type {type.FullName}.");
+            });
+
+            await ((Task)handlerMethod.Invoke(handler, new object[] { domainEvent!, cancellationToken })!).ConfigureAwait(false);
         }
 
-        var handlerMethod = this._handlerDictionary.GetOrAdd(handlerType, static type =>
-        {
-            return type.GetMethod(DomainEventHandlerHandleMethod, BindingFlags.Public | BindingFlags.Instance) ??
-                   throw new InvalidOperationException($"No public method found with name {DomainEventHandlerHandleMethod} on type {type.FullName}.");
-        });
+        var accumulator = this._serviceProvider
+            .GetServices<ISubscribtionDomainEventBehavior>()
+            .Reverse()
+            .Aggregate(
+                Handler,
+                (SubscriberDomainEventsHandlerDelegate next, ISubscribtionDomainEventBehavior pipeline) => (events) => pipeline.Handle(events, next, cancellationToken));
 
-        await ((Task)handlerMethod.Invoke(handler, new object[] { domainEvent, cancellationToken })!).ConfigureAwait(false);
+        await accumulator(eventGridDomainEvent).ConfigureAwait(false);
     }
 }

@@ -92,6 +92,34 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
     }
 
+    [Fact]
+    public async Task GivenSecuredEventsApi_WhenADomainEventIsPostedWithoutAccessToken_ThenReturnsUnauthorized()
+    {
+        // Given
+        var dummyDomainEvent = new DummyDomainEvent
+        {
+            PropertyA = "A",
+            PropertyB = 1,
+        };
+
+        var eventGridEvent = new EventGridEvent(
+            subject: typeof(DummyDomainEvent).FullName,
+            eventType: typeof(DummyDomainEvent).AssemblyQualifiedName,
+            dataVersion: "1.0",
+            data: new BinaryData(dummyDomainEvent, SerializerOptions))
+        {
+            Topic = EventsApiIntegrationTestsFixture.TestTopic,
+        };
+
+        var content = new StringContent(JsonSerializer.Serialize(eventGridEvent), Encoding.UTF8, MediaTypeNames.Application.Json);
+
+        // When
+        var response = await this._httpClient.PostAsync("/eventgrid/domainevents", content);
+
+        // Then
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
     /// <remarks>
     /// Unfortunately, <see cref="SubscriptionValidationEventData"/> only has internal
     /// constructors, which prevents us to use the real object. For tests purpose, it
