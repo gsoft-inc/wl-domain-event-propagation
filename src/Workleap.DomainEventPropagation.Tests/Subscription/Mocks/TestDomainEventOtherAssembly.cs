@@ -10,4 +10,6 @@ public class TestDomainEventOtherAssembly : IDomainEvent
     public int Number { get; set; }
 
     public string DataVersion => "1";
+
+    public IDictionary<string, string>? ExtensionAttributes { get; set; }
 }

@@ -49,6 +49,8 @@ public static class ServiceCollectionEventPropagationExtensions
                 .ConfigureOptions(ConfigureClientOptions());
         });
 
+        services.TryAddEnumerable(new ServiceDescriptor(typeof(IPublishingDomainEventBehavior), typeof(PublishingDomainEventTracingBehavior), ServiceLifetime.Singleton));
+
         return new EventPropagationPublisherBuilder(services);
     }
 

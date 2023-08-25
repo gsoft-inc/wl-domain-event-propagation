@@ -134,4 +134,28 @@ public class DomainEventGridWebhookHandlerTests
             Assert.Fail($"Some domain event handlers, or their dependencies, were not registered: {string.Join(", ", unregisteredDomainEventHandlerTypes.Select(x => x.FullName))}");
         }
     }
+
+    [Fact]
+    public async Task GivenRegisteredTracingBehavior_WhenHandleEventGridWebhookEventAsync_ThenBehaviorCalled()
+    {
+        // Given
+        var domainEvent = new SampleDomainEvent();
+        var eventGridEvent = new EventGridEvent("Subject", domainEvent.GetType().AssemblyQualifiedName, "1.0", new BinaryData(domainEvent));
+
+        var subscriberBehavior = A.Fake<ISubscribtionDomainEventBehavior>();
+        var eventHandler = A.Fake<IDomainEventHandler<SampleDomainEvent>>();
+
+        var services = new ServiceCollection();
+        services.AddSingleton(subscriberBehavior);
+        services.AddSingleton(eventHandler);
+        var serviceProvider = services.BuildServiceProvider();
+
+        // When
+        var webhookHandler = new DomainEventGridWebhookHandler(serviceProvider);
+
+        await webhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, CancellationToken.None);
+
+        // Then
+        A.CallTo(() => subscriberBehavior.Handle(A<SampleDomainEvent>._, A<SubscriberDomainEventsHandlerDelegate>._, A<CancellationToken>._)).MustHaveHappened();
+    }
 }
