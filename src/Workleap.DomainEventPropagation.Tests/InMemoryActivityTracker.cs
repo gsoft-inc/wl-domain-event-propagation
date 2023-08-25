@@ -5,8 +5,10 @@ namespace Workleap.DomainEventPropagation.Tests;
 internal sealed class InMemoryActivityTracker : IDisposable
 {
     private static readonly HashSet<InMemoryActivityTracker> ActiveTrackers = new HashSet<InMemoryActivityTracker>();
+    private static readonly object ActiveTrackersLock = new object();
 
     private readonly List<Activity> _activities;
+    private readonly object _activitiesLock = new object();
 
     static InMemoryActivityTracker()
     {
@@ -17,7 +19,7 @@ internal sealed class InMemoryActivityTracker : IDisposable
             Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
             ActivityStopped = activity =>
             {
-                lock (ActiveTrackers)
+                lock (ActiveTrackersLock)
                 {
                     foreach (var tracker in ActiveTrackers)
                     {
@@ -34,7 +36,7 @@ internal sealed class InMemoryActivityTracker : IDisposable
     {
         this._activities = new List<Activity>();
 
-        lock (ActiveTrackers)
+        lock (ActiveTrackersLock)
         {
             ActiveTrackers.Add(this);
         }
@@ -42,7 +44,7 @@ internal sealed class InMemoryActivityTracker : IDisposable
 
     private void TrackActivity(Activity activity)
     {
-        lock (this._activities)
+        lock (this._activitiesLock)
         {
             this._activities.Add(activity);
         }
@@ -50,7 +52,7 @@ internal sealed class InMemoryActivityTracker : IDisposable
 
     public void AssertPublishSuccessful()
     {
-        lock (this._activities)
+        lock (this._activitiesLock)
         {
             var activity = Assert.Single(this._activities, activity => activity.OperationName == "EventGridEvents create");
 
@@ -63,7 +65,7 @@ internal sealed class InMemoryActivityTracker : IDisposable
 
     public void AssertPublishFailed(string requestName, Exception exception)
     {
-        lock (this._activities)
+        lock (this._activitiesLock)
         {
             var activity = Assert.Single(this._activities);
 
@@ -84,7 +86,7 @@ internal sealed class InMemoryActivityTracker : IDisposable
 
     public void AssertSubscribeSuccessful()
     {
-        lock (this._activities)
+        lock (this._activitiesLock)
         {
             var activity = Assert.Single(this._activities, activity => activity.OperationName == "EventGridEvents process");
 
@@ -97,7 +99,7 @@ internal sealed class InMemoryActivityTracker : IDisposable
 
     public void Dispose()
     {
-        lock (ActiveTrackers)
+        lock (ActiveTrackersLock)
         {
             ActiveTrackers.Remove(this);
         }
