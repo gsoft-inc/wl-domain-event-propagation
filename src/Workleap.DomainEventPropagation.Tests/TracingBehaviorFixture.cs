@@ -5,9 +5,9 @@ using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Workleap.DomainEventPropagation.Extensions;
 
-namespace Workleap.DomainEventPropagation.Tests.Publishing;
+namespace Workleap.DomainEventPropagation.Tests;
 
-public class TracingFixture : BaseUnitFixture
+public class TracingBehaviorFixture : BaseUnitFixture
 {
     public override IServiceCollection ConfigureServices(IServiceCollection services)
     {

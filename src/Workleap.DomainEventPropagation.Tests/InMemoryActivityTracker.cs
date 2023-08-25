@@ -52,7 +52,7 @@ internal sealed class InMemoryActivityTracker : IDisposable
     {
         lock (this._activities)
         {
-            var activity = Assert.Single(this._activities);
+            var activity = Assert.Single(this._activities, activity => activity.OperationName == "EventGridEvents create");
 
             Assert.Equal("EventGridEvents create", activity.OperationName);
             Assert.Equal(ActivityKind.Producer, activity.Kind);
@@ -86,7 +86,7 @@ internal sealed class InMemoryActivityTracker : IDisposable
     {
         lock (this._activities)
         {
-            var activity = Assert.Single(this._activities);
+            var activity = Assert.Single(this._activities, activity => activity.OperationName == "EventGridEvents process");
 
             Assert.Equal("EventGridEvents process", activity.OperationName);
             Assert.Equal(ActivityKind.Consumer, activity.Kind);

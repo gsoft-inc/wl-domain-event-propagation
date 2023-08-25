@@ -17,16 +17,16 @@ internal sealed class EventPropagationClient : IEventPropagationClient
 
     private readonly EventPropagationPublisherOptions _eventPropagationPublisherOptions;
     private readonly IAzureClientFactory<EventGridPublisherClient> _eventGridPublisherClientFactory;
-    private readonly IServiceProvider _serviceProvider;
+    private readonly IEnumerable<IPublishingDomainEventBehavior> _publishingDomainEventBehaviors;
 
     public EventPropagationClient(
         IAzureClientFactory<EventGridPublisherClient> eventGridPublisherClientFactory,
         IOptions<EventPropagationPublisherOptions> eventPropagationPublisherOptions,
-        IServiceProvider serviceProvider)
+        IEnumerable<IPublishingDomainEventBehavior> publishingDomainEventBehaviors)
     {
         this._eventPropagationPublisherOptions = eventPropagationPublisherOptions.Value;
         this._eventGridPublisherClientFactory = eventGridPublisherClientFactory;
-        this._serviceProvider = serviceProvider;
+        this._publishingDomainEventBehaviors = publishingDomainEventBehaviors;
     }
 
     private string TopicName => this._eventPropagationPublisherOptions.TopicName;
@@ -54,8 +54,7 @@ internal sealed class EventPropagationClient : IEventPropagationClient
                     .ConfigureAwait(false);
             }
 
-            var accumulator = this._serviceProvider
-                .GetServices<IPublishingDomainEventBehavior>()
+            var accumulator = this._publishingDomainEventBehaviors
                 .Reverse()
                 .Aggregate(
                     Handler,
