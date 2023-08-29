@@ -1,6 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Workleap.DomainEventPropagation.Events;
 
 namespace Workleap.DomainEventPropagation.Extensions;
 
@@ -17,7 +16,7 @@ public static class ServiceCollectionEventPropagationExtensions
         services.AddSingleton<IDomainEventGridWebhookHandler, DomainEventGridWebhookHandler>();
         services.AddSingleton<IEventGridRequestHandler, EventGridRequestHandler>();
 
-        services.TryAddEnumerable(new ServiceDescriptor(typeof(ISubscribtionDomainEventBehavior), typeof(SubscribtionDomainEventTracingBehavior), ServiceLifetime.Singleton));
+        services.TryAddEnumerable(new ServiceDescriptor(typeof(ISubscriptionDomainEventBehavior), typeof(SubscriptionDomainEventTracingBehavior), ServiceLifetime.Singleton));
 
         return new EventPropagationSubscriberBuilder(services);
     }

@@ -13,29 +13,31 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
     private static readonly JsonSerializerOptions SerializerOptions = new();
 
     private readonly IServiceProvider _serviceProvider;
+    private readonly IEnumerable<ISubscriptionDomainEventBehavior> _subscriptionDomainEventBehaviors;
     private readonly ConcurrentDictionary<Type, MethodInfo> _handlerDictionary = new();
 
     public DomainEventGridWebhookHandler(
-        IServiceProvider serviceProvider)
+        IServiceProvider serviceProvider,
+        IEnumerable<ISubscriptionDomainEventBehavior> subscriptionDomainEventBehaviors)
     {
         this._serviceProvider = serviceProvider;
+        this._subscriptionDomainEventBehaviors = subscriptionDomainEventBehaviors;
     }
 
     public async Task HandleEventGridWebhookEventAsync(EventGridEvent eventGridEvent, CancellationToken cancellationToken)
     {
         var domainEventType = Type.GetType(eventGridEvent.EventType, true)!;
 
-        var domainEvent = (IDomainEvent?)JsonSerializer.Deserialize(eventGridEvent.Data.ToString(), domainEventType, SerializerOptions);
-        if (domainEvent == null)
+        var domainEventWrapper = (IDomainEvent?)JsonSerializer.Deserialize(eventGridEvent.Data.ToString(), typeof(DomainEventWrapper), SerializerOptions);
+        if (domainEventWrapper == null)
         {
-            throw new InvalidOperationException($"Can't deserialize event Id: {eventGridEvent.Id}; Subject: {eventGridEvent.Subject}; Data version: {eventGridEvent.DataVersion}.");
+            throw new InvalidOperationException($"Can't deserialize eventGrid event with Id: {eventGridEvent.Id}; Subject: {eventGridEvent.Subject}; EventType: {eventGridEvent.EventType}.");
         }
 
-        await this.HandleDomainEventAsync(domainEvent, domainEventType, cancellationToken).ConfigureAwait(false);
+        await this.HandleDomainEventAsync(domainEventWrapper, domainEventType, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task HandleDomainEventAsync<T>(T eventGridDomainEvent, Type domainEventType, CancellationToken cancellationToken)
-        where T : IDomainEvent
+    private async Task HandleDomainEventAsync(IDomainEvent domainEventWrapper, Type domainEventType, CancellationToken cancellationToken)
     {
         async Task Handler(IDomainEvent domainEvent)
         {
@@ -57,13 +59,12 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
             await ((Task)handlerMethod.Invoke(handler, new object[] { domainEvent!, cancellationToken })!).ConfigureAwait(false);
         }
 
-        var accumulator = this._serviceProvider
-            .GetServices<ISubscribtionDomainEventBehavior>()
+        var accumulator = this._subscriptionDomainEventBehaviors
             .Reverse()
             .Aggregate(
                 Handler,
-                (SubscriberDomainEventsHandlerDelegate next, ISubscribtionDomainEventBehavior pipeline) => (events) => pipeline.Handle(events, next, cancellationToken));
+                (SubscriberDomainEventsHandlerDelegate next, ISubscriptionDomainEventBehavior pipeline) => (events) => pipeline.Handle(events, next, cancellationToken));
 
-        await accumulator(eventGridDomainEvent).ConfigureAwait(false);
+        await accumulator(domainEventWrapper).ConfigureAwait(false);
     }
 }

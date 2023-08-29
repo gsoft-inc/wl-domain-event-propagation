@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Workleap.DomainEventPropagation.ApplicationInsights\Workleap.DomainEventPropagation.ApplicationInsights.csproj" />
     <ProjectReference Include="..\Workleap.DomainEventPropagation.Publishing\Workleap.DomainEventPropagation.Publishing.csproj" />
     <ProjectReference Include="..\Workleap.DomainEventPropagation.Subscription\Workleap.DomainEventPropagation.Subscription.csproj" />
   </ItemGroup>
@@ -28,6 +29,15 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\DomainEventPropagation\DomainEventWrapper.cs">
+      <Link>DomainEventPropagation\DomainEventWrapper.cs</Link>
+    </Compile>
+    <Compile Include="..\DomainEventPropagation\TracingHelper.cs">
+      <Link>DomainEventPropagation\TracingHelper.cs</Link>
+    </Compile>
   </ItemGroup>
 
 </Project>

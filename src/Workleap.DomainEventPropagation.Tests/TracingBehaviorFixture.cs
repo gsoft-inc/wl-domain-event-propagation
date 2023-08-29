@@ -1,6 +1,9 @@
 ﻿using Azure.Messaging.EventGrid;
 using FakeItEasy;
 using GSoft.Extensions.Xunit;
+using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.Channel;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.DependencyInjection;
 using Workleap.DomainEventPropagation.Extensions;
@@ -21,9 +24,21 @@ public class TracingBehaviorFixture : BaseUnitFixture
         // OpenTelemetry test dependencies
         services.AddSingleton<InMemoryActivityTracker>();
 
-        services.AddEventPropagationPublisher();
+        services.AddSingleton(x =>
+        {
+            var telemetryChannel = A.Fake<ITelemetryChannel>();
+            var configuration = new TelemetryConfiguration("fake-instrumentation-key", telemetryChannel);
+            return new TelemetryClient(configuration);
+        });
+
+        // Publishing
+        services.AddEventPropagationPublisher()
+            .AddAppInsights();
+
+        // Subscription
         services.AddEventPropagationSubscriber()
-            .AddDomainEventHandler<SambleDomainEventHandler>();
+            .AddDomainEventHandler<SambleDomainEventHandler>()
+            .AddAppInsights();
 
         services.AddSingleton(clientFactory);
 

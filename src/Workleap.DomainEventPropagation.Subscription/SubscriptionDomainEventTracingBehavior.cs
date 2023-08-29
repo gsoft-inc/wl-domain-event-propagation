@@ -1,16 +1,19 @@
 ﻿using System.Diagnostics;
+using System.Text.Json;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
 
 namespace Workleap.DomainEventPropagation;
 
-internal class SubscribtionDomainEventTracingBehavior : ISubscribtionDomainEventBehavior
+internal class SubscriptionDomainEventTracingBehavior : ISubscriptionDomainEventBehavior
 {
-    public Task Handle(IDomainEvent domainEvent, SubscriberDomainEventsHandlerDelegate next, CancellationToken cancellationToken)
+    public Task Handle(IDomainEvent domainEventWrapper, SubscriberDomainEventsHandlerDelegate next, CancellationToken cancellationToken)
     {
+        var eventWrapper = domainEventWrapper as DomainEventWrapper;
+
         var context = Propagators.DefaultTextMapPropagator.Extract(
             new PropagationContext(new ActivityContext(), Baggage.Current),
-            (domainEvent as IDomainEvent)!.ExtensionAttributes ?? new Dictionary<string, string>(),
+            eventWrapper!.ExtensionAttributes,
             (properties, key) =>
             {
                 var valueFromProps = properties.TryGetValue(key, out var propertyValue)
@@ -18,6 +21,12 @@ internal class SubscribtionDomainEventTracingBehavior : ISubscribtionDomainEvent
                     : string.Empty;
                 return new List<string> { valueFromProps };
             });
+
+        var domainEvent = (IDomainEvent?)JsonSerializer.Deserialize(eventWrapper.DomainEventJson.ToString(), Type.GetType(eventWrapper.DomainEventType)!);
+        if (domainEvent == null)
+        {
+            throw new InvalidOperationException($"Can't deserialize domainEvent with EventType: {eventWrapper.DomainEventType}.");
+        }
 
         var activity = TracingHelper.StartActivity(TracingHelper.EventGridEventsSubscriberActivityName, context.ActivityContext);
 
@@ -36,7 +45,6 @@ internal class SubscribtionDomainEventTracingBehavior : ISubscribtionDomainEvent
             catch (Exception ex)
             {
                 TracingHelper.MarkAsFailed(activity, ex);
-
                 throw;
             }
         }

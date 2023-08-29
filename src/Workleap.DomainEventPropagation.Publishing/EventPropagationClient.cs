@@ -1,7 +1,6 @@
 using System.Text.Json;
 using Azure.Messaging.EventGrid;
 using Microsoft.Extensions.Azure;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Workleap.DomainEventPropagation.Exceptions;
 
@@ -13,7 +12,6 @@ namespace Workleap.DomainEventPropagation;
 internal sealed class EventPropagationClient : IEventPropagationClient
 {
     private const string DomainEventDefaultVersion = "1.0";
-    private static readonly JsonSerializerOptions SerializerOptions = new();
 
     private readonly EventPropagationPublisherOptions _eventPropagationPublisherOptions;
     private readonly IAzureClientFactory<EventGridPublisherClient> _eventGridPublisherClientFactory;
@@ -74,6 +72,6 @@ internal sealed class EventPropagationClient : IEventPropagationClient
             subject: $"{this.TopicName}-{typeof(T).FullName!}",
             eventType: domainEvent.GetType().AssemblyQualifiedName,
             dataVersion: DomainEventDefaultVersion,
-            data: new BinaryData(domainEvent, SerializerOptions)));
+            data: new BinaryData(domainEvent)));
     }
 }

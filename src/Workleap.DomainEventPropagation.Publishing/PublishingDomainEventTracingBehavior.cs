@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Text.Json;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
 
@@ -29,12 +30,19 @@ internal sealed class PublishingDomainEventTracingBehavior : IPublishingDomainEv
                         dict[key] = value;
                     });
 
-                foreach (var evt in events)
+                var wrappedEvents = new List<IDomainEvent>();
+
+                foreach (IDomainEvent evt in events)
                 {
-                    evt.ExtensionAttributes = serializedTelemetryData;
+                    wrappedEvents.Add(new DomainEventWrapper()
+                    {
+                        DomainEventType = evt.GetType().AssemblyQualifiedName ?? evt.GetType().ToString(),
+                        DomainEventJson = JsonSerializer.SerializeToElement(evt, evt.GetType()),
+                        ExtensionAttributes = serializedTelemetryData,
+                    });
                 }
 
-                await next(events).ConfigureAwait(false);
+                await next(wrappedEvents).ConfigureAwait(false);
                 TracingHelper.MarkAsSuccessful(activity);
             }
             catch (Exception ex)

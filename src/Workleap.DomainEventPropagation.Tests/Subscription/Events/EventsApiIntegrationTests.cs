@@ -20,11 +20,6 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
 {
     private readonly HttpClient _httpClient;
 
-    private static readonly JsonSerializerOptions SerializerOptions = new()
-    {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-    };
-
     public EventsApiIntegrationTests(EventsApiIntegrationTestsFixture fixture)
     {
         this._httpClient = fixture.CreateClient();
@@ -33,6 +28,11 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
     [Fact]
     public async Task GivenEventsApi_WhenASubscriptionEventIsPosted_ThenReturnsOkWithValidationResponse()
     {
+        var serializerOptions = new JsonSerializerOptions()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        };
+
         // Given
         var subscriptionValidationEventData = new SubscriptionValidationEventTestData
         {
@@ -44,11 +44,11 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
                 subject: "Blabla",
                 eventType: SystemEventNames.EventGridSubscriptionValidation,
                 dataVersion: "1.0",
-                data: new BinaryData(subscriptionValidationEventData, SerializerOptions))
+                data: new BinaryData(subscriptionValidationEventData, serializerOptions))
                 {
                   Topic = EventsApiIntegrationTestsFixture.TestTopic,
                 },
-            SerializerOptions);
+            serializerOptions);
 
         var content = new StringContent(serializedContent, Encoding.UTF8, MediaTypeNames.Application.Json);
 
@@ -58,7 +58,7 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
         // Then
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-        var subscriptionValidationResponse = await response.Content.ReadFromJsonAsync<SubscriptionValidationResponse>(SerializerOptions);
+        var subscriptionValidationResponse = await response.Content.ReadFromJsonAsync<SubscriptionValidationResponse>(serializerOptions);
 
         Assert.NotNull(subscriptionValidationResponse);
         Assert.Equal(subscriptionValidationEventData.ValidationCode, subscriptionValidationResponse.ValidationResponse);
@@ -68,22 +68,22 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
     public async Task GivenEventsApi_WhenADomainEventIsPosted_ThenReturnsOk()
     {
         // Given
-        var dummyDomainEvent = new DummyDomainEvent
+        var wrapperEvent = new DomainEventWrapper()
         {
-            PropertyA = "A",
-            PropertyB = 1,
+            DomainEventJson = JsonSerializer.SerializeToElement(new DummyDomainEvent() { PropertyB = 1, PropertyA = "Hello world" }, typeof(DummyDomainEvent)),
+            DomainEventType = typeof(DummyDomainEvent).AssemblyQualifiedName ?? typeof(DummyDomainEvent).ToString(),
         };
 
         var eventGridEvent = new EventGridEvent(
             subject: typeof(DummyDomainEvent).FullName,
             eventType: typeof(DummyDomainEvent).AssemblyQualifiedName,
             dataVersion: "1.0",
-            data: new BinaryData(dummyDomainEvent, SerializerOptions))
+            data: new BinaryData(wrapperEvent))
         {
             Topic = EventsApiIntegrationTestsFixture.TestTopic,
         };
 
-        var content = new StringContent(JsonSerializer.Serialize(eventGridEvent), Encoding.UTF8, MediaTypeNames.Application.Json);
+        var content = new StringContent(JsonSerializer.Serialize(eventGridEvent, new JsonSerializerOptions()), Encoding.UTF8, MediaTypeNames.Application.Json);
 
         // When
         var response = await this._httpClient.PostAsync("/eventgrid/domainevents", content);
@@ -96,17 +96,17 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
     public async Task GivenSecuredEventsApi_WhenADomainEventIsPostedWithoutAccessToken_ThenReturnsUnauthorized()
     {
         // Given
-        var dummyDomainEvent = new DummyDomainEvent
+        var wrapperEvent = new DomainEventWrapper()
         {
-            PropertyA = "A",
-            PropertyB = 1,
+            DomainEventJson = JsonSerializer.SerializeToElement(new DummyDomainEvent() { PropertyB = 1, PropertyA = "Hello world" }, typeof(DummyDomainEvent)),
+            DomainEventType = typeof(DummyDomainEvent).AssemblyQualifiedName ?? typeof(DummyDomainEvent).ToString(),
         };
 
         var eventGridEvent = new EventGridEvent(
             subject: typeof(DummyDomainEvent).FullName,
             eventType: typeof(DummyDomainEvent).AssemblyQualifiedName,
             dataVersion: "1.0",
-            data: new BinaryData(dummyDomainEvent, SerializerOptions))
+            data: new BinaryData(wrapperEvent))
         {
             Topic = EventsApiIntegrationTestsFixture.TestTopic,
         };

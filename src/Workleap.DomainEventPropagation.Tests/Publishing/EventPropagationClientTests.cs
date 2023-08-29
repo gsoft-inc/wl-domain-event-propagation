@@ -1,7 +1,6 @@
 using Azure.Messaging.EventGrid;
 using FakeItEasy;
 using Microsoft.Extensions.Azure;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Workleap.DomainEventPropagation.Exceptions;
 

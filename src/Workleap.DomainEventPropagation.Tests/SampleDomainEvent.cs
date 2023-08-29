@@ -2,7 +2,7 @@
 
 public class SampleDomainEvent : IDomainEvent
 {
-    public IDictionary<string, string>? ExtensionAttributes { get; set; } = new Dictionary<string, string>();
+    public string? Message { get; set; }
 }
 
 public class SambleDomainEventHandler : IDomainEventHandler<SampleDomainEvent>

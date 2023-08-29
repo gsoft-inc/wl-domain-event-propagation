@@ -15,7 +15,7 @@ internal sealed class InMemoryActivityTracker : IDisposable
         // https://learn.microsoft.com/en-us/dotnet/core/diagnostics/distributed-tracing-collection-walkthroughs?source=recommendations#add-code-to-collect-the-traces
         var staticListener = new ActivityListener
         {
-            ShouldListenTo = source => source.Name == "Workleap.DomainEventPropagation",
+            ShouldListenTo = source => source.Name.Contains("Workleap.DomainEventPropagation"),
             Sample = (ref ActivityCreationOptions<ActivityContext> _) => ActivitySamplingResult.AllDataAndRecorded,
             ActivityStopped = activity =>
             {

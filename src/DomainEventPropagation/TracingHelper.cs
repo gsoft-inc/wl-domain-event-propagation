@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace Workleap.DomainEventPropagation;
 
-public static class TracingHelper
+internal static class TracingHelper
 {
     // https://github.com/open-telemetry/opentelemetry-specification/blob/v1.18.0/specification/common/mapping-to-non-otlp.md#span-status
     internal const string StatusCodeTag = "otel.status_code";
@@ -16,6 +16,7 @@ public static class TracingHelper
     internal const string ExceptionMessageTag = "exception.message";
     internal const string ExceptionStackTraceTag = "exception.stacktrace";
 
+    // https://github.com/open-telemetry/opentelemetry-specification/blob/v1.18.0/specification/trace/semantic_conventions/cloudevents.md#conventions
     public const string EventGridEventsPublisherActivityName = "EventGridEvents create";
     public const string EventGridEventsSubscriberActivityName = "EventGridEvents process";
 
