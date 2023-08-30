@@ -3,7 +3,7 @@ using Microsoft.ApplicationInsights;
 
 namespace Workleap.DomainEventPropagation;
 
-public class PublishigApplicationInsightsTracingBehavior : IPublishingDomainEventBehavior
+internal class PublishigApplicationInsightsTracingBehavior : IPublishingDomainEventBehavior
 {
     private readonly TelemetryClient? _telemetryClient;
 

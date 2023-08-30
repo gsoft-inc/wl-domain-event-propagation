@@ -1,8 +1,8 @@
 ﻿namespace Workleap.DomainEventPropagation;
 
-public delegate Task DomainEventsHandlerDelegate(IEnumerable<IDomainEvent> events);
+internal delegate Task DomainEventsHandlerDelegate(IEnumerable<IDomainEvent> events);
 
-public interface IPublishingDomainEventBehavior
+internal interface IPublishingDomainEventBehavior
 {
     Task Handle(IEnumerable<IDomainEvent> events, DomainEventsHandlerDelegate next, CancellationToken cancellationToken);
 }
