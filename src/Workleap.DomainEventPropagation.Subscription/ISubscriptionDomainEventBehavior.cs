@@ -4,5 +4,5 @@ public delegate Task SubscriberDomainEventsHandlerDelegate(IDomainEvent domainEv
 
 public interface ISubscriptionDomainEventBehavior
 {
-    Task Handle(IDomainEvent domainEventWrapper, SubscriberDomainEventsHandlerDelegate next, CancellationToken cancellationToken);
+    Task Handle(IDomainEvent domainEvent, SubscriberDomainEventsHandlerDelegate next, CancellationToken cancellationToken);
 }

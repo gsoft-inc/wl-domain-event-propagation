@@ -45,7 +45,12 @@ internal sealed class EventPropagationClient : IEventPropagationClient
         {
             async Task Handler(IEnumerable<IDomainEvent> events)
             {
-                var eventGridEvents = this.GetEventsList(events);
+                var eventGridEvents = events.Select(domainEvent => new EventGridEvent(
+                    subject: $"{this.TopicName}-{typeof(T).FullName!}",
+                    eventType: typeof(T).AssemblyQualifiedName,
+                    dataVersion: DomainEventDefaultVersion,
+                    data: new BinaryData(domainEvent)));
+
                 await this._eventGridPublisherClientFactory
                     .CreateClient(EventPropagationPublisherOptions.ClientName)
                     .SendEventsAsync(eventGridEvents, cancellationToken)
@@ -64,14 +69,5 @@ internal sealed class EventPropagationClient : IEventPropagationClient
         {
             throw new EventPropagationPublishingException("An error occured while publishing events to EventGrid", ex, this.TopicName, typeof(T).FullName!, this._eventPropagationPublisherOptions.TopicEndpoint);
         }
-    }
-
-    private IEnumerable<EventGridEvent> GetEventsList<T>(IEnumerable<T> domainEvents) where T : IDomainEvent
-    {
-        return domainEvents.Select(domainEvent => new EventGridEvent(
-            subject: $"{this.TopicName}-{typeof(T).FullName!}",
-            eventType: domainEvent.GetType().AssemblyQualifiedName,
-            dataVersion: DomainEventDefaultVersion,
-            data: new BinaryData(domainEvent)));
     }
 }

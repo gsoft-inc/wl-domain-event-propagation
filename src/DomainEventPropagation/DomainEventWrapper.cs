@@ -2,9 +2,9 @@
 
 namespace Workleap.DomainEventPropagation;
 
-public class DomainEventWrapper : IDomainEvent
+internal class DomainEventWrapper : IDomainEvent
 {
-    public string DomainEventType { get; set; }
+    public string DomainEventType { get; set; } = string.Empty;
 
     public JsonElement DomainEventJson { get; set; }
 

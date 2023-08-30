@@ -12,9 +12,9 @@ public class SubscriptionApplicationInsightsTracingBehavior : ISubscriptionDomai
         this._telemetryClient = telemetryClient;
     }
 
-    public Task Handle(IDomainEvent domainEventWrapper, SubscriberDomainEventsHandlerDelegate next, CancellationToken cancellationToken)
+    public Task Handle(IDomainEvent domainEvent, SubscriberDomainEventsHandlerDelegate next, CancellationToken cancellationToken)
     {
-        return this._telemetryClient == null ? next(domainEventWrapper) : this.HandleWithTelemetry(domainEventWrapper, next, cancellationToken);
+        return this._telemetryClient == null ? next(domainEvent) : this.HandleWithTelemetry(domainEvent, next, cancellationToken);
     }
 
     private async Task HandleWithTelemetry(IDomainEvent domainEvent, SubscriberDomainEventsHandlerDelegate next, CancellationToken cancellationToken)

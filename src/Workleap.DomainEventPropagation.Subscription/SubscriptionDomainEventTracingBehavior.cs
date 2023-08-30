@@ -7,9 +7,14 @@ namespace Workleap.DomainEventPropagation;
 
 internal class SubscriptionDomainEventTracingBehavior : ISubscriptionDomainEventBehavior
 {
-    public Task Handle(IDomainEvent domainEventWrapper, SubscriberDomainEventsHandlerDelegate next, CancellationToken cancellationToken)
+    public Task Handle(IDomainEvent domainEvent, SubscriberDomainEventsHandlerDelegate next, CancellationToken cancellationToken)
     {
-        var eventWrapper = domainEventWrapper as DomainEventWrapper;
+        if (domainEvent is not DomainEventWrapper)
+        {
+            next(domainEvent);
+        }
+
+        var eventWrapper = domainEvent as DomainEventWrapper;
 
         var context = Propagators.DefaultTextMapPropagator.Extract(
             new PropagationContext(new ActivityContext(), Baggage.Current),
@@ -22,15 +27,15 @@ internal class SubscriptionDomainEventTracingBehavior : ISubscriptionDomainEvent
                 return new List<string> { valueFromProps };
             });
 
-        var domainEvent = (IDomainEvent?)JsonSerializer.Deserialize(eventWrapper.DomainEventJson.ToString(), Type.GetType(eventWrapper.DomainEventType)!);
-        if (domainEvent == null)
+        var actualDomainEvent = (IDomainEvent?)JsonSerializer.Deserialize(eventWrapper.DomainEventJson.ToString(), Type.GetType(eventWrapper.DomainEventType)!);
+        if (actualDomainEvent == null)
         {
             throw new InvalidOperationException($"Can't deserialize domainEvent with EventType: {eventWrapper.DomainEventType}.");
         }
 
         var activity = TracingHelper.StartActivity(TracingHelper.EventGridEventsSubscriberActivityName, context.ActivityContext);
 
-        return activity == null ? next(domainEvent) : HandleWithTracing(domainEvent, next, activity);
+        return activity == null ? next(actualDomainEvent) : HandleWithTracing(actualDomainEvent, next, activity);
     }
 
     private static async Task HandleWithTracing(IDomainEvent domainEvent, SubscriberDomainEventsHandlerDelegate next, Activity activity)
