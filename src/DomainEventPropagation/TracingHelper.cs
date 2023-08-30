@@ -17,8 +17,8 @@ internal static class TracingHelper
     internal const string ExceptionStackTraceTag = "exception.stacktrace";
 
     // https://github.com/open-telemetry/opentelemetry-specification/blob/v1.18.0/specification/trace/semantic_conventions/cloudevents.md#conventions
-    public const string EventGridEventsPublisherActivityName = "EventGridEvents create";
-    public const string EventGridEventsSubscriberActivityName = "EventGridEvents process";
+    internal const string EventGridEventsPublisherActivityName = "EventGridEvents create";
+    internal const string EventGridEventsSubscriberActivityName = "EventGridEvents process";
 
     private static readonly Assembly Assembly = typeof(TracingHelper).Assembly;
     private static readonly AssemblyName AssemblyName = Assembly.GetName();

@@ -2,7 +2,6 @@ using System.Collections.Concurrent;
 using System.Reflection;
 using System.Text.Json;
 using Azure.Messaging.EventGrid;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Workleap.DomainEventPropagation;
 
@@ -28,20 +27,20 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
     {
         var domainEventType = Type.GetType(eventGridEvent.EventType, true)!;
 
-        var domainEventWrapper = (IDomainEvent?)JsonSerializer.Deserialize(eventGridEvent.Data.ToString(), typeof(DomainEventWrapper), SerializerOptions);
+        var domainEventWrapper = (IDomainEvent?)JsonSerializer.Deserialize(eventGridEvent.Data.ToString(), domainEventType, SerializerOptions);
         if (domainEventWrapper == null)
         {
             throw new InvalidOperationException($"Can't deserialize eventGrid event with Id: {eventGridEvent.Id}; Subject: {eventGridEvent.Subject}; EventType: {eventGridEvent.EventType}.");
         }
 
-        await this.HandleDomainEventAsync(domainEventWrapper, domainEventType, cancellationToken).ConfigureAwait(false);
+        await this.HandleDomainEventAsync(domainEventWrapper, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task HandleDomainEventAsync(IDomainEvent domainEventWrapper, Type domainEventType, CancellationToken cancellationToken)
+    private async Task HandleDomainEventAsync(IDomainEvent domainEventWrapper, CancellationToken cancellationToken)
     {
         async Task Handler(IDomainEvent domainEvent)
         {
-            var handlerType = typeof(IDomainEventHandler<>).MakeGenericType(domainEventType);
+            var handlerType = typeof(IDomainEventHandler<>).MakeGenericType(domainEvent.GetType());
 
             var handler = this._serviceProvider.GetService(handlerType);
 

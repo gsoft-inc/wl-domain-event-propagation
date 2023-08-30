@@ -35,7 +35,7 @@ public sealed class TracingBehaviorTests : BaseUnitTest<TracingBehaviorFixture>
             DomainEventType = typeof(SampleDomainEvent).AssemblyQualifiedName ?? typeof(SampleDomainEvent).ToString(),
         };
 
-        var eventGridEvent = new EventGridEvent("subject", typeof(SampleDomainEvent).AssemblyQualifiedName, "version", BinaryData.FromObjectAsJson(wrapperEvent))
+        var eventGridEvent = new EventGridEvent("subject", wrapperEvent.GetType().FullName, "version", BinaryData.FromObjectAsJson(wrapperEvent))
         {
             Topic = "TopicName",
         };

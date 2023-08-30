@@ -94,6 +94,15 @@ internal sealed class InMemoryActivityTracker : IDisposable
             Assert.Equal(ActivityKind.Consumer, activity.Kind);
             Assert.Equal(ActivityStatusCode.Ok, activity.Status);
             Assert.Equal("OK", activity.GetTagItem(TracingHelper.StatusCodeTag));
+            Assert.Single(activity.Links);
+        }
+    }
+
+    public void AssertNoSubscribeActivity()
+    {
+        lock (this._activitiesLock)
+        {
+            Assert.DoesNotContain(this._activities, activity => activity.OperationName == "EventGridEvents process");
         }
     }
 

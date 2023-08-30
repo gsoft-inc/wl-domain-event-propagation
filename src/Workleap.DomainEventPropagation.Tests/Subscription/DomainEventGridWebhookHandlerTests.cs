@@ -28,7 +28,7 @@ public class DomainEventGridWebhookHandlerTests
         // No eventHandler is registered
         var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
 
-        var domainEvent = new EventGridEvent("subject", typeof(TestDomainEvent).AssemblyQualifiedName, "version", BinaryData.FromObjectAsJson(DomainEvent))
+        var domainEvent = new EventGridEvent("subject", DomainEvent.GetType().FullName, "version", BinaryData.FromObjectAsJson(DomainEvent))
         {
             Topic = TopicName,
         };
@@ -49,7 +49,7 @@ public class DomainEventGridWebhookHandlerTests
         var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
         services.AddSingleton(domainEventHandler);
 
-        var domainEvent = new EventGridEvent("subject", typeof(TestDomainEvent).AssemblyQualifiedName, "version", BinaryData.FromObjectAsJson(DomainEvent))
+        var domainEvent = new EventGridEvent("subject", DomainEvent.GetType().FullName, "version", BinaryData.FromObjectAsJson(DomainEvent))
         {
             Topic = TopicName,
         };
@@ -100,7 +100,7 @@ public class DomainEventGridWebhookHandlerTests
 
         await Assert.ThrowsAsync<TargetInvocationException>(() =>
         {
-            var domainEvent = new EventGridEvent("subject", typeof(TestDomainEvent).AssemblyQualifiedName, "version", BinaryData.FromObjectAsJson(DomainEvent))
+            var domainEvent = new EventGridEvent("subject", DomainEvent.GetType().FullName, "version", BinaryData.FromObjectAsJson(DomainEvent))
             {
                 Topic = TopicName,
             };
@@ -151,7 +151,7 @@ public class DomainEventGridWebhookHandlerTests
     public async Task GivenRegisteredTracingBehavior_WhenHandleEventGridWebhookEventAsync_ThenBehaviorCalled()
     {
         // Given
-        var eventGridEvent = new EventGridEvent("Subject", typeof(TestDomainEvent).AssemblyQualifiedName, "1.0", new BinaryData(DomainEvent));
+        var eventGridEvent = new EventGridEvent("Subject", DomainEvent.GetType().FullName, "1.0", new BinaryData(DomainEvent));
 
         var subscriberBehavior = A.Fake<ISubscriptionDomainEventBehavior>();
         var eventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();

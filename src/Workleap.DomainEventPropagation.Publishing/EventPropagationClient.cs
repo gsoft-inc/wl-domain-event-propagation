@@ -47,7 +47,7 @@ internal sealed class EventPropagationClient : IEventPropagationClient
             {
                 var eventGridEvents = events.Select(domainEvent => new EventGridEvent(
                     subject: $"{this.TopicName}-{typeof(T).FullName!}",
-                    eventType: typeof(T).AssemblyQualifiedName,
+                    eventType: domainEvent.GetType().FullName,
                     dataVersion: DomainEventDefaultVersion,
                     data: new BinaryData(domainEvent)));
 

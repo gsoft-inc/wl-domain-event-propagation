@@ -76,7 +76,7 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
 
         var eventGridEvent = new EventGridEvent(
             subject: typeof(DummyDomainEvent).FullName,
-            eventType: typeof(DummyDomainEvent).AssemblyQualifiedName,
+            eventType: wrapperEvent.GetType().FullName,
             dataVersion: "1.0",
             data: new BinaryData(wrapperEvent))
         {
@@ -104,7 +104,7 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
 
         var eventGridEvent = new EventGridEvent(
             subject: typeof(DummyDomainEvent).FullName,
-            eventType: typeof(DummyDomainEvent).AssemblyQualifiedName,
+            eventType: wrapperEvent.GetType().FullName,
             dataVersion: "1.0",
             data: new BinaryData(wrapperEvent))
         {

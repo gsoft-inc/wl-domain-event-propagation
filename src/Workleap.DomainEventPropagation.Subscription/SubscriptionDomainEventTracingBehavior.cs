@@ -9,9 +9,9 @@ internal class SubscriptionDomainEventTracingBehavior : ISubscriptionDomainEvent
 {
     public Task Handle(IDomainEvent domainEvent, SubscriberDomainEventsHandlerDelegate next, CancellationToken cancellationToken)
     {
-        if (domainEvent is not DomainEventWrapper)
+        if (domainEvent.GetType().FullName != typeof(DomainEventWrapper).FullName)
         {
-            next(domainEvent);
+            return next(domainEvent);
         }
 
         var eventWrapper = domainEvent as DomainEventWrapper;
