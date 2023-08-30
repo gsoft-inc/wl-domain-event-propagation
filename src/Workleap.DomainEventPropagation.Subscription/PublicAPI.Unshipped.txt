@@ -1,4 +1,1 @@
 #nullable enable
-Workleap.DomainEventPropagation.ISubscribtionDomainEventBehavior
-Workleap.DomainEventPropagation.ISubscribtionDomainEventBehavior.Handle(Workleap.DomainEventPropagation.IDomainEvent! domainEvent, Workleap.DomainEventPropagation.SubscriberDomainEventsHandlerDelegate! next, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
-Workleap.DomainEventPropagation.SubscriberDomainEventsHandlerDelegate

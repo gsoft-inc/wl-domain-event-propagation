@@ -29,7 +29,6 @@ internal class SubscriptionApplicationInsightsTracingBehavior : ISubscriptionDom
         {
             operation.Telemetry.Name = TracingHelper.EventGridEventsSubscriberActivityName;
             operation.Telemetry.Type = ApplicationInsightsConstants.ConsumerTelemetryKind;
-            // operation.Telemetry.Properties.Add("", );
             await next(domainEvent).ConfigureAwait(false);
             operation.Telemetry.Success = true;
         }

@@ -1,6 +1,4 @@
 Workleap.DomainEventPropagation.IDomainEvent
-Workleap.DomainEventPropagation.IDomainEvent.ExtensionAttributes.get -> System.Collections.Generic.IDictionary<string!, string!>?
-Workleap.DomainEventPropagation.IDomainEvent.ExtensionAttributes.set -> void
 Workleap.DomainEventPropagation.IDomainEventHandler<TDomainEvent>
 Workleap.DomainEventPropagation.IDomainEventHandler<TDomainEvent>.HandleDomainEventAsync(TDomainEvent domainEvent, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 Workleap.DomainEventPropagation.IEventPropagationClient
