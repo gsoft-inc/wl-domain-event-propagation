@@ -37,6 +37,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\DomainEventPropagation\DomainEventWrapper.cs">
+      <Link>DomainEventPropagation\DomainEventWrapper.cs</Link>
+    </Compile>
     <Compile Include="..\DomainEventPropagation\TracingHelper.cs">
       <Link>DomainEventPropagation\TracingHelper.cs</Link>
     </Compile>

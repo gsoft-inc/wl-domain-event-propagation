@@ -43,7 +43,7 @@ internal sealed class EventPropagationClient : IEventPropagationClient
 
         try
         {
-            async Task Handler(IEnumerable<IDomainEvent> events)
+            async Task Handler(IEnumerable<DomainEventWrapper> events)
             {
                 var eventGridEvents = events.Select(domainEvent => new EventGridEvent(
                     subject: $"{this.TopicName}-{typeof(T).FullName!}",

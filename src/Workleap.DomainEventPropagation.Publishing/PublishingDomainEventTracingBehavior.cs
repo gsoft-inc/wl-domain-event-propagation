@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Text.Json;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
 
@@ -7,13 +6,13 @@ namespace Workleap.DomainEventPropagation;
 
 internal sealed class PublishingDomainEventTracingBehavior : IPublishingDomainEventBehavior
 {
-    public Task Handle(IEnumerable<IDomainEvent> events, DomainEventsHandlerDelegate next, CancellationToken cancellationToken)
+    public Task Handle(IEnumerable<DomainEventWrapper> events, DomainEventsHandlerDelegate next, CancellationToken cancellationToken)
     {
         var activity = TracingHelper.StartActivity(TracingHelper.EventGridEventsPublisherActivityName);
         return activity == null ? next(events) : HandleWithTracing(events, next, activity);
     }
 
-    private static async Task HandleWithTracing(IEnumerable<IDomainEvent> events, DomainEventsHandlerDelegate next, Activity activity)
+    private static async Task HandleWithTracing(IEnumerable<DomainEventWrapper> events, DomainEventsHandlerDelegate next, Activity activity)
     {
         using (activity)
         {
@@ -30,19 +29,12 @@ internal sealed class PublishingDomainEventTracingBehavior : IPublishingDomainEv
                         dict[key] = value;
                     });
 
-                var wrappedEvents = new List<IDomainEvent>();
-
-                foreach (IDomainEvent evt in events)
+                foreach (DomainEventWrapper evt in events)
                 {
-                    wrappedEvents.Add(new DomainEventWrapper()
-                    {
-                        DomainEventType = evt.GetType().AssemblyQualifiedName ?? evt.GetType().ToString(),
-                        DomainEventJson = JsonSerializer.SerializeToElement(evt, evt.GetType()),
-                        ExtensionAttributes = serializedTelemetryData,
-                    });
+                    evt.Metadata = serializedTelemetryData;
                 }
 
-                await next(wrappedEvents).ConfigureAwait(false);
+                await next(events).ConfigureAwait(false);
                 TracingHelper.MarkAsSuccessful(activity);
             }
             catch (Exception ex)

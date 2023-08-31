@@ -12,12 +12,12 @@ internal class PublishigApplicationInsightsTracingBehavior : IPublishingDomainEv
         this._telemetryClient = telemetryClient;
     }
 
-    public Task Handle(IEnumerable<IDomainEvent> events, DomainEventsHandlerDelegate next, CancellationToken cancellationToken)
+    public Task Handle(IEnumerable<DomainEventWrapper> events, DomainEventsHandlerDelegate next, CancellationToken cancellationToken)
     {
         return this._telemetryClient == null ? next(events) : this.HandleWithTelemetry(events, next);
     }
 
-    private async Task HandleWithTelemetry(IEnumerable<IDomainEvent> events, DomainEventsHandlerDelegate next)
+    private async Task HandleWithTelemetry(IEnumerable<DomainEventWrapper> events, DomainEventsHandlerDelegate next)
     {
         var operation = this._telemetryClient!.StartActivityAwareDependencyOperation(events);
 
