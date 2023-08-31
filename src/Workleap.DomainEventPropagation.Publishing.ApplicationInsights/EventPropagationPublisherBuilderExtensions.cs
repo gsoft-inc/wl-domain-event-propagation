@@ -6,7 +6,7 @@ namespace Workleap.DomainEventPropagation;
 
 public static class EventPropagationPublisherBuilderExtensions
 {
-    public static IEventPropagationPublisherBuilder AddAppInsights(this IEventPropagationPublisherBuilder builder)
+    public static IEventPropagationPublisherBuilder AddApplicationInsights(this IEventPropagationPublisherBuilder builder)
     {
         builder.Services.TryAddEnumerable(new ServiceDescriptor(typeof(IPublishingDomainEventBehavior), typeof(PublishigApplicationInsightsTracingBehavior), ServiceLifetime.Singleton));
 

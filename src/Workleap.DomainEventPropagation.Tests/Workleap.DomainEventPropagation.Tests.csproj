@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Workleap.DomainEventPropagation.ApplicationInsights\Workleap.DomainEventPropagation.ApplicationInsights.csproj" />
+    <ProjectReference Include="..\Workleap.DomainEventPropagation.Subscription.ApplicationInsights\Workleap.DomainEventPropagation.Subscription.ApplicationInsights.csproj" />
     <ProjectReference Include="..\Workleap.DomainEventPropagation.Publishing\Workleap.DomainEventPropagation.Publishing.csproj" />
     <ProjectReference Include="..\Workleap.DomainEventPropagation.Subscription\Workleap.DomainEventPropagation.Subscription.csproj" />
   </ItemGroup>

@@ -6,7 +6,7 @@ namespace Workleap.DomainEventPropagation;
 
 public static class EventPropagationSubscriberBuilderExtensions
 {
-    public static IEventPropagationSubscriberBuilder AddAppInsights(this IEventPropagationSubscriberBuilder builder)
+    public static IEventPropagationSubscriberBuilder AddApplicationInsights(this IEventPropagationSubscriberBuilder builder)
     {
         builder.Services.TryAddEnumerable(new ServiceDescriptor(typeof(ISubscriptionDomainEventBehavior), typeof(SubscriptionApplicationInsightsTracingBehavior), ServiceLifetime.Singleton));
 
