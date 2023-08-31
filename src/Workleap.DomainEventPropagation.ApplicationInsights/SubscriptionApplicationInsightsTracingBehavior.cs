@@ -12,12 +12,12 @@ internal class SubscriptionApplicationInsightsTracingBehavior : ISubscriptionDom
         this._telemetryClient = telemetryClient;
     }
 
-    public Task Handle(IDomainEvent domainEvent, SubscriberDomainEventsHandlerDelegate next, CancellationToken cancellationToken)
+    public Task Handle(DomainEventWrapper domainEvent, SubscriberDomainEventsHandlerDelegate next, CancellationToken cancellationToken)
     {
         return this._telemetryClient == null ? next(domainEvent) : this.HandleWithTelemetry(domainEvent, next);
     }
 
-    private async Task HandleWithTelemetry(IDomainEvent domainEvent, SubscriberDomainEventsHandlerDelegate next)
+    private async Task HandleWithTelemetry(DomainEventWrapper domainEvent, SubscriberDomainEventsHandlerDelegate next)
     {
         var operation = this._telemetryClient!.StartActivityAwareDependencyOperation(domainEvent);
 
