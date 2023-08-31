@@ -1,4 +1,3 @@
-using System.Text.Json;
 using Azure.Messaging.EventGrid;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Options;
@@ -13,21 +12,19 @@ internal sealed class EventPropagationClient : IEventPropagationClient
 {
     private const string DomainEventDefaultVersion = "1.0";
 
+    private readonly EventGridPublisherClient _eventGridPublisherClient;
     private readonly EventPropagationPublisherOptions _eventPropagationPublisherOptions;
-    private readonly IAzureClientFactory<EventGridPublisherClient> _eventGridPublisherClientFactory;
-    private readonly IEnumerable<IPublishingDomainEventBehavior> _publishingDomainEventBehaviors;
+    private readonly IPublishingDomainEventBehavior[] _publishingDomainEventBehaviors;
 
     public EventPropagationClient(
         IAzureClientFactory<EventGridPublisherClient> eventGridPublisherClientFactory,
         IOptions<EventPropagationPublisherOptions> eventPropagationPublisherOptions,
         IEnumerable<IPublishingDomainEventBehavior> publishingDomainEventBehaviors)
     {
+        this._eventGridPublisherClient = eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName);
         this._eventPropagationPublisherOptions = eventPropagationPublisherOptions.Value;
-        this._eventGridPublisherClientFactory = eventGridPublisherClientFactory;
-        this._publishingDomainEventBehaviors = publishingDomainEventBehaviors;
+        this._publishingDomainEventBehaviors = publishingDomainEventBehaviors.Reverse().ToArray();
     }
-
-    private string TopicName => this._eventPropagationPublisherOptions.TopicName;
 
     public Task PublishDomainEventAsync<T>(T domainEvent, CancellationToken cancellationToken)
         where T : IDomainEvent
@@ -46,28 +43,25 @@ internal sealed class EventPropagationClient : IEventPropagationClient
             async Task Handler(IEnumerable<DomainEventWrapper> events)
             {
                 var eventGridEvents = events.Select(domainEvent => new EventGridEvent(
-                    subject: $"{this.TopicName}-{typeof(T).FullName!}",
-                    eventType: domainEvent.GetType().FullName,
+                    subject: $"{this._eventPropagationPublisherOptions.TopicName}-{DomainEventNameCache.GetName<T>()}",
+                    eventType: domainEvent.DomainEventName,
                     dataVersion: DomainEventDefaultVersion,
-                    data: new BinaryData(domainEvent)));
+                    data: new BinaryData(domainEvent.RawJson)));
 
-                await this._eventGridPublisherClientFactory
-                    .CreateClient(EventPropagationPublisherOptions.ClientName)
-                    .SendEventsAsync(eventGridEvents, cancellationToken)
-                    .ConfigureAwait(false);
+                await this._eventGridPublisherClient.SendEventsAsync(eventGridEvents, cancellationToken).ConfigureAwait(false);
             }
 
-            var accumulator = this._publishingDomainEventBehaviors
-                .Reverse()
-                .Aggregate(
-                    Handler,
-                    (DomainEventsHandlerDelegate next, IPublishingDomainEventBehavior pipeline) => (events) => pipeline.Handle(events, next, cancellationToken));
+            var pipeline = this._publishingDomainEventBehaviors.Aggregate(Handler, (DomainEventsHandlerDelegate accumulator, IPublishingDomainEventBehavior next) =>
+            {
+                return events => next.Handle(events, accumulator, cancellationToken);
+            });
 
-            await accumulator((IEnumerable<IDomainEvent>)domainEvents).ConfigureAwait(false);
+            var domainEventWrappers = domainEvents.Select(DomainEventWrapper.Wrap);
+            await pipeline(domainEventWrappers).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            throw new EventPropagationPublishingException("An error occured while publishing events to EventGrid", ex, this.TopicName, typeof(T).FullName!, this._eventPropagationPublisherOptions.TopicEndpoint);
+            throw new EventPropagationPublishingException(DomainEventNameCache.GetName<T>(), this._eventPropagationPublisherOptions.TopicName, this._eventPropagationPublisherOptions.TopicEndpoint, ex);
         }
     }
 }

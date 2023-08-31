@@ -2,17 +2,8 @@ namespace Workleap.DomainEventPropagation.Exceptions;
 
 public class EventPropagationPublishingException : Exception
 {
-    public EventPropagationPublishingException(string message, Exception innerException, string topicName, string subject, string topicEndpoint)
-        : base(message, innerException)
+    public EventPropagationPublishingException(string eventName, string topicName, string topicEndpoint, Exception innerException)
+        : base($"An error occured while publishing an event '{eventName}' to the topic {topicName} and endpoint {topicEndpoint}", innerException)
     {
-        this.TopicName = topicName;
-        this.Subject = subject;
-        this.TopicEndpoint = topicEndpoint;
     }
-
-    public string TopicName { get; }
-
-    public string Subject { get; }
-
-    public string TopicEndpoint { get; }
 }
