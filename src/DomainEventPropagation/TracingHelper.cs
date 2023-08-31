@@ -24,7 +24,7 @@ internal static class TracingHelper
     private static readonly AssemblyName AssemblyName = Assembly.GetName();
     private static readonly string AssemblyVersion = Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? AssemblyName.Version!.ToString();
 
-    private static readonly ActivitySource ActivitySource = new(AssemblyName.Name!, AssemblyVersion);
+    private static readonly ActivitySource ActivitySource = new(nameof(Workleap) + "." + nameof(DomainEventPropagation), AssemblyVersion);
 
     [SuppressMessage("ReSharper", "ExplicitCallerInfoArgument", Justification = "We want a specific activity name, not the caller method name")]
     public static Activity? StartActivity(string activityName)
@@ -61,5 +61,5 @@ internal static class TracingHelper
         }
     }
 
-    public static bool IsEventGridActivity(Activity activity) => ReferenceEquals(ActivitySource, activity.Source);
+    public static bool IsEventGridActivity(Activity activity) => ActivitySource.Name == activity.Source.Name;
 }
