@@ -19,6 +19,7 @@ internal sealed class ApplicationInsightsSubscriptionDomainEventBehavior : ISubs
 
     private async Task HandleWithTelemetry(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, CancellationToken cancellationToken)
     {
+        // TODO read the linked operation ID from the event metadata and attach it as a custom property to this operation
         var operation = this._telemetryClient!.StartActivityAwareDependencyOperation(domainEventWrapper.DomainEventName);
 
         // Originating activity must be captured AFTER that the operation is created
