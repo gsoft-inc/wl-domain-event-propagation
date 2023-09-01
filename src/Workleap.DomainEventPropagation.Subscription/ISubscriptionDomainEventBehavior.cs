@@ -1,8 +1,8 @@
 ﻿namespace Workleap.DomainEventPropagation;
 
-internal delegate Task SubscriberDomainEventsHandlerDelegate(DomainEventWrapper domainEvent);
+internal delegate Task DomainEventHandlerDelegate(DomainEventWrapper domainEventWrapper, CancellationToken cancellationToken);
 
 internal interface ISubscriptionDomainEventBehavior
 {
-    Task Handle(DomainEventWrapper domainEvent, SubscriberDomainEventsHandlerDelegate next, CancellationToken cancellationToken);
+    Task Handle(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, CancellationToken cancellationToken);
 }

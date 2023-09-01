@@ -36,17 +36,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\DomainEventPropagation\ActivityExtensions.cs">
-      <Link>DomainEventPropagation\ActivityExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\DomainEventPropagation\ApplicationInsightsConstants.cs">
-      <Link>DomainEventPropagation\ApplicationInsightsConstants.cs</Link>
-    </Compile>
-    <Compile Include="..\DomainEventPropagation\TelemetryClientExtensions.cs">
-      <Link>DomainEventPropagation\TelemetryClientExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\DomainEventPropagation\TracingHelper.cs">
-      <Link>DomainEventPropagation\TracingHelper.cs</Link>
-    </Compile>
+    <Compile Include="..\Shared\ActivityExtensions.cs" Link="Shared\ActivityExtensions.cs" />
+    <Compile Include="..\Shared\ApplicationInsightsConstants.cs" Link="Shared\ApplicationInsightsConstants.cs" />
+    <Compile Include="..\Shared\TelemetryClientExtensions.cs" Link="Shared\TelemetryClientExtensions.cs" />
+    <Compile Include="..\Shared\TracingHelper.cs" Link="Shared\TracingHelper.cs" />
   </ItemGroup>
 </Project>

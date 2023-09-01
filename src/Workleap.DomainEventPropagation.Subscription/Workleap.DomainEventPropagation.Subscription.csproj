@@ -8,7 +8,6 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>../Workleap.DomainEventPropagation.snk</AssemblyOriginatorKeyFile>
     <RootNamespace>Workleap.DomainEventPropagation</RootNamespace>
-    <Description>Domain event propagation subscriber. Includes controller, handlers and list of topics. Contact the Core team for any questions.</Description>
   </PropertyGroup>
 
   <ItemGroup>
@@ -21,11 +20,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="6.0.1" />
     <PackageReference Include="OpenTelemetry.Api" Version="1.5.1" />
-    <PackageReference Include="System.Text.Json" Version="6.0.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,11 +39,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\DomainEventPropagation\DomainEventWrapper.cs">
-      <Link>DomainEventPropagation\DomainEventWrapper.cs</Link>
-    </Compile>
-    <Compile Include="..\DomainEventPropagation\TracingHelper.cs">
-      <Link>DomainEventPropagation\TracingHelper.cs</Link>
-    </Compile>
+    <Compile Include="..\Shared\DomainEventWrapper.cs" Link="Shared\DomainEventWrapper.cs" />
+    <Compile Include="..\Shared\TracingHelper.cs" Link="Shared\TracingHelper.cs" />
   </ItemGroup>
 </Project>

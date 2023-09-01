@@ -3,19 +3,19 @@ using System.Text.Json.Nodes;
 
 namespace Workleap.DomainEventPropagation;
 
-internal class DomainEventWrapper
+internal sealed class DomainEventWrapper
 {
     private const string NameKey = "__name";
     private const string MetadataKey = "__metadata";
 
-    public DomainEventWrapper(JsonNode rawJson)
+    public DomainEventWrapper(JsonNode domainEventRawJson)
     {
-        this.RawJson = rawJson;
+        this.RawJson = domainEventRawJson;
     }
 
-    public DomainEventWrapper(JsonNode rawJson, string domainEventName)
+    public DomainEventWrapper(JsonNode domainEventRawJson, string domainEventName)
     {
-        this.RawJson = rawJson;
+        this.RawJson = domainEventRawJson;
         this.DomainEventName = domainEventName;
     }
 
@@ -24,13 +24,17 @@ internal class DomainEventWrapper
     public string DomainEventName
     {
         get => this.RawJson[NameKey]?.ToString() ?? string.Empty;
-        set => this.RawJson[NameKey] = value;
+        private set => this.RawJson[NameKey] = value;
     }
 
     public Dictionary<string, string> Metadata
     {
         get => (this.RawJson[MetadataKey] ??= new JsonObject()).Deserialize<Dictionary<string, string>>()!;
-        set => this.RawJson[MetadataKey] = JsonSerializer.SerializeToNode(value);
+    }
+
+    public object Unwrap(Type returnType)
+    {
+        return this.RawJson.Deserialize(returnType) ?? throw new ArgumentException("The event cannot be deserialized from JSON");
     }
 
     public static DomainEventWrapper Wrap<T>(T domainEvent)
@@ -39,13 +43,7 @@ internal class DomainEventWrapper
         var eventName = DomainEventNameCache.GetName<T>();
         var serializedEvent = JsonSerializer.SerializeToNode(domainEvent, domainEvent.GetType())
             ?? throw new ArgumentException("The event cannot be serialized to JSON");
-        return new DomainEventWrapper(serializedEvent, eventName);
-    }
 
-    public static T Unwrap<T>(DomainEventWrapper domainEventWrapper)
-        where T : IDomainEvent
-    {
-        return domainEventWrapper.RawJson.Deserialize<T>()
-            ?? throw new ArgumentException("The event cannot be deserialized from JSON");
+        return new DomainEventWrapper(serializedEvent, eventName);
     }
 }

@@ -2,7 +2,6 @@ using Azure.Messaging.EventGrid;
 using FakeItEasy;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Options;
-using Workleap.DomainEventPropagation.Exceptions;
 
 namespace Workleap.DomainEventPropagation.Tests.Publishing;
 

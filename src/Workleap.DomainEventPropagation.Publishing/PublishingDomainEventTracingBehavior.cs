@@ -6,41 +6,66 @@ namespace Workleap.DomainEventPropagation;
 
 internal sealed class PublishingDomainEventTracingBehavior : IPublishingDomainEventBehavior
 {
-    public Task Handle(IEnumerable<DomainEventWrapper> events, DomainEventsHandlerDelegate next, CancellationToken cancellationToken)
+    public Task Handle(DomainEventWrapperCollection domainEventWrappers, DomainEventsHandlerDelegate next, CancellationToken cancellationToken)
     {
-        var activity = TracingHelper.StartActivity(TracingHelper.EventGridEventsPublisherActivityName);
-        return activity == null ? next(events) : HandleWithTracing(events, next, activity);
+        var activity = TracingHelper.StartProducerActivity(TracingHelper.EventGridEventsPublisherActivityName);
+        return activity == null ? next(domainEventWrappers, cancellationToken) : HandleWithTracing(domainEventWrappers, next, activity, cancellationToken);
     }
 
-    private static async Task HandleWithTracing(IEnumerable<DomainEventWrapper> events, DomainEventsHandlerDelegate next, Activity activity)
+    private static async Task HandleWithTracing(DomainEventWrapperCollection domainEventWrappers, DomainEventsHandlerDelegate next, Activity activity, CancellationToken cancellationToken)
     {
         using (activity)
         {
-            var serializedTelemetryData = new Dictionary<string, string>();
+            activity.DisplayName = domainEventWrappers.DomainEventName;
 
             try
             {
-                var currentActivityContext = Activity.Current is { } currentActivity ? currentActivity.Context : default;
-                Propagators.DefaultTextMapPropagator.Inject(
-                    new PropagationContext(currentActivityContext, Baggage.Current),
-                    serializedTelemetryData,
-                    (dict, key, value) =>
-                    {
-                        dict[key] = value;
-                    });
+                InjectCurrentActivityContextDataIntoEvents(domainEventWrappers, GetCurrentActivityContextData());
 
-                foreach (DomainEventWrapper evt in events)
-                {
-                    evt.Metadata = serializedTelemetryData;
-                }
+                await next(domainEventWrappers, cancellationToken).ConfigureAwait(false);
 
-                await next(events).ConfigureAwait(false);
                 TracingHelper.MarkAsSuccessful(activity);
             }
             catch (Exception ex)
             {
                 TracingHelper.MarkAsFailed(activity, ex);
                 throw;
+            }
+        }
+    }
+
+    private static Dictionary<string, string> GetCurrentActivityContextData()
+    {
+        var activityContextData = new Dictionary<string, string>();
+
+        var activityContext = Activity.Current?.Context ?? default;
+        if (activityContext == default)
+        {
+            return activityContextData;
+        }
+
+        var baggageIgnoredForPayloadSizeAndSecurityConsiderations = default(Baggage);
+        var propagationContext = new PropagationContext(activityContext, baggageIgnoredForPayloadSizeAndSecurityConsiderations);
+
+        // See: https://www.honeycomb.io/blog/understanding-distributed-tracing-message-bus#opentelemetry_propagation_apis
+        // and: https://github.com/open-telemetry/opentelemetry-dotnet-contrib/blob/Instrumentation.Hangfire-1.5.0-beta.1/src/OpenTelemetry.Instrumentation.Hangfire/Implementation/HangfireInstrumentationJobFilterAttribute.cs#L113
+        Propagators.DefaultTextMapPropagator.Inject(propagationContext, activityContextData, InjectActivityProperties);
+
+        return activityContextData;
+    }
+
+    private static void InjectActivityProperties(Dictionary<string, string> activityProperties, string key, string value)
+    {
+        activityProperties[key] = value;
+    }
+
+    private static void InjectCurrentActivityContextDataIntoEvents(DomainEventWrapperCollection domainEventWrappers, Dictionary<string, string> activityContextData)
+    {
+        foreach (var kvp in activityContextData)
+        {
+            foreach (var domainEventWrapper in domainEventWrappers)
+            {
+                domainEventWrapper.Metadata[kvp.Key] = kvp.Value;
             }
         }
     }

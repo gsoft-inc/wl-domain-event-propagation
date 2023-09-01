@@ -1,6 +1,6 @@
 ﻿namespace Workleap.DomainEventPropagation;
 
-internal class ApplicationInsightsConstants
+internal static class ApplicationInsightsConstants
 {
     public const string ProducerTelemetryKind = "Producer";
     public const string ConsumerTelemetryKind = "Consumer";

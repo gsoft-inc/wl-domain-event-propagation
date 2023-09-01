@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-      <TargetFramework>netstandard2.0</TargetFramework>
-      <IsPackable>true</IsPackable>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <IsPackable>true</IsPackable>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
     <PackageReadmeFile>README.md</PackageReadmeFile>
@@ -11,7 +11,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-      <ProjectReference Include="..\Workleap.DomainEventPropagation.Publishing\Workleap.DomainEventPropagation.Publishing.csproj" />
+    <ProjectReference Include="..\Workleap.DomainEventPropagation.Publishing\Workleap.DomainEventPropagation.Publishing.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,17 +36,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\DomainEventPropagation\ActivityExtensions.cs">
-      <Link>DomainEventPropagation\ActivityExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\DomainEventPropagation\ApplicationInsightsConstants.cs">
-      <Link>DomainEventPropagation\ApplicationInsightsConstants.cs</Link>
-    </Compile>
-    <Compile Include="..\DomainEventPropagation\TelemetryClientExtensions.cs">
-      <Link>DomainEventPropagation\TelemetryClientExtensions.cs</Link>
-    </Compile>
-    <Compile Include="..\DomainEventPropagation\TracingHelper.cs">
-      <Link>DomainEventPropagation\TracingHelper.cs</Link>
-    </Compile>
+    <Compile Include="..\Shared\ActivityExtensions.cs" Link="Shared\ActivityExtensions.cs" />
+    <Compile Include="..\Shared\ApplicationInsightsConstants.cs" Link="Shared\ApplicationInsightsConstants.cs" />
+    <Compile Include="..\Shared\TelemetryClientExtensions.cs" Link="Shared\TelemetryClientExtensions.cs" />
+    <Compile Include="..\Shared\TracingHelper.cs" Link="Shared\TracingHelper.cs" />
   </ItemGroup>
 </Project>

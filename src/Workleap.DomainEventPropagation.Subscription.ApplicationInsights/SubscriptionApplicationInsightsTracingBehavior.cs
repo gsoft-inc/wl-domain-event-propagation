@@ -3,7 +3,7 @@ using Microsoft.ApplicationInsights;
 
 namespace Workleap.DomainEventPropagation;
 
-internal class SubscriptionApplicationInsightsTracingBehavior : ISubscriptionDomainEventBehavior
+internal sealed class SubscriptionApplicationInsightsTracingBehavior : ISubscriptionDomainEventBehavior
 {
     private readonly TelemetryClient? _telemetryClient;
 
@@ -12,14 +12,14 @@ internal class SubscriptionApplicationInsightsTracingBehavior : ISubscriptionDom
         this._telemetryClient = telemetryClient;
     }
 
-    public Task Handle(DomainEventWrapper domainEvent, SubscriberDomainEventsHandlerDelegate next, CancellationToken cancellationToken)
+    public Task Handle(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, CancellationToken cancellationToken)
     {
-        return this._telemetryClient == null ? next(domainEvent) : this.HandleWithTelemetry(domainEvent, next);
+        return this._telemetryClient == null ? next(domainEventWrapper, cancellationToken) : this.HandleWithTelemetry(domainEventWrapper, next, cancellationToken);
     }
 
-    private async Task HandleWithTelemetry(DomainEventWrapper domainEvent, SubscriberDomainEventsHandlerDelegate next)
+    private async Task HandleWithTelemetry(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, CancellationToken cancellationToken)
     {
-        var operation = this._telemetryClient!.StartActivityAwareDependencyOperation(domainEvent);
+        var operation = this._telemetryClient!.StartActivityAwareDependencyOperation(domainEventWrapper.DomainEventName);
 
         // Originating activity must be captured AFTER that the operation is created
         // Because ApplicationInsights SDK creates another intermediate Activity
@@ -29,7 +29,9 @@ internal class SubscriptionApplicationInsightsTracingBehavior : ISubscriptionDom
         {
             operation.Telemetry.Name = TracingHelper.EventGridEventsSubscriberActivityName;
             operation.Telemetry.Type = ApplicationInsightsConstants.ConsumerTelemetryKind;
-            await next(domainEvent).ConfigureAwait(false);
+
+            await next(domainEventWrapper, cancellationToken).ConfigureAwait(false);
+
             operation.Telemetry.Success = true;
         }
         catch (Exception ex)

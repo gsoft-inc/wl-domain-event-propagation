@@ -167,6 +167,6 @@ public class DomainEventGridWebhookHandlerTests
         await webhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, CancellationToken.None);
 
         // Then
-        A.CallTo(() => subscriberBehavior.Handle(A<IDomainEvent>._, A<SubscriberDomainEventsHandlerDelegate>._, A<CancellationToken>._)).MustHaveHappened();
+        A.CallTo(() => subscriberBehavior.Handle(A<IDomainEvent>._, A<DomainEventHandlerDelegate>._, A<CancellationToken>._)).MustHaveHappened();
     }
 }

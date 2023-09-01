@@ -1,5 +1,4 @@
 ﻿using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -26,17 +25,15 @@ internal static class TracingHelper
 
     private static readonly ActivitySource ActivitySource = new(nameof(Workleap) + "." + nameof(DomainEventPropagation), AssemblyVersion);
 
-    [SuppressMessage("ReSharper", "ExplicitCallerInfoArgument", Justification = "We want a specific activity name, not the caller method name")]
-    public static Activity? StartActivity(string activityName)
+    public static Activity? StartProducerActivity(string activityName)
     {
         return ActivitySource.StartActivity(activityName, ActivityKind.Producer);
     }
 
-    [SuppressMessage("ReSharper", "ExplicitCallerInfoArgument", Justification = "We want a specific activity name, not the caller method name")]
-    public static Activity? StartActivity(string activityName, ActivityContext parentActivityContext)
+    public static Activity? StartConsumerActivity(string activityName, ActivityContext linkedActivityContext)
     {
-        var parentActivityLinks = new List<ActivityLink>(1) { new(parentActivityContext) };
-        return ActivitySource.StartActivity(activityName, ActivityKind.Consumer, default(ActivityContext), links: parentActivityLinks);
+        var activityLinks = new[] { new ActivityLink(linkedActivityContext) };
+        return ActivitySource.StartActivity(activityName, ActivityKind.Consumer, default(ActivityContext), links: activityLinks);
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]

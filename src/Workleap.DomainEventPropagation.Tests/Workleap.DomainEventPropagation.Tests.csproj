@@ -28,11 +28,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\DomainEventPropagation\DomainEventWrapper.cs">
-      <Link>DomainEventPropagation\DomainEventWrapper.cs</Link>
+    <Compile Include="..\Shared\DomainEventWrapper.cs">
+      <Link>Shared\DomainEventWrapper.cs</Link>
     </Compile>
-    <Compile Include="..\DomainEventPropagation\TracingHelper.cs">
-      <Link>DomainEventPropagation\TracingHelper.cs</Link>
+    <Compile Include="..\Shared\TracingHelper.cs">
+      <Link>Shared\TracingHelper.cs</Link>
     </Compile>
   </ItemGroup>
 </Project>

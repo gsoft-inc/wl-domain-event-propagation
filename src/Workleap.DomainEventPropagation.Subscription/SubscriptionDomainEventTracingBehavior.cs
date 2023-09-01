@@ -1,43 +1,39 @@
 ﻿using System.Diagnostics;
-using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
 
 namespace Workleap.DomainEventPropagation;
 
-internal class SubscriptionDomainEventTracingBehavior : ISubscriptionDomainEventBehavior
+internal sealed class SubscriptionDomainEventTracingBehavior : ISubscriptionDomainEventBehavior
 {
-    public Task Handle(DomainEventWrapper domainEvent, SubscriberDomainEventsHandlerDelegate next, CancellationToken cancellationToken)
+    public Task Handle(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, CancellationToken cancellationToken)
     {
-        if (domainEvent.GetType().FullName != typeof(DomainEventWrapper).FullName)
-        {
-            return next(domainEvent);
-        }
-
-        var eventWrapper = domainEvent as DomainEventWrapper;
-
-        var context = Propagators.DefaultTextMapPropagator.Extract(
-            new PropagationContext(new ActivityContext(), Baggage.Current),
-            eventWrapper!.Metadata,
-            (properties, key) =>
-            {
-                var valueFromProps = properties.TryGetValue(key, out var propertyValue)
-                    ? propertyValue
-                    : string.Empty;
-                return new List<string> { valueFromProps };
-            });
-
-        var activity = TracingHelper.StartActivity(TracingHelper.EventGridEventsSubscriberActivityName, context.ActivityContext);
-
-        return activity == null ? next(domainEvent) : HandleWithTracing(domainEvent, next, activity);
+        var propagationContext = ExtractPropagationContextFromEvent(domainEventWrapper);
+        var activity = TracingHelper.StartConsumerActivity(TracingHelper.EventGridEventsSubscriberActivityName, propagationContext.ActivityContext);
+        return activity == null ? next(domainEventWrapper, cancellationToken) : HandleWithTracing(domainEventWrapper, next, activity, cancellationToken);
     }
 
-    private static async Task HandleWithTracing(DomainEventWrapper domainEvent, SubscriberDomainEventsHandlerDelegate next, Activity activity)
+    private static PropagationContext ExtractPropagationContextFromEvent(DomainEventWrapper domainEventWrapper)
+    {
+        return domainEventWrapper.Metadata.Count > 0
+            ? Propagators.DefaultTextMapPropagator.Extract(default, domainEventWrapper.Metadata, ExtractActivityProperties)
+            : default;
+    }
+
+    private static IEnumerable<string> ExtractActivityProperties(Dictionary<string, string> activityProperties, string key)
+    {
+        return activityProperties.TryGetValue(key, out var value) ? new[] { value } : Enumerable.Empty<string>();
+    }
+
+    private static async Task HandleWithTracing(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, Activity activity, CancellationToken cancellationToken)
     {
         using (activity)
         {
+            activity.DisplayName = domainEventWrapper.DomainEventName;
+
             try
             {
-                await next(domainEvent).ConfigureAwait(false);
+                await next(domainEventWrapper, cancellationToken).ConfigureAwait(false);
+
                 TracingHelper.MarkAsSuccessful(activity);
             }
             catch (Exception ex)

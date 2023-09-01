@@ -7,7 +7,7 @@ namespace Workleap.DomainEventPropagation;
 
 internal static class TelemetryClientExtensions
 {
-    public static IOperationHolder<DependencyTelemetry> StartActivityAwareDependencyOperation(this TelemetryClient telemetryClient, object request)
+    public static IOperationHolder<DependencyTelemetry> StartActivityAwareDependencyOperation(this TelemetryClient telemetryClient, string eventName)
     {
         if (Activity.Current is { } activity && TracingHelper.IsEventGridActivity(activity))
         {
@@ -21,6 +21,6 @@ internal static class TelemetryClientExtensions
             return operation;
         }
 
-        return telemetryClient.StartOperation<DependencyTelemetry>(request.GetType().Name);
+        return telemetryClient.StartOperation<DependencyTelemetry>(eventName);
     }
 }

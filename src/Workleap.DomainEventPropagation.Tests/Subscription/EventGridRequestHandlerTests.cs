@@ -40,9 +40,9 @@ public class EventGridRequestHandlerTests
 
         // Then
         Assert.NotNull(result);
-        Assert.NotNull(result.Response);
-        Assert.Equal(validationCode, result.Response.ValidationResponse);
-        Assert.Equal(EventGridRequestType.Subscription, result.EventGridRequestType);
+        Assert.NotNull(result.ValidationResponse);
+        Assert.Equal(validationCode, result.ValidationResponse.ValidationResponse);
+        Assert.Equal(EventGridRequestType.Subscription, result.RequestType);
     }
 
     [Fact]
@@ -88,9 +88,9 @@ public class EventGridRequestHandlerTests
 
         // Then
         Assert.NotNull(result);
-        Assert.NotNull(result.Response);
-        Assert.Equal(validationCode, result.Response.ValidationResponse);
-        Assert.Equal(EventGridRequestType.Subscription, result.EventGridRequestType);
+        Assert.NotNull(result.ValidationResponse);
+        Assert.Equal(validationCode, result.ValidationResponse.ValidationResponse);
+        Assert.Equal(EventGridRequestType.Subscription, result.RequestType);
     }
 
     [Fact]
@@ -113,7 +113,7 @@ public class EventGridRequestHandlerTests
 
         // Then
         Assert.NotNull(result);
-        Assert.Equal(EventGridRequestType.Event, result.EventGridRequestType);
+        Assert.Equal(EventGridRequestType.Event, result.RequestType);
     }
 
     [Fact]

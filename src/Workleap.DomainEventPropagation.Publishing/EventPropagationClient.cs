@@ -1,7 +1,6 @@
 using Azure.Messaging.EventGrid;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Options;
-using Workleap.DomainEventPropagation.Exceptions;
 
 namespace Workleap.DomainEventPropagation;
 
@@ -14,7 +13,7 @@ internal sealed class EventPropagationClient : IEventPropagationClient
 
     private readonly EventGridPublisherClient _eventGridPublisherClient;
     private readonly EventPropagationPublisherOptions _eventPropagationPublisherOptions;
-    private readonly IPublishingDomainEventBehavior[] _publishingDomainEventBehaviors;
+    private readonly DomainEventsHandlerDelegate _pipeline;
 
     public EventPropagationClient(
         IAzureClientFactory<EventGridPublisherClient> eventGridPublisherClientFactory,
@@ -23,7 +22,12 @@ internal sealed class EventPropagationClient : IEventPropagationClient
     {
         this._eventGridPublisherClient = eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName);
         this._eventPropagationPublisherOptions = eventPropagationPublisherOptions.Value;
-        this._publishingDomainEventBehaviors = publishingDomainEventBehaviors.Reverse().ToArray();
+        this._pipeline = publishingDomainEventBehaviors.Reverse().Aggregate((DomainEventsHandlerDelegate)this.SendDomainEventsAsync, BuildPipeline);
+    }
+
+    private static DomainEventsHandlerDelegate BuildPipeline(DomainEventsHandlerDelegate accumulator, IPublishingDomainEventBehavior next)
+    {
+        return (events, cancellationToken) => next.Handle(events, accumulator, cancellationToken);
     }
 
     public Task PublishDomainEventAsync<T>(T domainEvent, CancellationToken cancellationToken)
@@ -38,30 +42,33 @@ internal sealed class EventPropagationClient : IEventPropagationClient
             throw new ArgumentNullException(nameof(domainEvents));
         }
 
+        var domainEventName = DomainEventNameCache.GetName<T>();
+
         try
         {
-            async Task Handler(IEnumerable<DomainEventWrapper> events)
-            {
-                var eventGridEvents = events.Select(domainEvent => new EventGridEvent(
-                    subject: $"{this._eventPropagationPublisherOptions.TopicName}-{DomainEventNameCache.GetName<T>()}",
-                    eventType: domainEvent.DomainEventName,
-                    dataVersion: DomainEventDefaultVersion,
-                    data: new BinaryData(domainEvent.RawJson)));
+            var domainEventWrappers = new DomainEventWrapperCollection(domainEvents.Select(DomainEventWrapper.Wrap), domainEventName);
 
-                await this._eventGridPublisherClient.SendEventsAsync(eventGridEvents, cancellationToken).ConfigureAwait(false);
+            if (domainEventWrappers.Count == 0)
+            {
+                return;
             }
 
-            var pipeline = this._publishingDomainEventBehaviors.Aggregate(Handler, (DomainEventsHandlerDelegate accumulator, IPublishingDomainEventBehavior next) =>
-            {
-                return events => next.Handle(events, accumulator, cancellationToken);
-            });
-
-            var domainEventWrappers = domainEvents.Select(DomainEventWrapper.Wrap);
-            await pipeline(domainEventWrappers).ConfigureAwait(false);
+            await this._pipeline(domainEventWrappers, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            throw new EventPropagationPublishingException(DomainEventNameCache.GetName<T>(), this._eventPropagationPublisherOptions.TopicName, this._eventPropagationPublisherOptions.TopicEndpoint, ex);
+            throw new EventPropagationPublishingException(domainEventName, this._eventPropagationPublisherOptions.TopicName, this._eventPropagationPublisherOptions.TopicEndpoint, ex);
         }
+    }
+
+    private async Task SendDomainEventsAsync(DomainEventWrapperCollection domainEventWrappers, CancellationToken cancellationToken)
+    {
+        var eventGridEvents = domainEventWrappers.Select(wrapper => new EventGridEvent(
+            subject: $"{this._eventPropagationPublisherOptions.TopicName}-{wrapper.DomainEventName}",
+            eventType: wrapper.DomainEventName,
+            dataVersion: DomainEventDefaultVersion,
+            data: new BinaryData(wrapper.RawJson)));
+
+        await this._eventGridPublisherClient.SendEventsAsync(eventGridEvents, cancellationToken).ConfigureAwait(false);
     }
 }

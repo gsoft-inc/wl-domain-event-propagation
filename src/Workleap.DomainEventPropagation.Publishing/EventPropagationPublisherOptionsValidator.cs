@@ -21,7 +21,7 @@ public sealed class EventPropagationPublisherOptionsValidator : IValidateOptions
             return ValidateOptionsResult.Fail("A topic endpoint is required");
         }
 
-        if (!Uri.TryCreate(options.TopicEndpoint, UriKind.Absolute, out var uri))
+        if (!Uri.TryCreate(options.TopicEndpoint, UriKind.Absolute, out _))
         {
             return ValidateOptionsResult.Fail("The topic endpoint must be an absolute URI");
         }

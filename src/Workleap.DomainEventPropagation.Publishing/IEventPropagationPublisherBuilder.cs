@@ -1,6 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Workleap.DomainEventPropagation.Extensions;
+namespace Workleap.DomainEventPropagation;
 
 public interface IEventPropagationPublisherBuilder
 {
