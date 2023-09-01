@@ -1,6 +1,5 @@
 using System.Collections.Concurrent;
 using System.Reflection;
-using System.Text.Json.Nodes;
 using Azure.Messaging.EventGrid;
 
 namespace Workleap.DomainEventPropagation;
@@ -30,7 +29,7 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
 
     public async Task HandleEventGridWebhookEventAsync(EventGridEvent eventGridEvent, CancellationToken cancellationToken)
     {
-        var domainEventWrapper = new DomainEventWrapper(eventGridEvent.Data.ToObjectFromJson<JsonObject>());
+        var domainEventWrapper = new DomainEventWrapper(eventGridEvent);
 
         var isDomainEventTypeUnknown = this._domainEventTypeRegistry.GetDomainEventType(domainEventWrapper.DomainEventName) == null;
         if (isDomainEventTypeUnknown)

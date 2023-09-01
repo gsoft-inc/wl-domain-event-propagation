@@ -42,22 +42,19 @@ internal sealed class EventPropagationClient : IEventPropagationClient
             throw new ArgumentNullException(nameof(domainEvents));
         }
 
-        var domainEventName = DomainEventNameCache.GetName<T>();
+        var domainEventWrappers = DomainEventWrapperCollection.Create(domainEvents);
+        if (domainEventWrappers.Count == 0)
+        {
+            return;
+        }
 
         try
         {
-            var domainEventWrappers = new DomainEventWrapperCollection(domainEvents.Select(DomainEventWrapper.Wrap), domainEventName);
-
-            if (domainEventWrappers.Count == 0)
-            {
-                return;
-            }
-
             await this._pipeline(domainEventWrappers, cancellationToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            throw new EventPropagationPublishingException(domainEventName, this._eventPropagationPublisherOptions.TopicName, this._eventPropagationPublisherOptions.TopicEndpoint, ex);
+            throw new EventPropagationPublishingException(domainEventWrappers.DomainEventName, this._eventPropagationPublisherOptions.TopicName, this._eventPropagationPublisherOptions.TopicEndpoint, ex);
         }
     }
 

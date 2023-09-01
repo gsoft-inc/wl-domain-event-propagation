@@ -1,31 +1,28 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Nodes;
+using Azure.Messaging.EventGrid;
 
 namespace Workleap.DomainEventPropagation;
 
 internal sealed class DomainEventWrapper
 {
-    private const string NameKey = "__name";
     private const string MetadataKey = "__metadata";
 
-    public DomainEventWrapper(JsonNode domainEventRawJson)
+    public DomainEventWrapper(EventGridEvent eventGridEvent)
     {
-        this.RawJson = domainEventRawJson;
+        this.RawJson = eventGridEvent.Data.ToObjectFromJson<JsonObject>();
+        this.DomainEventName = eventGridEvent.EventType;
     }
 
-    public DomainEventWrapper(JsonNode domainEventRawJson, string domainEventName)
+    private DomainEventWrapper(JsonNode rawJson, string domainEventName)
     {
-        this.RawJson = domainEventRawJson;
+        this.RawJson = rawJson;
         this.DomainEventName = domainEventName;
     }
 
     public JsonNode RawJson { get; }
 
-    public string DomainEventName
-    {
-        get => this.RawJson[NameKey]?.ToString() ?? string.Empty;
-        private set => this.RawJson[NameKey] = value;
-    }
+    public string DomainEventName { get; }
 
     public Dictionary<string, string> Metadata
     {
@@ -40,10 +37,10 @@ internal sealed class DomainEventWrapper
     public static DomainEventWrapper Wrap<T>(T domainEvent)
         where T : IDomainEvent
     {
-        var eventName = DomainEventNameCache.GetName<T>();
+        var domainEventName = DomainEventNameCache.GetName<T>();
         var serializedEvent = JsonSerializer.SerializeToNode(domainEvent, domainEvent.GetType())
             ?? throw new ArgumentException("The event cannot be serialized to JSON");
 
-        return new DomainEventWrapper(serializedEvent, eventName);
+        return new DomainEventWrapper(serializedEvent, domainEventName);
     }
 }

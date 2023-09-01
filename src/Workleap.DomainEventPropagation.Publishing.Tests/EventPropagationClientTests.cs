@@ -3,7 +3,7 @@ using FakeItEasy;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Options;
 
-namespace Workleap.DomainEventPropagation.Tests.Publishing;
+namespace Workleap.DomainEventPropagation.Publishing.Tests;
 
 public class EventPropagationClientTests
 {

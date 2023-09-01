@@ -1,6 +1,6 @@
 using Azure.Identity;
 
-namespace Workleap.DomainEventPropagation.Tests.Publishing;
+namespace Workleap.DomainEventPropagation.Publishing.Tests;
 
 public class EventPropagationPublisherOptionsValidatorTests
 {

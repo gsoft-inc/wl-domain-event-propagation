@@ -2,7 +2,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 
-namespace Workleap.DomainEventPropagation.Tests.Publishing;
+namespace Workleap.DomainEventPropagation.Publishing.Tests;
 
 public class EventPropagationPublisherOptionsTests
 {

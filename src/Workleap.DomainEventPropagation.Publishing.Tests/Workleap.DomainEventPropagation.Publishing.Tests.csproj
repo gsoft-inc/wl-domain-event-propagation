@@ -5,7 +5,6 @@
     <IsTestProject>true</IsTestProject>
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>../Workleap.DomainEventPropagation.snk</AssemblyOriginatorKeyFile>
-    <RootNamespace>Workleap.DomainEventPropagation.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

@@ -16,6 +16,13 @@ internal sealed class DomainEventWrapperCollection : IReadOnlyCollection<DomainE
 
     public string DomainEventName { get; }
 
+    public static DomainEventWrapperCollection Create<T>(IEnumerable<T> domainEvents)
+        where T : IDomainEvent
+    {
+        var domainEventWrappers = domainEvents.Select(DomainEventWrapper.Wrap);
+        return new DomainEventWrapperCollection(domainEventWrappers, DomainEventNameCache.GetName<T>());
+    }
+
     public IEnumerator<DomainEventWrapper> GetEnumerator()
     {
         // See https://stackoverflow.com/questions/1272673/obtain-generic-enumerator-from-an-array
