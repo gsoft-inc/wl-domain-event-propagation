@@ -7,7 +7,7 @@ public static class EventPropagationPublisherBuilderExtensions
 {
     public static IEventPropagationPublisherBuilder AddApplicationInsights(this IEventPropagationPublisherBuilder builder)
     {
-        builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IPublishingDomainEventBehavior, PublishigApplicationInsightsTracingBehavior>());
+        builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IPublishingDomainEventBehavior, ApplicationInsightsPublishingDomainEventBehavior>());
 
         return builder;
     }

@@ -27,7 +27,7 @@ internal sealed class EventPropagationClient : IEventPropagationClient
 
     private static DomainEventsHandlerDelegate BuildPipeline(DomainEventsHandlerDelegate accumulator, IPublishingDomainEventBehavior next)
     {
-        return (events, cancellationToken) => next.Handle(events, accumulator, cancellationToken);
+        return (events, cancellationToken) => next.HandleAsync(events, accumulator, cancellationToken);
     }
 
     public Task PublishDomainEventAsync<T>(T domainEvent, CancellationToken cancellationToken)

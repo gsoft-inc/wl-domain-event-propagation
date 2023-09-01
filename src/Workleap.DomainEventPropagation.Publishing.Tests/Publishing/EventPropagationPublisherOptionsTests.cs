@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Workleap.DomainEventPropagation.Extensions;
 
 namespace Workleap.DomainEventPropagation.Tests.Publishing;
 
@@ -12,9 +11,9 @@ public class EventPropagationPublisherOptionsTests
     {
         var myConfiguration = new Dictionary<string, string>
         {
-            { $"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicName)}", "topicName" },
-            { $"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicAccessKey)}", "accessKey" },
-            { $"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicEndpoint)}", "http://topicurl.com" },
+            [$"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicName)}"] = "topicName",
+            [$"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicAccessKey)}"] = "accessKey",
+            [$"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicEndpoint)}"] = "http://topicurl.com",
         };
 
         var configuration = new ConfigurationBuilder()
@@ -24,7 +23,7 @@ public class EventPropagationPublisherOptionsTests
         var services = new ServiceCollection();
 
         services.AddSingleton<IConfiguration>(configuration);
-        services.AddEventPropagationPublisherOptions(_ => { });
+        services.AddEventPropagationPublisher();
 
         using var serviceProvider = services.BuildServiceProvider();
 

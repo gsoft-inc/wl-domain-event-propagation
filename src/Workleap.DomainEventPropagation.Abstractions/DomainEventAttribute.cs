@@ -7,7 +7,17 @@ public sealed class DomainEventAttribute : Attribute
     // TODO documentation
     public DomainEventAttribute(string name)
     {
-        this.Name = name ?? throw new ArgumentNullException(nameof(name));
+        if (name == null)
+        {
+            throw new ArgumentNullException(nameof(name));
+        }
+
+        if (string.IsNullOrEmpty(name))
+        {
+            throw new ArgumentException("Domain event name cannot be empty", nameof(name));
+        }
+
+        this.Name = name;
     }
 
     // TODO documentation

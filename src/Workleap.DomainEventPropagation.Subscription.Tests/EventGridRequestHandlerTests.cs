@@ -1,25 +1,12 @@
+using System.Text.Json;
 using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
 using FakeItEasy;
 
-namespace Workleap.DomainEventPropagation.Tests.Subscription;
+namespace Workleap.DomainEventPropagation.Subscription.Tests;
 
 public class EventGridRequestHandlerTests
 {
-    [Fact]
-    public async Task GivenEventGridRequest_WhenRequestContentNull_ThenThrowsException()
-    {
-        // Given
-        var domainEventGridWebhookHandler = A.Fake<IDomainEventGridWebhookHandler>();
-        var subscriptionEventGridWebhookHandler = A.Fake<ISubscriptionEventGridWebhookHandler>();
-
-        var eventGridRequestHandler = new EventGridRequestHandler(
-            domainEventGridWebhookHandler,
-            subscriptionEventGridWebhookHandler);
-
-        await Assert.ThrowsAsync<ArgumentNullException>(() => eventGridRequestHandler.HandleRequestAsync(null!, CancellationToken.None));
-    }
-
     [Fact]
     public async Task GivenSubscriptionEventGridRequest_WhenRequestContentValid_ThenAcceptResponseIsGenerated()
     {
@@ -28,7 +15,7 @@ public class EventGridRequestHandlerTests
         var domainEventGridWebhookHandler = A.Fake<IDomainEventGridWebhookHandler>();
         var subscriptionEventGridWebhookHandler = A.Fake<ISubscriptionEventGridWebhookHandler>();
 
-        A.CallTo(() => subscriptionEventGridWebhookHandler.HandleEventGridSubscriptionEvent(A<SubscriptionValidationEventData>._, A<string>._, A<string>._))
+        A.CallTo(() => subscriptionEventGridWebhookHandler.HandleEventGridSubscriptionEvent(A<SubscriptionValidationEventData>._))
             .Returns(new SubscriptionValidationResponse { ValidationResponse = validationCode });
 
         // When
@@ -36,7 +23,9 @@ public class EventGridRequestHandlerTests
             domainEventGridWebhookHandler,
             subscriptionEventGridWebhookHandler);
 
-        var result = await eventGridRequestHandler.HandleRequestAsync(GetEventGridSubscriptionRequest(validationCode), CancellationToken.None);
+        var request = GetEventGridSubscriptionRequest(validationCode);
+
+        var result = await eventGridRequestHandler.HandleRequestAsync(request, CancellationToken.None);
 
         // Then
         Assert.NotNull(result);
@@ -53,7 +42,7 @@ public class EventGridRequestHandlerTests
         var domainEventGridWebhookHandler = A.Fake<IDomainEventGridWebhookHandler>();
         var subscriptionEventGridWebhookHandler = A.Fake<ISubscriptionEventGridWebhookHandler>();
 
-        A.CallTo(() => subscriptionEventGridWebhookHandler.HandleEventGridSubscriptionEvent(A<SubscriptionValidationEventData>._, A<string>._, A<string>._))
+        A.CallTo(() => subscriptionEventGridWebhookHandler.HandleEventGridSubscriptionEvent(A<SubscriptionValidationEventData>._))
             .Throws(new Exception("An exception was thrown"));
 
         // When
@@ -61,7 +50,12 @@ public class EventGridRequestHandlerTests
             domainEventGridWebhookHandler,
             subscriptionEventGridWebhookHandler);
 
-        var exception = await Assert.ThrowsAsync<Exception>(() => eventGridRequestHandler.HandleRequestAsync(GetEventGridSubscriptionRequest(validationCode), CancellationToken.None));
+        var request = GetEventGridSubscriptionRequest(validationCode);
+
+        var exception = await Assert.ThrowsAsync<Exception>(() =>
+        {
+            return eventGridRequestHandler.HandleRequestAsync(request, CancellationToken.None);
+        });
 
         // Then
         Assert.NotNull(exception);
@@ -75,7 +69,7 @@ public class EventGridRequestHandlerTests
         var domainEventGridWebhookHandler = A.Fake<IDomainEventGridWebhookHandler>();
         var subscriptionEventGridWebhookHandler = A.Fake<ISubscriptionEventGridWebhookHandler>();
 
-        A.CallTo(() => subscriptionEventGridWebhookHandler.HandleEventGridSubscriptionEvent(A<SubscriptionValidationEventData>._, A<string>._, A<string>._))
+        A.CallTo(() => subscriptionEventGridWebhookHandler.HandleEventGridSubscriptionEvent(A<SubscriptionValidationEventData>._))
             .Returns(new SubscriptionValidationResponse { ValidationResponse = validationCode });
 
         // When
@@ -157,8 +151,9 @@ public class EventGridRequestHandlerTests
             .MustHaveHappenedOnceExactly();
     }
 
-    private static string GetEventGridSubscriptionRequest(string validationCode)
+    private static EventGridEvent[] GetEventGridSubscriptionRequest(string validationCode)
     {
+        // TODO Replace string manipulation with JSON serialization
         var subscriptionRequest = @"[{
                 'topic': '/subscriptions/topic-egt-',
                 'subject': '',
@@ -177,11 +172,14 @@ public class EventGridRequestHandlerTests
 
         eventData = eventData.Replace("'", "\"");
 
-        return subscriptionRequest.Replace("{eventData}", eventData).Replace("'", "\"").Replace("{validationCode}", validationCode);
+        subscriptionRequest = subscriptionRequest.Replace("{eventData}", eventData).Replace("'", "\"").Replace("{validationCode}", validationCode);
+
+        return JsonSerializer.Deserialize<EventGridEvent[]>(subscriptionRequest)!;
     }
 
-    private static string GetEventGridDomainEventRequest()
+    private static EventGridEvent[] GetEventGridDomainEventRequest()
     {
+        // TODO Replace string manipulation with JSON serialization
         var domainEventRequest = @"[{
                 'topic': '/subscriptions/topic-egt-',
                 'subject': 'Test',
@@ -200,6 +198,8 @@ public class EventGridRequestHandlerTests
 
         eventData = eventData.Replace("'", "\"");
 
-        return domainEventRequest.Replace("{eventData}", eventData).Replace("'", "\"");
+        domainEventRequest = domainEventRequest.Replace("{eventData}", eventData).Replace("'", "\"");
+
+        return JsonSerializer.Deserialize<EventGridEvent[]>(domainEventRequest)!;
     }
 }

@@ -9,12 +9,10 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Workleap.DomainEventPropagation.Subscription.ApplicationInsights\Workleap.DomainEventPropagation.Subscription.ApplicationInsights.csproj" />
-    <ProjectReference Include="..\Workleap.DomainEventPropagation.Publishing\Workleap.DomainEventPropagation.Publishing.csproj" />
     <ProjectReference Include="..\Workleap.DomainEventPropagation.Subscription\Workleap.DomainEventPropagation.Subscription.csproj" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Duende.IdentityServer" Version="6.3.3" />
     <PackageReference Include="FakeItEasy" Version="7.4.0" />
     <PackageReference Include="GSoft.Extensions.Xunit" Version="1.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.20" />
@@ -28,11 +26,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\Shared\DomainEventWrapper.cs">
-      <Link>Shared\DomainEventWrapper.cs</Link>
-    </Compile>
-    <Compile Include="..\Shared\TracingHelper.cs">
-      <Link>Shared\TracingHelper.cs</Link>
-    </Compile>
+    <Compile Include="..\Shared\InMemoryActivityTracker.cs" Link="Shared\InMemoryActivityTracker.cs" />
   </ItemGroup>
 </Project>

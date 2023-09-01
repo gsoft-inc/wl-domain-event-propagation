@@ -28,7 +28,7 @@ internal sealed class EventPropagationPublisherBuilder : IEventPropagationPublis
 
         this.Services.TryAddSingleton<IEventPropagationClient, EventPropagationClient>();
         this.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<EventPropagationPublisherOptions>, EventPropagationPublisherOptionsValidator>());
-        this.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IPublishingDomainEventBehavior, PublishingDomainEventTracingBehavior>());
+        this.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IPublishingDomainEventBehavior, TracingPublishingDomainEventBehavior>());
 
         this.Services.AddAzureClients(ConfigureEventGridPublisherClient);
     }

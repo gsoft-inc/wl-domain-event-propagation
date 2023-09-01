@@ -21,7 +21,7 @@ internal sealed class EventPropagationSubscriberBuilder : IEventPropagationSubsc
         services.TryAddSingleton<IDomainEventGridWebhookHandler, DomainEventGridWebhookHandler>();
         services.TryAddSingleton<IEventGridRequestHandler, EventGridRequestHandler>();
 
-        services.TryAddEnumerable(ServiceDescriptor.Singleton<ISubscriptionDomainEventBehavior, SubscriptionDomainEventTracingBehavior>());
+        services.TryAddEnumerable(ServiceDescriptor.Singleton<ISubscriptionDomainEventBehavior, TracingSubscriptionDomainEventBehavior>());
 
         services.TryAddSingleton<IDomainEventTypeRegistry>(this._domainEventTypeRegistry);
     }

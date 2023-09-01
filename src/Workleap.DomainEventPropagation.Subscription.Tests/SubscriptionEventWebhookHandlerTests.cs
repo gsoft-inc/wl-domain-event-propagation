@@ -1,7 +1,7 @@
 using Azure.Messaging.EventGrid.SystemEvents;
 using BindingFlags = System.Reflection.BindingFlags;
 
-namespace Workleap.DomainEventPropagation.Tests.Subscription;
+namespace Workleap.DomainEventPropagation.Subscription.Tests;
 
 public class SubscriptionEventWebhookHandlerTests
 {
@@ -21,7 +21,7 @@ public class SubscriptionEventWebhookHandlerTests
             null)!;
 
         var subscriptionEventWebhookHandler = new SubscriptionEventGridWebhookHandler();
-        var response = subscriptionEventWebhookHandler.HandleEventGridSubscriptionEvent(subscriptionEvent, "eventType", "SubscribedTopic");
+        var response = subscriptionEventWebhookHandler.HandleEventGridSubscriptionEvent(subscriptionEvent);
 
         Assert.NotNull(response);
         Assert.IsAssignableFrom<SubscriptionValidationResponse>(response);

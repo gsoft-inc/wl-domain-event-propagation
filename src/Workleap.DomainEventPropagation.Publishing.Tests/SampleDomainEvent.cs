@@ -5,7 +5,7 @@ public class SampleDomainEvent : IDomainEvent
     public string? Message { get; set; }
 }
 
-public class SambleDomainEventHandler : IDomainEventHandler<SampleDomainEvent>
+public class SampleDomainEventHandler : IDomainEventHandler<SampleDomainEvent>
 {
     public Task HandleDomainEventAsync(SampleDomainEvent domainEvent, CancellationToken cancellationToken)
     {

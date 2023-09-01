@@ -25,7 +25,7 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
 
     private static DomainEventHandlerDelegate BuildPipeline(DomainEventHandlerDelegate next, ISubscriptionDomainEventBehavior pipeline)
     {
-        return (events, cancellationToken) => pipeline.Handle(events, next, cancellationToken);
+        return (events, cancellationToken) => pipeline.HandleAsync(events, next, cancellationToken);
     }
 
     public async Task HandleEventGridWebhookEventAsync(EventGridEvent eventGridEvent, CancellationToken cancellationToken)
@@ -36,7 +36,7 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
         if (isDomainEventTypeUnknown)
         {
             // TODO log info message instead of throwing
-            throw new InvalidOperationException($"Can't find domain event type for event with name: {eventGridEvent.Id}; Subject: {eventGridEvent.Subject}; EventType: {eventGridEvent.EventType}.");
+            throw new InvalidOperationException($"Can't find domain event type for event with name: {domainEventWrapper.DomainEventName}; Subject: {eventGridEvent.Subject}; EventType: {eventGridEvent.EventType}.");
         }
 
         await this._pipeline(domainEventWrapper, cancellationToken).ConfigureAwait(false);

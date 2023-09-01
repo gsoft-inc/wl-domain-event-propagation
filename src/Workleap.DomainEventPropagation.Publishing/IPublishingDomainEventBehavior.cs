@@ -4,5 +4,5 @@ internal delegate Task DomainEventsHandlerDelegate(DomainEventWrapperCollection 
 
 internal interface IPublishingDomainEventBehavior
 {
-    Task Handle(DomainEventWrapperCollection domainEventWrappers, DomainEventsHandlerDelegate next, CancellationToken cancellationToken);
+    Task HandleAsync(DomainEventWrapperCollection domainEventWrappers, DomainEventsHandlerDelegate next, CancellationToken cancellationToken);
 }

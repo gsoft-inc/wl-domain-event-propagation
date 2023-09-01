@@ -1,8 +1,7 @@
 using FakeItEasy;
 using Microsoft.Extensions.DependencyInjection;
-using Workleap.DomainEventPropagation.Extensions;
 
-namespace Workleap.DomainEventPropagation.Tests.Subscription.Extensions;
+namespace Workleap.DomainEventPropagation.Subscription.Tests.Extensions;
 
 public class ServiceCollectionEventPropagationExtensionsUnitTests
 {

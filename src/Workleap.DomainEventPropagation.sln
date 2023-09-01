@@ -9,7 +9,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "files", "files", "{3B3625CC
 		Directory.Build.props = Directory.Build.props
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workleap.DomainEventPropagation.Tests", "Workleap.DomainEventPropagation.Tests\Workleap.DomainEventPropagation.Tests.csproj", "{2A5429CC-E179-47E7-85BB-C1E33E2AFD8A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workleap.DomainEventPropagation.Publishing.Tests", "Workleap.DomainEventPropagation.Publishing.Tests\Workleap.DomainEventPropagation.Publishing.Tests.csproj", "{2A5429CC-E179-47E7-85BB-C1E33E2AFD8A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workleap.DomainEventPropagation.Abstractions", "Workleap.DomainEventPropagation.Abstractions\Workleap.DomainEventPropagation.Abstractions.csproj", "{0E6521C9-28A3-40BC-B960-F558322E58E4}"
 EndProject
@@ -20,6 +20,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Workleap.DomainEventPropagation.Subscription.ApplicationInsights", "Workleap.DomainEventPropagation.Subscription.ApplicationInsights\Workleap.DomainEventPropagation.Subscription.ApplicationInsights.csproj", "{8CF89642-D0AC-48A4-86AE-9CC9C318AEA9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Workleap.DomainEventPropagation.Publishing.ApplicationInsights", "Workleap.DomainEventPropagation.Publishing.ApplicationInsights\Workleap.DomainEventPropagation.Publishing.ApplicationInsights.csproj", "{0489B526-E881-4AA0-B893-E757FB65A66F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Workleap.DomainEventPropagation.Subscription.Tests", "Workleap.DomainEventPropagation.Subscription.Tests\Workleap.DomainEventPropagation.Subscription.Tests.csproj", "{B2F1E4B9-C32E-4835-BD1A-557ACCA85B58}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{52515FB6-FE9A-4121-9AB3-6066E49BCA79}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -51,11 +55,19 @@ Global
 		{0489B526-E881-4AA0-B893-E757FB65A66F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0489B526-E881-4AA0-B893-E757FB65A66F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0489B526-E881-4AA0-B893-E757FB65A66F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B2F1E4B9-C32E-4835-BD1A-557ACCA85B58}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B2F1E4B9-C32E-4835-BD1A-557ACCA85B58}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B2F1E4B9-C32E-4835-BD1A-557ACCA85B58}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B2F1E4B9-C32E-4835-BD1A-557ACCA85B58}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {B5442B43-A821-42C0-8A70-ED565B188A71}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{2A5429CC-E179-47E7-85BB-C1E33E2AFD8A} = {52515FB6-FE9A-4121-9AB3-6066E49BCA79}
+		{B2F1E4B9-C32E-4835-BD1A-557ACCA85B58} = {52515FB6-FE9A-4121-9AB3-6066E49BCA79}
 	EndGlobalSection
 EndGlobal

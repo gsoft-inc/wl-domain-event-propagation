@@ -31,9 +31,9 @@ services.AddOptions<EventPropagationPublisherOptions>()
 }
 
 // Method 2: Lazily bind the options to a configuration section and use a TokenCredential and RBAC
-services.AddEventPropagationPublisher(opt =>
+services.AddEventPropagationPublisher(options =>
 {
-    opt.TokenCredential = new DefaultAzureCredential();
+    options.TokenCredential = new DefaultAzureCredential();
 });
 services.AddOptions<EventPropagationPublisherOptions>()
     .BindConfiguration(EventPropagationPublisherOptions.SectionName);
@@ -47,20 +47,20 @@ services.AddOptions<EventPropagationPublisherOptions>()
 }
 
 // Method 3: Set options values directly in C# using and access key 
-services.AddEventPropagationPublisher(opt =>
+services.AddEventPropagationPublisher(options =>
 {   
-    opt.TopicName = "<topic_name_to_publish_to>",
-    opt.TopicEndpoint = "<azure_topic_uri>",
-    opt.TopicAccessKey = "<provided from keyVault>"
+    options.TopicName = "<topic_name_to_publish_to>",
+    options.TopicEndpoint = "<azure_topic_uri>",
+    options.TopicAccessKey = "<provided from keyVault>"
     
 });
 
 // Method 4: Set options values directly in C# using a TokenCredential and RBAC
-services.AddEventPropagationPublisher(opt => 
+services.AddEventPropagationPublisher(options => 
 {
-    opt.TopicName = "<topic_name_to_publish_to>",
-    opt.TopicEndpoint = "<azure_topic_uri>",
-    o.TokenCredential = new DefaultAzureCredential())
+    options.TopicName = "<topic_name_to_publish_to>",
+    options.TopicEndpoint = "<azure_topic_uri>",
+    options.TokenCredential = new DefaultAzureCredential())
 }
 ```
 *Note that you can use either an access key or a token credentials in order to authenticate with your eventGrid topic but not both.*

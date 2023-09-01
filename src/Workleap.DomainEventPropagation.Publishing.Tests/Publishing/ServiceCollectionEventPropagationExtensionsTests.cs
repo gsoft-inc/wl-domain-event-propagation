@@ -1,11 +1,9 @@
 using Azure.Identity;
 using Azure.Messaging.EventGrid;
-using FakeItEasy;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Workleap.DomainEventPropagation.Extensions;
 
 namespace Workleap.DomainEventPropagation.Tests.Publishing;
 
@@ -28,8 +26,8 @@ public class ServiceCollectionEventPropagationExtensionsTests
 
         // When
         services.AddEventPropagationPublisher();
-        var sp = services.BuildServiceProvider();
-        var publisherOptions = sp.GetRequiredService<IOptions<EventPropagationPublisherOptions>>().Value;
+        var serviceProvider = services.BuildServiceProvider();
+        var publisherOptions = serviceProvider.GetRequiredService<IOptions<EventPropagationPublisherOptions>>().Value;
 
         // Then
         Assert.Equal("topicName", publisherOptions.TopicName);
@@ -53,12 +51,12 @@ public class ServiceCollectionEventPropagationExtensionsTests
         services.AddSingleton<IConfiguration>(configuration);
 
         // When
-        services.AddEventPropagationPublisher(opt =>
+        services.AddEventPropagationPublisher(options =>
         {
-            opt.TopicEndpoint = "http://ovewrite.io";
+            options.TopicEndpoint = "http://ovewrite.io";
         });
-        var sp = services.BuildServiceProvider();
-        var publisherOptions = sp.GetRequiredService<IOptions<EventPropagationPublisherOptions>>().Value;
+        var serviceProvider = services.BuildServiceProvider();
+        var publisherOptions = serviceProvider.GetRequiredService<IOptions<EventPropagationPublisherOptions>>().Value;
 
         // Then
         Assert.Equal("topicName", publisherOptions.TopicName);
@@ -83,8 +81,8 @@ public class ServiceCollectionEventPropagationExtensionsTests
 
         // When
         services.AddEventPropagationPublisher();
-        var sp = services.BuildServiceProvider();
-        var clientFactory = sp.GetRequiredService<IAzureClientFactory<EventGridPublisherClient>>();
+        var serviceProvider = services.BuildServiceProvider();
+        var clientFactory = serviceProvider.GetRequiredService<IAzureClientFactory<EventGridPublisherClient>>();
         var client = clientFactory.CreateClient(EventPropagationPublisherOptions.ClientName);
 
         // Then
@@ -106,12 +104,12 @@ public class ServiceCollectionEventPropagationExtensionsTests
         services.AddSingleton<IConfiguration>(configuration);
 
         // When
-        services.AddEventPropagationPublisher(opt =>
+        services.AddEventPropagationPublisher(options =>
         {
-            opt.TokenCredential = new AzureCliCredential();
+            options.TokenCredential = new AzureCliCredential();
         });
-        var sp = services.BuildServiceProvider();
-        var clientFactory = sp.GetRequiredService<IAzureClientFactory<EventGridPublisherClient>>();
+        var serviceProvider = services.BuildServiceProvider();
+        var clientFactory = serviceProvider.GetRequiredService<IAzureClientFactory<EventGridPublisherClient>>();
         var client = clientFactory.CreateClient(EventPropagationPublisherOptions.ClientName);
 
         // Then

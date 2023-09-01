@@ -1,9 +1,4 @@
-using Azure.Core;
 using Azure.Identity;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
-using Workleap.DomainEventPropagation.Extensions;
 
 namespace Workleap.DomainEventPropagation.Tests.Publishing;
 
@@ -33,13 +28,6 @@ public class EventPropagationPublisherOptionsValidatorTests
             TopicAccessKey = topicAccessKey,
         });
 
-        if (optionsValid)
-        {
-            Assert.True(result.Succeeded);
-        }
-        else
-        {
-            Assert.True(result.Failed);
-        }
+        Assert.True(optionsValid ? result.Succeeded : result.Failed);
     }
 }

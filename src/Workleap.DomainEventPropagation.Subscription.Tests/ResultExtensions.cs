@@ -1,19 +1,19 @@
-using System.Net;
+﻿using System.Net;
 using System.Text.Json;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace Workleap.DomainEventPropagation.Tests.Helpers;
+namespace Workleap.DomainEventPropagation.Subscription.Tests;
 
 internal static class ResultExtensions
 {
     /// <remarks>
     /// <para>
     /// This utility method is convenient for .NET 6 applications that would unit test
-    /// minimal APIs and dealing with IResult. 
+    /// minimal APIs and dealing with IResult.
     /// </para>
     /// <para>
-    /// All classes inheriting from IResult are unfortunately internal (e.g. OkObjectResult) and 
+    /// All classes inheriting from IResult are unfortunately internal (e.g. OkObjectResult) and
     /// we can't get the underlying inherited type. <br/>
     /// From .NET 7 and forward, we could instead leverage TypedResults and public types and conditionally use this method when .NET 6 is used <br/>
     /// More over on https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.typedresults?view=aspnetcore-7.0 <br/>

@@ -1,5 +1,6 @@
-namespace Workleap.DomainEventPropagation.Tests.Subscription.Events;
+namespace Workleap.DomainEventPropagation.Subscription.Tests.Apis;
 
+[DomainEvent("dummy")]
 public sealed class DummyDomainEvent : IDomainEvent
 {
     public string PropertyA { get; set; } = string.Empty;

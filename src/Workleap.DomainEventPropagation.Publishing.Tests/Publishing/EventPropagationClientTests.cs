@@ -9,7 +9,6 @@ public class EventPropagationClientTests
 {
     private readonly EventPropagationPublisherOptions _eventPropagationPublisherOptions;
     private readonly EventPropagationClient _eventPropagationClient;
-    private readonly IAzureClientFactory<EventGridPublisherClient> _eventGridPublisherClientFactory;
     private readonly EventGridPublisherClient _eventGridPublisherClient;
     private readonly PublishTestDomainEvent _domainEvent;
 
@@ -17,11 +16,13 @@ public class EventPropagationClientTests
     {
         this._domainEvent = new PublishTestDomainEvent();
         this._eventPropagationPublisherOptions = new EventPropagationPublisherOptions { TopicName = "Organization", TopicAccessKey = "AccessKey", TopicEndpoint = "http://localhost:11111" };
-        this._eventGridPublisherClientFactory = A.Fake<IAzureClientFactory<EventGridPublisherClient>>(opts => opts.Strict());
         this._eventGridPublisherClient = A.Fake<EventGridPublisherClient>(opts => opts.Strict());
 
+        var eventGridPublisherClientFactory = A.Fake<IAzureClientFactory<EventGridPublisherClient>>(opts => opts.Strict());
+        A.CallTo(() => eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName)).Returns(this._eventGridPublisherClient);
+
         this._eventPropagationClient = new EventPropagationClient(
-            this._eventGridPublisherClientFactory,
+            eventGridPublisherClientFactory,
             Options.Create(this._eventPropagationPublisherOptions),
             Array.Empty<IPublishingDomainEventBehavior>());
     }
@@ -29,44 +30,44 @@ public class EventPropagationClientTests
     [Fact]
     public async Task GivenGenericPublishDomainEventAsync_WhenErrorDuringPublication_ThenThrowsException()
     {
-        A.CallTo(() => this._eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName)).Returns(this._eventGridPublisherClient);
-
         A.CallTo(() => this._eventGridPublisherClient.SendEventsAsync(
                 A<IEnumerable<EventGridEvent>>.That.Matches(events => events.Count() == 1),
                 A<CancellationToken>._))
-            .Throws(A.Fake<Exception>());
+            .Throws<Exception>();
 
-        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(() => this._eventPropagationClient.PublishDomainEventAsync(new PublishTestDomainEvent(), CancellationToken.None));
+        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(() =>
+        {
+            return this._eventPropagationClient.PublishDomainEventAsync(new PublishTestDomainEvent(), CancellationToken.None);
+        });
 
-        Assert.Equal(this._eventPropagationPublisherOptions.TopicEndpoint, exception.TopicEndpoint);
-        Assert.Equal(typeof(PublishTestDomainEvent).FullName, exception.Subject);
-        Assert.Equal(this._eventPropagationPublisherOptions.TopicName, exception.TopicName);
+        Assert.Contains(this._eventPropagationPublisherOptions.TopicEndpoint, exception.Message);
+        Assert.Contains(typeof(PublishTestDomainEvent).FullName!, exception.Message);
+        Assert.Contains(this._eventPropagationPublisherOptions.TopicName, exception.Message);
     }
 
     [Fact]
     public async Task GivenGenericPublishDomainEventsAsync_WhenErrorDuringPublication_ThenThrowsException()
     {
-        A.CallTo(() => this._eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName)).Returns(this._eventGridPublisherClient);
-
         A.CallTo(() => this._eventGridPublisherClient.SendEventsAsync(
                 A<IEnumerable<EventGridEvent>>.That.Matches(events => events.Count() == 1),
                 A<CancellationToken>._))
-            .Throws(A.Fake<Exception>());
+            .Throws<Exception>();
 
         var domainEvents = new List<PublishTestDomainEvent> { this._domainEvent, new() };
 
-        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(() => this._eventPropagationClient.PublishDomainEventsAsync(domainEvents, CancellationToken.None));
+        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(() =>
+        {
+            return this._eventPropagationClient.PublishDomainEventsAsync(domainEvents, CancellationToken.None);
+        });
 
-        Assert.Equal(this._eventPropagationPublisherOptions.TopicEndpoint, exception.TopicEndpoint);
-        Assert.Equal(typeof(PublishTestDomainEvent).FullName, exception.Subject);
-        Assert.Equal(this._eventPropagationPublisherOptions.TopicName, exception.TopicName);
+        Assert.Contains(this._eventPropagationPublisherOptions.TopicEndpoint, exception.Message);
+        Assert.Contains(typeof(PublishTestDomainEvent).FullName!, exception.Message);
+        Assert.Contains(this._eventPropagationPublisherOptions.TopicName, exception.Message);
     }
 
     [Fact]
     public async Task GivenEventPropagationClient_WhenEventsAreSuccessfullySentWithEventGridPublisher_ThenNoErrors()
     {
-        A.CallTo(() => this._eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName)).Returns(this._eventGridPublisherClient);
-
         A.CallTo(() => this._eventGridPublisherClient.SendEventsAsync(
                 A<IEnumerable<EventGridEvent>>.That.Matches(events => events.Count() == 1),
                 A<CancellationToken>._))
@@ -78,8 +79,6 @@ public class EventPropagationClientTests
     [Fact]
     public async Task GivenGenericPublishDomainEventsAsync_WhenEventsAreSuccessfullySentWithEventGridPublisher_ThenNoErrors()
     {
-        A.CallTo(() => this._eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName)).Returns(this._eventGridPublisherClient);
-
         var domainEvents = new List<PublishTestDomainEvent> { this._domainEvent, new() };
 
         A.CallTo(() => this._eventGridPublisherClient.SendEventsAsync(
@@ -93,8 +92,6 @@ public class EventPropagationClientTests
     [Fact]
     public async Task GivenGenericPublishDomainEventsAsync_WhenEventsAreSuccessfullySentWithEventGridPublisher_DataVersion_ShouldBe_1_0()
     {
-        A.CallTo(() => this._eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName)).Returns(this._eventGridPublisherClient);
-
         var domainEvents = new List<PublishTestDomainEvent> { this._domainEvent, new() };
 
         A.CallTo(() => this._eventGridPublisherClient.SendEventsAsync(
@@ -124,17 +121,14 @@ public class EventPropagationClientTests
         await propagationClient.PublishDomainEventAsync(this._domainEvent, CancellationToken.None);
 
         // Then
-        A.CallTo(() => publisherBehavior.Handle(A<IEnumerable<PublishTestDomainEvent>>._, A<DomainEventsHandlerDelegate>._, A<CancellationToken>._)).MustHaveHappened();
+        A.CallTo(() => publisherBehavior.HandleAsync(A<DomainEventWrapperCollection>._, A<DomainEventsHandlerDelegate>._, A<CancellationToken>._)).MustHaveHappened();
     }
 
-    internal class PublishTestDomainEvent : IDomainEvent
+    [DomainEvent("publish-test")]
+    private sealed class PublishTestDomainEvent : IDomainEvent
     {
         public string Text { get; set; } = string.Empty;
 
         public int Number { get; set; }
-
-        public string DataVersion => "1";
-
-        public IDictionary<string, string>? ExtensionAttributes { get; set; } = new Dictionary<string, string>();
     }
 }

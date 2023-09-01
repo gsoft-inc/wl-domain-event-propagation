@@ -29,9 +29,9 @@ public sealed class TracingBehaviorTests : BaseUnitTest<TracingBehaviorFixture>
     [Fact]
     public async Task GivenActivityListener_WhenHandleEventGridEvent_ThenHandleWithTracing()
     {
-        var wrapperEvent = new DomainEventWrapper()
+        var wrapperEvent = new DomainEventWrapper
         {
-            DomainEventJson = JsonSerializer.SerializeToElement(new SampleDomainEvent() { Message = "Hello world" }),
+            DomainEventJson = JsonSerializer.SerializeToElement(new SampleDomainEvent { Message = "Hello world" }),
             DomainEventType = typeof(SampleDomainEvent).AssemblyQualifiedName ?? typeof(SampleDomainEvent).ToString(),
         };
 
@@ -50,13 +50,13 @@ public sealed class TracingBehaviorTests : BaseUnitTest<TracingBehaviorFixture>
     [Fact]
     public async Task GivenTracingBehaviors_WhenRegisterBehaviors_ThenRegisteredInRightOrder()
     {
-        var publishingBehaviors = this.Services.GetServices<IPublishingDomainEventBehavior>().Reverse().ToArray();
-        var subscriptionBehaviors = this.Services.GetServices<ISubscriptionDomainEventBehavior>().Reverse().ToArray();
+        var publishingBehaviors = this.Services.GetServices<IPublishingDomainEventBehavior>().ToArray();
+        var subscriptionBehaviors = this.Services.GetServices<ISubscriptionDomainEventBehavior>().ToArray();
 
-        Assert.IsType<PublishigApplicationInsightsTracingBehavior>(publishingBehaviors[0]);
-        Assert.IsType<PublishingDomainEventTracingBehavior>(publishingBehaviors[1]);
+        Assert.IsType<TracingPublishingDomainEventBehavior>(publishingBehaviors[0]);
+        Assert.IsType<ApplicationInsightsPublishingDomainEventBehavior>(publishingBehaviors[1]);
 
-        Assert.IsType<SubscriptionApplicationInsightsTracingBehavior>(subscriptionBehaviors[0]);
-        Assert.IsType<SubscriptionDomainEventTracingBehavior>(subscriptionBehaviors[1]);
+        Assert.IsType<SubscriptionDomainEventTracingBehavior>(subscriptionBehaviors[0]);
+        Assert.IsType<SubscriptionApplicationInsightsTracingBehavior>(subscriptionBehaviors[1]);
     }
 }

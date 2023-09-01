@@ -4,9 +4,9 @@ using OpenTelemetry.Context.Propagation;
 
 namespace Workleap.DomainEventPropagation;
 
-internal sealed class PublishingDomainEventTracingBehavior : IPublishingDomainEventBehavior
+internal sealed class TracingPublishingDomainEventBehavior : IPublishingDomainEventBehavior
 {
-    public Task Handle(DomainEventWrapperCollection domainEventWrappers, DomainEventsHandlerDelegate next, CancellationToken cancellationToken)
+    public Task HandleAsync(DomainEventWrapperCollection domainEventWrappers, DomainEventsHandlerDelegate next, CancellationToken cancellationToken)
     {
         var activity = TracingHelper.StartProducerActivity(TracingHelper.EventGridEventsPublisherActivityName);
         return activity == null ? next(domainEventWrappers, cancellationToken) : HandleWithTracing(domainEventWrappers, next, activity, cancellationToken);

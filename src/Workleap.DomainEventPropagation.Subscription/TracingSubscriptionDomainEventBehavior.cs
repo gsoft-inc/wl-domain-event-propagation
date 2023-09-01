@@ -3,9 +3,9 @@ using OpenTelemetry.Context.Propagation;
 
 namespace Workleap.DomainEventPropagation;
 
-internal sealed class SubscriptionDomainEventTracingBehavior : ISubscriptionDomainEventBehavior
+internal sealed class TracingSubscriptionDomainEventBehavior : ISubscriptionDomainEventBehavior
 {
-    public Task Handle(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, CancellationToken cancellationToken)
+    public Task HandleAsync(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, CancellationToken cancellationToken)
     {
         var propagationContext = ExtractPropagationContextFromEvent(domainEventWrapper);
         var activity = TracingHelper.StartConsumerActivity(TracingHelper.EventGridEventsSubscriberActivityName, propagationContext.ActivityContext);

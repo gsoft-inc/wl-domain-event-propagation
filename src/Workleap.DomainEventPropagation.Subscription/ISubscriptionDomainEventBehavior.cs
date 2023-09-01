@@ -4,5 +4,5 @@ internal delegate Task DomainEventHandlerDelegate(DomainEventWrapper domainEvent
 
 internal interface ISubscriptionDomainEventBehavior
 {
-    Task Handle(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, CancellationToken cancellationToken);
+    Task HandleAsync(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, CancellationToken cancellationToken);
 }

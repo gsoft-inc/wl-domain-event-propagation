@@ -12,9 +12,8 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Workleap.DomainEventPropagation.Extensions;
 
-namespace Workleap.DomainEventPropagation.Tests.Subscription.Events;
+namespace Workleap.DomainEventPropagation.Subscription.Tests.Apis;
 
 public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTestsFixture>
 {
@@ -39,21 +38,17 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
             ValidationCode = "ABC",
         };
 
-        var serializedContent = JsonSerializer.Serialize(
-            new EventGridEvent(
-                subject: "Blabla",
-                eventType: SystemEventNames.EventGridSubscriptionValidation,
-                dataVersion: "1.0",
-                data: new BinaryData(subscriptionValidationEventData, serializerOptions))
-                {
-                  Topic = EventsApiIntegrationTestsFixture.TestTopic,
-                },
-            serializerOptions);
-
-        var content = new StringContent(serializedContent, Encoding.UTF8, MediaTypeNames.Application.Json);
+        var eventGridEvent = new EventGridEvent(
+            subject: "Blabla",
+            eventType: SystemEventNames.EventGridSubscriptionValidation,
+            dataVersion: "1.0",
+            data: new BinaryData(subscriptionValidationEventData, serializerOptions))
+            {
+              Topic = EventsApiIntegrationTestsFixture.TestTopic,
+            };
 
         // When
-        var response = await this._httpClient.PostAsync("/eventgrid/domainevents", content);
+        var response = await this._httpClient.PostAsJsonAsync("/eventgrid/domainevents", new[] { eventGridEvent });
 
         // Then
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -68,25 +63,19 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
     public async Task GivenEventsApi_WhenADomainEventIsPosted_ThenReturnsOk()
     {
         // Given
-        var wrapperEvent = new DomainEventWrapper()
-        {
-            DomainEventJson = JsonSerializer.SerializeToElement(new DummyDomainEvent() { PropertyB = 1, PropertyA = "Hello world" }, typeof(DummyDomainEvent)),
-            DomainEventType = typeof(DummyDomainEvent).AssemblyQualifiedName ?? typeof(DummyDomainEvent).ToString(),
-        };
+        var wrapperEvent = DomainEventWrapper.Wrap(new DummyDomainEvent { PropertyB = 1, PropertyA = "Hello world" });
 
         var eventGridEvent = new EventGridEvent(
-            subject: typeof(DummyDomainEvent).FullName,
-            eventType: wrapperEvent.GetType().FullName,
+            subject: "subject",
+            eventType: "event type",
             dataVersion: "1.0",
-            data: new BinaryData(wrapperEvent))
+            data: new BinaryData(wrapperEvent.RawJson))
         {
             Topic = EventsApiIntegrationTestsFixture.TestTopic,
         };
 
-        var content = new StringContent(JsonSerializer.Serialize(eventGridEvent, new JsonSerializerOptions()), Encoding.UTF8, MediaTypeNames.Application.Json);
-
         // When
-        var response = await this._httpClient.PostAsync("/eventgrid/domainevents", content);
+        var response = await this._httpClient.PostAsJsonAsync("/eventgrid/domainevents", new[] { eventGridEvent });
 
         // Then
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -96,25 +85,19 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
     public async Task GivenSecuredEventsApi_WhenADomainEventIsPostedWithoutAccessToken_ThenReturnsUnauthorized()
     {
         // Given
-        var wrapperEvent = new DomainEventWrapper()
-        {
-            DomainEventJson = JsonSerializer.SerializeToElement(new DummyDomainEvent() { PropertyB = 1, PropertyA = "Hello world" }, typeof(DummyDomainEvent)),
-            DomainEventType = typeof(DummyDomainEvent).AssemblyQualifiedName ?? typeof(DummyDomainEvent).ToString(),
-        };
+        var wrapperEvent = DomainEventWrapper.Wrap(new DummyDomainEvent { PropertyB = 1, PropertyA = "Hello world" });
 
         var eventGridEvent = new EventGridEvent(
             subject: typeof(DummyDomainEvent).FullName,
             eventType: wrapperEvent.GetType().FullName,
             dataVersion: "1.0",
-            data: new BinaryData(wrapperEvent))
+            data: new BinaryData(wrapperEvent.RawJson))
         {
             Topic = EventsApiIntegrationTestsFixture.TestTopic,
         };
 
-        var content = new StringContent(JsonSerializer.Serialize(eventGridEvent), Encoding.UTF8, MediaTypeNames.Application.Json);
-
         // When
-        var response = await this._httpClient.PostAsync("/eventgrid/domainevents", content);
+        var response = await this._httpClient.PostAsJsonAsync("/eventgrid/domainevents", new[] { eventGridEvent });
 
         // Then
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -169,7 +152,7 @@ public sealed class EventsApiIntegrationTestsFixture : WebApplicationFactory<Eve
         {
             services
                 .AddEventPropagationSubscriber()
-                .AddDomainEventHandler<DummyDomainEventHandler>();
+                .AddDomainEventHandler<DummyDomainEvent, DummyDomainEventHandler>();
         }
 
         public void Configure(IApplicationBuilder app)

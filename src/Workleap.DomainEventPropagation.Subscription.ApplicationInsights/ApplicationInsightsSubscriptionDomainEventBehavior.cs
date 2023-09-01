@@ -3,16 +3,16 @@ using Microsoft.ApplicationInsights;
 
 namespace Workleap.DomainEventPropagation;
 
-internal sealed class SubscriptionApplicationInsightsTracingBehavior : ISubscriptionDomainEventBehavior
+internal sealed class ApplicationInsightsSubscriptionDomainEventBehavior : ISubscriptionDomainEventBehavior
 {
     private readonly TelemetryClient? _telemetryClient;
 
-    public SubscriptionApplicationInsightsTracingBehavior(TelemetryClient? telemetryClient)
+    public ApplicationInsightsSubscriptionDomainEventBehavior(TelemetryClient? telemetryClient)
     {
         this._telemetryClient = telemetryClient;
     }
 
-    public Task Handle(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, CancellationToken cancellationToken)
+    public Task HandleAsync(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, CancellationToken cancellationToken)
     {
         return this._telemetryClient == null ? next(domainEventWrapper, cancellationToken) : this.HandleWithTelemetry(domainEventWrapper, next, cancellationToken);
     }
