@@ -8,6 +8,8 @@
     <SignAssembly>true</SignAssembly>
     <AssemblyOriginatorKeyFile>../Workleap.DomainEventPropagation.snk</AssemblyOriginatorKeyFile>
     <RootNamespace>Workleap.DomainEventPropagation</RootNamespace>
+    <!-- This .NET error has been fixed in .NET 7 -->
+    <NoWarn>$(NoWarn);AD0001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
