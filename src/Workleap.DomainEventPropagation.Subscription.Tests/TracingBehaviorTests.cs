@@ -2,6 +2,7 @@
 using FakeItEasy;
 using GSoft.Extensions.Xunit;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Workleap.DomainEventPropagation.Tests;
 
 namespace Workleap.DomainEventPropagation.Subscription.Tests;
@@ -27,7 +28,7 @@ public sealed class TracingBehaviorTests : BaseUnitTest<TracingBehaviorFixture>
         };
 
         var behaviors = this.Services.GetServices<ISubscriptionDomainEventBehavior>();
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(this.Services, A.Fake<IDomainEventTypeRegistry>(), behaviors);
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(this.Services, A.Fake<IDomainEventTypeRegistry>(), NullLogger<DomainEventGridWebhookHandler>.Instance, behaviors);
         await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, CancellationToken.None);
 
         this._activities.AssertSubscribeSuccessful();

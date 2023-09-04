@@ -21,8 +21,12 @@ internal sealed class ApplicationInsightsPublishingDomainEventBehavior : IPublis
 
     private async Task HandleWithTelemetry(DomainEventWrapperCollection domainEventWrappers, DomainEventsHandlerDelegate next, CancellationToken cancellationToken)
     {
-        // TODO add this operation ID to each event metadata
         var operation = this._telemetryClient!.StartActivityAwareDependencyOperation(domainEventWrappers.DomainEventName);
+
+        foreach (var domainEventWrapper in domainEventWrappers)
+        {
+            domainEventWrapper.Metadata[ApplicationInsightsConstants.ParentOperationIdField] = operation.Telemetry.Context.Operation.Id;
+        }
 
         // Originating activity must be captured AFTER that the operation is created
         // Because ApplicationInsights SDK creates another intermediate Activity

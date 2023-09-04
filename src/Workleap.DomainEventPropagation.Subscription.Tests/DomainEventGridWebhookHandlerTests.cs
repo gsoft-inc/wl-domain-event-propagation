@@ -2,6 +2,7 @@ using System.Reflection;
 using Azure.Messaging.EventGrid;
 using FakeItEasy;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Workleap.DomainEventPropagation.Subscription.Tests.Mocks;
 
 namespace Workleap.DomainEventPropagation.Subscription.Tests;
@@ -26,7 +27,7 @@ public class DomainEventGridWebhookHandlerTests
         {
             Topic = TopicName,
         };
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), A.Fake<IDomainEventTypeRegistry>(), Array.Empty<ISubscriptionDomainEventBehavior>());
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), A.Fake<IDomainEventTypeRegistry>(), NullLogger<DomainEventGridWebhookHandler>.Instance, Array.Empty<ISubscriptionDomainEventBehavior>());
         await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(domainEvent, CancellationToken.None);
 
         A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestDomainEvent>._, A<CancellationToken>._)).MustNotHaveHappened();
@@ -50,7 +51,7 @@ public class DomainEventGridWebhookHandlerTests
 
         var serviceProvider = services.BuildServiceProvider();
         var behaviors = serviceProvider.GetServices<ISubscriptionDomainEventBehavior>();
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(serviceProvider, A.Fake<IDomainEventTypeRegistry>(), behaviors);
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(serviceProvider, A.Fake<IDomainEventTypeRegistry>(), NullLogger<DomainEventGridWebhookHandler>.Instance,  behaviors);
         await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(domainEvent, CancellationToken.None);
 
         A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestDomainEvent>._, CancellationToken.None)).MustHaveHappenedOnceExactly();
@@ -70,7 +71,7 @@ public class DomainEventGridWebhookHandlerTests
         {
             Topic = TopicName,
         };
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), A.Fake<IDomainEventTypeRegistry>(), Array.Empty<ISubscriptionDomainEventBehavior>());
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), A.Fake<IDomainEventTypeRegistry>(), NullLogger<DomainEventGridWebhookHandler>.Instance, Array.Empty<ISubscriptionDomainEventBehavior>());
 
         await Assert.ThrowsAsync<TypeLoadException>(() => domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(domainEvent, CancellationToken.None));
         A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestDomainEvent>._, A<CancellationToken>._)).MustNotHaveHappened();
@@ -90,7 +91,7 @@ public class DomainEventGridWebhookHandlerTests
 
         var serviceProvider = services.BuildServiceProvider();
         var behaviors = serviceProvider.GetServices<ISubscriptionDomainEventBehavior>();
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(serviceProvider, A.Fake<IDomainEventTypeRegistry>(), behaviors);
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(serviceProvider, A.Fake<IDomainEventTypeRegistry>(), NullLogger<DomainEventGridWebhookHandler>.Instance, behaviors);
 
         await Assert.ThrowsAsync<TargetInvocationException>(() =>
         {
@@ -156,7 +157,7 @@ public class DomainEventGridWebhookHandlerTests
         var serviceProvider = services.BuildServiceProvider();
 
         // When
-        var webhookHandler = new DomainEventGridWebhookHandler(serviceProvider, A.Fake<IDomainEventTypeRegistry>(), new[] { subscriberBehavior });
+        var webhookHandler = new DomainEventGridWebhookHandler(serviceProvider, A.Fake<IDomainEventTypeRegistry>(), NullLogger<DomainEventGridWebhookHandler>.Instance, new[] { subscriberBehavior });
 
         await webhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, CancellationToken.None);
 

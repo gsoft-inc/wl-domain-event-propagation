@@ -1,10 +1,8 @@
 ﻿namespace Workleap.DomainEventPropagation;
 
-// TODO documentation
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
 public sealed class DomainEventAttribute : Attribute
 {
-    // TODO documentation
     public DomainEventAttribute(string name)
     {
         if (name == null)
@@ -20,6 +18,5 @@ public sealed class DomainEventAttribute : Attribute
         this.Name = name;
     }
 
-    // TODO documentation
     public string Name { get; }
 }
