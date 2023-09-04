@@ -19,7 +19,7 @@ internal sealed class TracingSubscriptionDomainEventBehavior : ISubscriptionDoma
             : default;
     }
 
-    private static IEnumerable<string> ExtractActivityProperties(Dictionary<string, string> activityProperties, string key)
+    private static IEnumerable<string> ExtractActivityProperties(IDictionary<string, string> activityProperties, string key)
     {
         return activityProperties.TryGetValue(key, out var value) ? new[] { value } : Enumerable.Empty<string>();
     }

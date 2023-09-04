@@ -20,7 +20,7 @@ internal sealed class TracingPublishingDomainEventBehavior : IPublishingDomainEv
 
             try
             {
-                InjectCurrentActivityContextDataIntoEvents(domainEventWrappers, GetCurrentActivityContextData());
+                InjectCurrentActivityContextDataIntoEvents(domainEventWrappers);
 
                 await next(domainEventWrappers, cancellationToken).ConfigureAwait(false);
 
@@ -30,6 +30,19 @@ internal sealed class TracingPublishingDomainEventBehavior : IPublishingDomainEv
             {
                 TracingHelper.MarkAsFailed(activity, ex);
                 throw;
+            }
+        }
+    }
+
+    private static void InjectCurrentActivityContextDataIntoEvents(DomainEventWrapperCollection domainEventWrappers)
+    {
+        var activityContextData = GetCurrentActivityContextData();
+
+        foreach (var kvp in activityContextData)
+        {
+            foreach (var domainEventWrapper in domainEventWrappers)
+            {
+                domainEventWrapper.Metadata[kvp.Key] = kvp.Value;
             }
         }
     }
@@ -57,16 +70,5 @@ internal sealed class TracingPublishingDomainEventBehavior : IPublishingDomainEv
     private static void InjectActivityProperties(Dictionary<string, string> activityProperties, string key, string value)
     {
         activityProperties[key] = value;
-    }
-
-    private static void InjectCurrentActivityContextDataIntoEvents(DomainEventWrapperCollection domainEventWrappers, Dictionary<string, string> activityContextData)
-    {
-        foreach (var kvp in activityContextData)
-        {
-            foreach (var domainEventWrapper in domainEventWrappers)
-            {
-                domainEventWrapper.Metadata[kvp.Key] = kvp.Value;
-            }
-        }
     }
 }
