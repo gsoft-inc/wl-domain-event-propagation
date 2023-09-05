@@ -5,7 +5,7 @@ namespace Workleap.DomainEventPropagation;
 
 internal static class DomainEventNameCache
 {
-    // This class lives in the abstractions package in order to prevent having multiple instances of this same cache in different assemblies at runtime
+    // This class lives in the abstractions assembly in order to prevent having multiple instances of this same cache in different assemblies at runtime
     private static readonly ConcurrentDictionary<Type, string> DomainEventNameTypeMappings = new ConcurrentDictionary<Type, string>();
 
     public static string GetName<T>()
