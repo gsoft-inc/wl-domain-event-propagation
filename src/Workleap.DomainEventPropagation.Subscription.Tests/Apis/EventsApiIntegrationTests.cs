@@ -69,7 +69,7 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
             subject: "subject",
             eventType: "event type",
             dataVersion: "1.0",
-            data: new BinaryData(wrapperEvent.RawJson))
+            data: new BinaryData(wrapperEvent.Data))
         {
             Topic = EventsApiIntegrationTestsFixture.TestTopic,
         };
@@ -91,7 +91,7 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
             subject: typeof(DummyDomainEvent).FullName,
             eventType: wrapperEvent.GetType().FullName,
             dataVersion: "1.0",
-            data: new BinaryData(wrapperEvent.RawJson))
+            data: new BinaryData(wrapperEvent.Data))
         {
             Topic = EventsApiIntegrationTestsFixture.TestTopic,
         };

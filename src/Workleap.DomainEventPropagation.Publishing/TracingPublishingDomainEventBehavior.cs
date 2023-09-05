@@ -42,7 +42,7 @@ internal sealed class TracingPublishingDomainEventBehavior : IPublishingDomainEv
         {
             foreach (var domainEventWrapper in domainEventWrappers)
             {
-                domainEventWrapper.Metadata[kvp.Key] = kvp.Value;
+                domainEventWrapper.SetMetadata(kvp.Key, kvp.Value);
             }
         }
     }

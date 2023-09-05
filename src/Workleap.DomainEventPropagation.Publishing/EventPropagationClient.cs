@@ -64,7 +64,7 @@ internal sealed class EventPropagationClient : IEventPropagationClient
             subject: $"{this._eventPropagationPublisherOptions.TopicName}-{wrapper.DomainEventName}",
             eventType: wrapper.DomainEventName,
             dataVersion: DomainEventDefaultVersion,
-            data: new BinaryData(wrapper.RawJson)));
+            data: new BinaryData(wrapper.Data)));
 
         await this._eventGridPublisherClient.SendEventsAsync(eventGridEvents, cancellationToken).ConfigureAwait(false);
     }

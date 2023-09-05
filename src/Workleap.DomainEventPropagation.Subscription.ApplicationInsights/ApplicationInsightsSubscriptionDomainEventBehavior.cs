@@ -21,7 +21,7 @@ internal sealed class ApplicationInsightsSubscriptionDomainEventBehavior : ISubs
     {
         var operation = this._telemetryClient!.StartActivityAwareDependencyOperation(domainEventWrapper.DomainEventName);
 
-        if (domainEventWrapper.Metadata.TryGetValue(ApplicationInsightsConstants.ParentOperationIdField, out var parentOperationId))
+        if (domainEventWrapper.TryGetMetadata(ApplicationInsightsConstants.ParentOperationIdField, out var parentOperationId))
         {
             if (!operation.Telemetry.Properties.ContainsKey(ApplicationInsightsConstants.LinkedOperation))
             {
