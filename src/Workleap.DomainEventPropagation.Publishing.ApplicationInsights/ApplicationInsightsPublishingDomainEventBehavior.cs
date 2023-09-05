@@ -25,7 +25,7 @@ internal sealed class ApplicationInsightsPublishingDomainEventBehavior : IPublis
 
         foreach (var domainEventWrapper in domainEventWrappers)
         {
-            domainEventWrapper.Metadata[ApplicationInsightsConstants.ParentOperationIdField] = operation.Telemetry.Context.Operation.Id;
+            domainEventWrapper.SetMetadata(ApplicationInsightsConstants.ParentOperationIdField, operation.Telemetry.Context.Operation.Id);
         }
 
         // Originating activity must be captured AFTER that the operation is created

@@ -8,7 +8,7 @@ internal static class ApplicationInsightsConstants
 
     // JSON metadata field containing the parent operation ID, similar to OpenTelemetry's "traceparent"
     // https://github.com/open-telemetry/opentelemetry-dotnet/blob/main-1.5.0/src/OpenTelemetry.Api/Context/Propagation/TraceContextPropagator.cs#L29
-    public const string ParentOperationIdField = "parentopid";
+    public const string ParentOperationIdField = "opparent";
 
     public const string LinkedOperation = "LinkedOperation";
 }

@@ -14,14 +14,12 @@ internal sealed class TracingSubscriptionDomainEventBehavior : ISubscriptionDoma
 
     private static PropagationContext ExtractPropagationContextFromEvent(DomainEventWrapper domainEventWrapper)
     {
-        return domainEventWrapper.Metadata.Count > 0
-            ? Propagators.DefaultTextMapPropagator.Extract(default, domainEventWrapper.Metadata, ExtractActivityProperties)
-            : default;
+        return Propagators.DefaultTextMapPropagator.Extract(default, domainEventWrapper, ExtractActivityProperties);
     }
 
-    private static IEnumerable<string> ExtractActivityProperties(IDictionary<string, string> activityProperties, string key)
+    private static IEnumerable<string> ExtractActivityProperties(DomainEventWrapper domainEventWrapper, string key)
     {
-        return activityProperties.TryGetValue(key, out var value) ? new[] { value } : Enumerable.Empty<string>();
+        return domainEventWrapper.TryGetMetadata(key, out var value) ? new[] { value! } : Enumerable.Empty<string>();
     }
 
     private static async Task HandleWithTracing(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, Activity activity, CancellationToken cancellationToken)
