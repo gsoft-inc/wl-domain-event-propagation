@@ -15,7 +15,6 @@ public class ServiceCollectionEventPropagationExtensionsTests
         // Given
         var inMemorySettings = new Dictionary<string, string?>
         {
-            [$"{EventPropagationPublisherOptions.SectionName}:TopicName"] = "topicName",
             [$"{EventPropagationPublisherOptions.SectionName}:TopicEndpoint"] = "http://topicEndpoint.io",
             [$"{EventPropagationPublisherOptions.SectionName}:TopicAccessKey"] = "topicAccessKey",
         };
@@ -30,7 +29,6 @@ public class ServiceCollectionEventPropagationExtensionsTests
         var publisherOptions = serviceProvider.GetRequiredService<IOptions<EventPropagationPublisherOptions>>().Value;
 
         // Then
-        Assert.Equal("topicName", publisherOptions.TopicName);
         Assert.Equal("http://topicEndpoint.io", publisherOptions.TopicEndpoint);
         Assert.Equal("topicAccessKey", publisherOptions.TopicAccessKey);
     }
@@ -41,7 +39,6 @@ public class ServiceCollectionEventPropagationExtensionsTests
         // Given
         var inMemorySettings = new Dictionary<string, string?>
         {
-            [$"{EventPropagationPublisherOptions.SectionName}:TopicName"] = "topicName",
             [$"{EventPropagationPublisherOptions.SectionName}:TopicEndpoint"] = "http://topicEndpoint.io",
             [$"{EventPropagationPublisherOptions.SectionName}:TopicAccessKey"] = "topicAccessKey",
         };
@@ -59,7 +56,6 @@ public class ServiceCollectionEventPropagationExtensionsTests
         var publisherOptions = serviceProvider.GetRequiredService<IOptions<EventPropagationPublisherOptions>>().Value;
 
         // Then
-        Assert.Equal("topicName", publisherOptions.TopicName);
         Assert.Equal("http://ovewrite.io", publisherOptions.TopicEndpoint);
         Assert.Equal("topicAccessKey", publisherOptions.TopicAccessKey);
     }
@@ -70,7 +66,6 @@ public class ServiceCollectionEventPropagationExtensionsTests
         // Given
         var inMemorySettings = new Dictionary<string, string?>
         {
-            [$"{EventPropagationPublisherOptions.SectionName}:TopicName"] = "topicName",
             [$"{EventPropagationPublisherOptions.SectionName}:TopicEndpoint"] = "http://topicEndpoint.io",
             [$"{EventPropagationPublisherOptions.SectionName}:TopicAccessKey"] = "topicAccessKey",
         };
@@ -95,7 +90,6 @@ public class ServiceCollectionEventPropagationExtensionsTests
         // Given
         var inMemorySettings = new Dictionary<string, string?>
         {
-            [$"{EventPropagationPublisherOptions.SectionName}:TopicName"] = "topicName",
             [$"{EventPropagationPublisherOptions.SectionName}:TopicEndpoint"] = "http://topicEndpoint.io",
         };
 

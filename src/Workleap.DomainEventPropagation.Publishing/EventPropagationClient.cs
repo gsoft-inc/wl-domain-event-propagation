@@ -54,14 +54,14 @@ internal sealed class EventPropagationClient : IEventPropagationClient
         }
         catch (Exception ex)
         {
-            throw new EventPropagationPublishingException(domainEventWrappers.DomainEventName, this._eventPropagationPublisherOptions.TopicName, this._eventPropagationPublisherOptions.TopicEndpoint, ex);
+            throw new EventPropagationPublishingException(domainEventWrappers.DomainEventName, this._eventPropagationPublisherOptions.TopicEndpoint, ex);
         }
     }
 
     private async Task SendDomainEventsAsync(DomainEventWrapperCollection domainEventWrappers, CancellationToken cancellationToken)
     {
         var eventGridEvents = domainEventWrappers.Select(wrapper => new EventGridEvent(
-            subject: $"{this._eventPropagationPublisherOptions.TopicName}-{wrapper.DomainEventName}",
+            subject: wrapper.DomainEventName,
             eventType: wrapper.DomainEventName,
             dataVersion: DomainEventDefaultVersion,
             data: new BinaryData(wrapper.Data)));

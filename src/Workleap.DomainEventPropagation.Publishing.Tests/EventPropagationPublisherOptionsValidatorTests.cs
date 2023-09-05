@@ -5,18 +5,16 @@ namespace Workleap.DomainEventPropagation.Publishing.Tests;
 public class EventPropagationPublisherOptionsValidatorTests
 {
     [Theory]
-    [InlineData("topicName", " ", "http://topicurl.com", true, true)]
-    [InlineData("topicName", " ", "http://topicurl.com", false, false)]
-    [InlineData("topicName", "accessKey", "http://topicurl.com", true, true)]
-    [InlineData("topicName", "accessKey", "http://topicurl.com", false, true)]
-    [InlineData(null, null, null, false, false)]
-    [InlineData(" ", "accessKey", "http://topicurl.com", false, false)]
-    [InlineData(null, "accessKey", "http://topicurl.com", false, false)]
-    [InlineData("topicName", null, "http://topicurl.com", false, false)]
-    [InlineData("topicName", "accessKey", " ", false, false)]
-    [InlineData("topicName", "accessKey", null, false, false)]
-    [InlineData("topicName", "accessKey", "topicEndpoint", false, false)]
-    public void GivenEventPropagationConfigurations_WhenValidateOptions_ThenAccessCredentialsValidated(string topicName, string topicAccessKey, string topicEndpoint, bool useTokenCredential, bool optionsValid)
+    [InlineData(" ", "http://topicurl.com", true, true)]
+    [InlineData(" ", "http://topicurl.com", false, false)]
+    [InlineData("accessKey", "http://topicurl.com", true, true)]
+    [InlineData("accessKey", "http://topicurl.com", false, true)]
+    [InlineData(null, null, false, false)]
+    [InlineData(null, "http://topicurl.com", false, false)]
+    [InlineData("accessKey", " ", false, false)]
+    [InlineData("accessKey", null, false, false)]
+    [InlineData("accessKey", "topicEndpoint", false, false)]
+    public void GivenEventPropagationConfigurations_WhenValidateOptions_ThenAccessCredentialsValidated(string topicAccessKey, string topicEndpoint, bool useTokenCredential, bool optionsValid)
     {
         var validator = new EventPropagationPublisherOptionsValidator();
 
@@ -24,7 +22,6 @@ public class EventPropagationPublisherOptionsValidatorTests
         {
             TokenCredential = useTokenCredential ? new DefaultAzureCredential() : default,
             TopicEndpoint = topicEndpoint,
-            TopicName = topicName,
             TopicAccessKey = topicAccessKey,
         });
 

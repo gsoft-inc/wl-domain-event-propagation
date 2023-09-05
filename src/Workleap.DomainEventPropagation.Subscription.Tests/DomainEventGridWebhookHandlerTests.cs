@@ -9,8 +9,6 @@ namespace Workleap.DomainEventPropagation.Subscription.Tests;
 
 public class DomainEventGridWebhookHandlerTests
 {
-    private const string TopicName = "TopicName";
-
     private static readonly DomainEventWrapper DomainEvent = DomainEventWrapper.Wrap(new TestDomainEvent() { Number = 1, Text = "Hello world" });
 
     [Fact]
@@ -23,10 +21,7 @@ public class DomainEventGridWebhookHandlerTests
         // No eventHandler is registered
         var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
 
-        var domainEvent = new EventGridEvent("subject", DomainEvent.GetType().FullName, "version", BinaryData.FromObjectAsJson(DomainEvent))
-        {
-            Topic = TopicName,
-        };
+        var domainEvent = new EventGridEvent("subject", DomainEvent.GetType().FullName, "version", BinaryData.FromObjectAsJson(DomainEvent));
         var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), A.Fake<IDomainEventTypeRegistry>(), NullLogger<DomainEventGridWebhookHandler>.Instance, Array.Empty<ISubscriptionDomainEventBehavior>());
         await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(domainEvent, CancellationToken.None);
 
@@ -44,10 +39,7 @@ public class DomainEventGridWebhookHandlerTests
         var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
         services.AddSingleton(domainEventHandler);
 
-        var domainEvent = new EventGridEvent("subject", DomainEvent.GetType().FullName, "version", BinaryData.FromObjectAsJson(DomainEvent))
-        {
-            Topic = TopicName,
-        };
+        var domainEvent = new EventGridEvent("subject", DomainEvent.GetType().FullName, "version", BinaryData.FromObjectAsJson(DomainEvent));
 
         var serviceProvider = services.BuildServiceProvider();
         var behaviors = serviceProvider.GetServices<ISubscriptionDomainEventBehavior>();
@@ -55,26 +47,6 @@ public class DomainEventGridWebhookHandlerTests
         await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(domainEvent, CancellationToken.None);
 
         A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestDomainEvent>._, CancellationToken.None)).MustHaveHappenedOnceExactly();
-    }
-
-    [Fact]
-    public async Task GivenDomainEventIsFired_WhenDomainEventTypeNotFound_ThenException()
-    {
-        var services = new ServiceCollection();
-        var eventProcessingBuilder = services.AddEventPropagationSubscriber();
-        eventProcessingBuilder.AddDomainEventHandlers(typeof(DomainEventGridWebhookHandlerTests).Assembly);
-
-        // No eventHandler is registered
-        var domainEventHandler = A.Fake<IDomainEventHandler<TestDomainEvent>>();
-
-        var domainEvent = new EventGridEvent("subject", typeof(TestDomainEvent).FullName, "version", BinaryData.FromObjectAsJson(DomainEvent))
-        {
-            Topic = TopicName,
-        };
-        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(services.BuildServiceProvider(), A.Fake<IDomainEventTypeRegistry>(), NullLogger<DomainEventGridWebhookHandler>.Instance, Array.Empty<ISubscriptionDomainEventBehavior>());
-
-        await Assert.ThrowsAsync<TypeLoadException>(() => domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(domainEvent, CancellationToken.None));
-        A.CallTo(() => domainEventHandler.HandleDomainEventAsync(A<TestDomainEvent>._, A<CancellationToken>._)).MustNotHaveHappened();
     }
 
     [Fact]
@@ -95,10 +67,7 @@ public class DomainEventGridWebhookHandlerTests
 
         await Assert.ThrowsAsync<TargetInvocationException>(() =>
         {
-            var domainEvent = new EventGridEvent("subject", DomainEvent.GetType().FullName, "version", BinaryData.FromObjectAsJson(DomainEvent))
-            {
-                Topic = TopicName,
-            };
+            var domainEvent = new EventGridEvent("subject", DomainEvent.GetType().FullName, "version", BinaryData.FromObjectAsJson(DomainEvent));
             return domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(domainEvent, CancellationToken.None);
         });
 

@@ -101,8 +101,6 @@ public class EventPropagationClientTests
             .MustHaveHappened();
     }
 
-
-
     [DomainEvent(DomainEventName)]
     private sealed class PublishTestDomainEvent : IDomainEvent
     {

@@ -11,7 +11,6 @@ public class EventPropagationPublisherOptionsTests
     {
         var myConfiguration = new Dictionary<string, string>
         {
-            [$"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicName)}"] = "topicName",
             [$"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicAccessKey)}"] = "accessKey",
             [$"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicEndpoint)}"] = "http://topicurl.com",
         };
@@ -29,7 +28,6 @@ public class EventPropagationPublisherOptionsTests
 
         var options = serviceProvider.GetRequiredService<IOptions<EventPropagationPublisherOptions>>().Value;
 
-        Assert.Equal(myConfiguration[$"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicName)}"], options.TopicName);
         Assert.Equal(myConfiguration[$"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicEndpoint)}"], options.TopicEndpoint);
         Assert.Equal(myConfiguration[$"{EventPropagationPublisherOptions.SectionName}:{nameof(EventPropagationPublisherOptions.TopicAccessKey)}"], options.TopicAccessKey);
     }
