@@ -34,3 +34,17 @@ public sealed class TracingBehaviorTests : BaseUnitTest<TracingBehaviorFixture>
         Assert.IsType<ApplicationInsightsPublishingDomainEventBehavior>(publishingBehaviors[1]);
     }
 }
+
+[DomainEvent("sample-event")]
+public class SampleDomainEvent : IDomainEvent
+{
+    public string? Message { get; set; }
+}
+
+public class SampleDomainEventHandler : IDomainEventHandler<SampleDomainEvent>
+{
+    public Task HandleDomainEventAsync(SampleDomainEvent domainEvent, CancellationToken cancellationToken)
+    {
+        return Task.CompletedTask;
+    }
+}

@@ -11,11 +11,6 @@ public sealed class EventPropagationPublisherOptionsValidator : IValidateOptions
             return ValidateOptionsResult.Fail("A token credential or an access key is required");
         }
 
-        if (string.IsNullOrWhiteSpace(options.TopicName))
-        {
-            return ValidateOptionsResult.Fail("A topic name is required");
-        }
-
         if (string.IsNullOrWhiteSpace(options.TopicEndpoint))
         {
             return ValidateOptionsResult.Fail("A topic endpoint is required");
