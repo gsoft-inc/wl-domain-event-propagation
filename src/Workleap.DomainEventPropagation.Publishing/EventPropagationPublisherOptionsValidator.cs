@@ -2,7 +2,7 @@ using Microsoft.Extensions.Options;
 
 namespace Workleap.DomainEventPropagation;
 
-public sealed class EventPropagationPublisherOptionsValidator : IValidateOptions<EventPropagationPublisherOptions>
+internal sealed class EventPropagationPublisherOptionsValidator : IValidateOptions<EventPropagationPublisherOptions>
 {
     public ValidateOptionsResult Validate(string name, EventPropagationPublisherOptions options)
     {

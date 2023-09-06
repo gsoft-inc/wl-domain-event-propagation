@@ -9,9 +9,6 @@ Workleap.DomainEventPropagation.EventPropagationPublisherOptions.TopicAccessKey.
 Workleap.DomainEventPropagation.EventPropagationPublisherOptions.TopicAccessKey.set -> void
 Workleap.DomainEventPropagation.EventPropagationPublisherOptions.TopicEndpoint.get -> string!
 Workleap.DomainEventPropagation.EventPropagationPublisherOptions.TopicEndpoint.set -> void
-Workleap.DomainEventPropagation.EventPropagationPublisherOptionsValidator
-Workleap.DomainEventPropagation.EventPropagationPublisherOptionsValidator.EventPropagationPublisherOptionsValidator() -> void
-Workleap.DomainEventPropagation.EventPropagationPublisherOptionsValidator.Validate(string! name, Workleap.DomainEventPropagation.EventPropagationPublisherOptions! options) -> Microsoft.Extensions.Options.ValidateOptionsResult!
 Workleap.DomainEventPropagation.EventPropagationPublishingException
 Workleap.DomainEventPropagation.EventPropagationPublishingException.EventPropagationPublishingException(string! domainEventName, string! topicEndpoint, System.Exception! innerException) -> void
 Workleap.DomainEventPropagation.IEventPropagationPublisherBuilder
