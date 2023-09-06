@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations;
 using Azure.Messaging.EventGrid;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -8,7 +7,7 @@ namespace Workleap.DomainEventPropagation;
 internal static class EventsApi
 {
     internal static async Task<IResult> HandleEventGridEvents(
-        [FromBody, Required] EventGridEvent[] eventGridEvents,
+        [FromBody] EventGridEvent[] eventGridEvents,
         [FromServices] IEventGridRequestHandler eventGridRequestHandler,
         CancellationToken cancellationToken)
     {
