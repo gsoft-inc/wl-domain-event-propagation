@@ -1,4 +1,3 @@
-using System.Reflection;
 using Azure.Messaging.EventGrid;
 using FakeItEasy;
 using Microsoft.Extensions.DependencyInjection;

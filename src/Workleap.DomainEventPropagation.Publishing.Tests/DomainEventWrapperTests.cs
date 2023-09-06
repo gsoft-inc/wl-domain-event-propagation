@@ -4,13 +4,13 @@ namespace Workleap.DomainEventPropagation.Publishing.Tests;
 
 public class DomainEventWrapperTests
 {
+    private const string DomainEventName = "sample-event";
     private readonly EventGridEvent _eventGridEvent = new EventGridEvent(
         "subject",
         "eventType",
         "1.0",
         new BinaryData(new SampleDomainEvent()));
 
-    private const string DomainEventName = "sample-event";
 
     [Fact]
     public void GivenEventGridEvent_WhenSetMetadata_ThenMetadataIsSet()
