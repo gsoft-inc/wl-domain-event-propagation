@@ -63,15 +63,15 @@ internal sealed class InMemoryActivityTracker : IDisposable
         }
     }
 
-    public void AssertPublishFailed(string requestName, Exception exception)
+    public void AssertPublishFailed(string activityName, Exception exception)
     {
         lock (this._activitiesLock)
         {
             var activity = Assert.Single(this._activities);
 
             Assert.Equal("EventGridEvents create", activity.OperationName);
-            Assert.Equal(requestName, activity.DisplayName);
-            Assert.Equal(ActivityKind.Internal, activity.Kind);
+            Assert.Equal(activityName, activity.DisplayName);
+            Assert.Equal(ActivityKind.Producer, activity.Kind);
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
 
             Assert.Equal("ERROR", activity.GetTagItem(TracingHelper.StatusCodeTag));
@@ -95,6 +95,27 @@ internal sealed class InMemoryActivityTracker : IDisposable
             Assert.Equal(ActivityStatusCode.Ok, activity.Status);
             Assert.Equal("OK", activity.GetTagItem(TracingHelper.StatusCodeTag));
             Assert.Single(activity.Links);
+        }
+    }
+
+    public void AssertSubscriptionFailed(string activityName, Exception exception)
+    {
+        lock (this._activitiesLock)
+        {
+            var activity = Assert.Single(this._activities);
+
+            Assert.Equal("EventGridEvents process", activity.OperationName);
+            Assert.Equal(activityName, activity.DisplayName);
+            Assert.Equal(ActivityKind.Consumer, activity.Kind);
+            Assert.Equal(ActivityStatusCode.Error, activity.Status);
+
+            Assert.Equal("ERROR", activity.GetTagItem(TracingHelper.StatusCodeTag));
+            Assert.Equal(exception.Message, activity.GetTagItem(TracingHelper.StatusDescriptionTag));
+            Assert.Equal(exception.Message, activity.GetTagItem(TracingHelper.ExceptionMessageTag));
+            Assert.Equal(exception.GetType().FullName!, activity.GetTagItem(TracingHelper.ExceptionTypeTag));
+
+            var stacktrace = Assert.IsType<string>(activity.GetTagItem(TracingHelper.ExceptionStackTraceTag));
+            Assert.NotEmpty(stacktrace);
         }
     }
 

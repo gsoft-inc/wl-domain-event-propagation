@@ -5,7 +5,7 @@ namespace Workleap.DomainEventPropagation.Publishing.Tests;
 public class DomainEventWrapperTests
 {
     private const string DomainEventName = "sample-event";
-    private readonly EventGridEvent _eventGridEvent = new EventGridEvent(
+    private readonly EventGridEvent _eventGridEvent = new(
         "subject",
         "eventType",
         "1.0",

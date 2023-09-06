@@ -32,6 +32,21 @@ public sealed class TracingBehaviorTests : BaseUnitTest<TracingBehaviorFixture>
     }
 
     [Fact]
+    public async Task GivenActivityListener_WhenHandleEventGridEventFails_ThenThrowsWithTracing()
+    {
+        var wrapperEvent = DomainEventWrapper.Wrap(new ThrowingDomainEvent());
+
+        var eventGridEvent = new EventGridEvent("subject", wrapperEvent.DomainEventName, "version", BinaryData.FromObjectAsJson(wrapperEvent));
+
+        var behaviors = this.Services.GetServices<ISubscriptionDomainEventBehavior>();
+        var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(this.Services, A.Fake<IDomainEventTypeRegistry>(), NullLogger<DomainEventGridWebhookHandler>.Instance, behaviors);
+
+        var exception = await Assert.ThrowsAsync<Exception>(async () => await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, CancellationToken.None));
+
+        this._activities.AssertSubscriptionFailed(wrapperEvent.DomainEventName, exception);
+    }
+
+    [Fact]
     public async Task GivenTracingBehaviors_WhenRegisterBehaviors_ThenRegisteredInRightOrder()
     {
         var subscriptionBehaviors = this.Services.GetServices<ISubscriptionDomainEventBehavior>().ToArray();

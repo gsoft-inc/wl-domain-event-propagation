@@ -26,25 +26,21 @@ public sealed class TracingBehaviorTests : BaseUnitTest<TracingBehaviorFixture>
     }
 
     [Fact]
+    public async Task GivenActivityListener_WhenPublishDomainEventFails_ThenThrowsWithTracing()
+    {
+        var domainEvent = new ThrowingDomainEvent();
+        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(async () =>
+            await this._eventPropagationClient.PublishDomainEventAsync(domainEvent, CancellationToken.None));
+
+        this._activities.AssertPublishFailed(nameof(ThrowingDomainEvent), exception.InnerException!);
+    }
+
+    [Fact]
     public async Task GivenTracingBehaviors_WhenRegisterBehaviors_ThenRegisteredInRightOrder()
     {
         var publishingBehaviors = this.Services.GetServices<IPublishingDomainEventBehavior>().ToArray();
 
         Assert.IsType<TracingPublishingDomainEventBehavior>(publishingBehaviors[0]);
         Assert.IsType<ApplicationInsightsPublishingDomainEventBehavior>(publishingBehaviors[1]);
-    }
-}
-
-[DomainEvent("sample-event")]
-public class SampleDomainEvent : IDomainEvent
-{
-    public string? Message { get; set; }
-}
-
-public class SampleDomainEventHandler : IDomainEventHandler<SampleDomainEvent>
-{
-    public Task HandleDomainEventAsync(SampleDomainEvent domainEvent, CancellationToken cancellationToken)
-    {
-        return Task.CompletedTask;
     }
 }
