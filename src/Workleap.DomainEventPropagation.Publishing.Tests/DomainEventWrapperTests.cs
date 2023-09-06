@@ -11,7 +11,6 @@ public class DomainEventWrapperTests
         "1.0",
         new BinaryData(new SampleDomainEvent()));
 
-
     [Fact]
     public void GivenEventGridEvent_WhenSetMetadata_ThenMetadataIsSet()
     {
