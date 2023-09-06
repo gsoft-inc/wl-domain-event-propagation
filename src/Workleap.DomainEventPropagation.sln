@@ -19,6 +19,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Workleap.DomainEventPropaga
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Workleap.DomainEventPropagation", "Workleap.DomainEventPropagation\Workleap.DomainEventPropagation.csproj", "{A20CBCB9-B346-4B00-B69E-4114E8FA78F5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Workleap.DomainEventPropagation.Analyzers", "Workleap.DomainEventPropagation.Analyzers\Workleap.DomainEventPropagation.Analyzers.csproj", "{20771920-AB99-49F0-92A9-7D341B156F91}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Workleap.DomainEventPropagation.Analyzers.Tests", "Workleap.DomainEventPropagation.Analyzers.Tests\Workleap.DomainEventPropagation.Analyzers.Tests.csproj", "{8883071A-7B43-4B4C-9647-BE6CB0F16457}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +49,14 @@ Global
 		{A20CBCB9-B346-4B00-B69E-4114E8FA78F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A20CBCB9-B346-4B00-B69E-4114E8FA78F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A20CBCB9-B346-4B00-B69E-4114E8FA78F5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20771920-AB99-49F0-92A9-7D341B156F91}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20771920-AB99-49F0-92A9-7D341B156F91}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20771920-AB99-49F0-92A9-7D341B156F91}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20771920-AB99-49F0-92A9-7D341B156F91}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8883071A-7B43-4B4C-9647-BE6CB0F16457}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8883071A-7B43-4B4C-9647-BE6CB0F16457}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8883071A-7B43-4B4C-9647-BE6CB0F16457}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8883071A-7B43-4B4C-9647-BE6CB0F16457}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
