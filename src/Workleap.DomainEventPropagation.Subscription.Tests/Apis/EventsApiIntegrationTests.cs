@@ -88,8 +88,8 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
         var wrapperEvent = DomainEventWrapper.Wrap(new DummyDomainEvent { PropertyB = 1, PropertyA = "Hello world" });
 
         var eventGridEvent = new EventGridEvent(
-            subject: typeof(DummyDomainEvent).FullName,
-            eventType: wrapperEvent.GetType().FullName,
+            subject: wrapperEvent.DomainEventName,
+            eventType: wrapperEvent.DomainEventName,
             dataVersion: "1.0",
             data: new BinaryData(wrapperEvent.Data))
         {

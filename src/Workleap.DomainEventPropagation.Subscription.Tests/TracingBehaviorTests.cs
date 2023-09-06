@@ -22,10 +22,7 @@ public sealed class TracingBehaviorTests : BaseUnitTest<TracingBehaviorFixture>
     {
         var wrapperEvent = DomainEventWrapper.Wrap(new SampleDomainEvent { Message = "Hello world" });
 
-        var eventGridEvent = new EventGridEvent("subject", wrapperEvent.GetType().FullName, "version", BinaryData.FromObjectAsJson(wrapperEvent))
-        {
-            Topic = "TopicName",
-        };
+        var eventGridEvent = new EventGridEvent("subject", wrapperEvent.DomainEventName, "version", BinaryData.FromObjectAsJson(wrapperEvent));
 
         var behaviors = this.Services.GetServices<ISubscriptionDomainEventBehavior>();
         var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(this.Services, A.Fake<IDomainEventTypeRegistry>(), NullLogger<DomainEventGridWebhookHandler>.Instance, behaviors);

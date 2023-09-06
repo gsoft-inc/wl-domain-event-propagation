@@ -7,7 +7,7 @@ namespace Workleap.DomainEventPropagation;
 
 internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHandler
 {
-    private readonly ConcurrentDictionary<Type, MethodInfo> GenericDomainEventHandlerMethodCache = new ConcurrentDictionary<Type, MethodInfo>();
+    private static readonly ConcurrentDictionary<Type, MethodInfo> GenericDomainEventHandlerMethodCache = new ConcurrentDictionary<Type, MethodInfo>();
 
     private readonly IServiceProvider _serviceProvider;
     private readonly IDomainEventTypeRegistry _domainEventTypeRegistry;
@@ -59,7 +59,7 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
 
         var domainEvent = domainEventWrapper.Unwrap(domainEventType);
 
-        var domainEventHandlerMethod = this.GenericDomainEventHandlerMethodCache.GetOrAdd(domainEventHandlerType, type =>
+        var domainEventHandlerMethod = GenericDomainEventHandlerMethodCache.GetOrAdd(domainEventHandlerType, type =>
         {
             const string handleDomainEventAsyncMethodName = "HandleDomainEventAsync";
             return type.GetMethod(handleDomainEventAsyncMethodName, BindingFlags.Public | BindingFlags.Instance) ??
