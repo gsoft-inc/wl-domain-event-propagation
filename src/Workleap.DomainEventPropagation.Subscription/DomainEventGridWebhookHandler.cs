@@ -1,69 +1,71 @@
 using System.Collections.Concurrent;
 using System.Reflection;
-using System.Text.Json;
 using Azure.Messaging.EventGrid;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Workleap.DomainEventPropagation;
 
 internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHandler
 {
-    private const string DomainEventHandlerHandleMethod = "HandleDomainEventAsync";
-
-    private static readonly JsonSerializerOptions SerializerOptions = new();
+    private static readonly ConcurrentDictionary<Type, MethodInfo> GenericDomainEventHandlerMethodCache = new ConcurrentDictionary<Type, MethodInfo>();
 
     private readonly IServiceProvider _serviceProvider;
-    private readonly ConcurrentDictionary<Type, MethodInfo> _handlerDictionary = new();
+    private readonly IDomainEventTypeRegistry _domainEventTypeRegistry;
+    private readonly ILogger<DomainEventGridWebhookHandler> _logger;
+    private readonly DomainEventHandlerDelegate _pipeline;
 
     public DomainEventGridWebhookHandler(
-        IServiceProvider serviceProvider)
+        IServiceProvider serviceProvider,
+        IDomainEventTypeRegistry domainEventTypeRegistry,
+        ILogger<DomainEventGridWebhookHandler> logger,
+        IEnumerable<ISubscriptionDomainEventBehavior> subscriptionDomainEventBehaviors)
     {
         this._serviceProvider = serviceProvider;
+        this._domainEventTypeRegistry = domainEventTypeRegistry;
+        this._logger = logger;
+        this._pipeline = subscriptionDomainEventBehaviors.Reverse().Aggregate((DomainEventHandlerDelegate)this.HandleDomainEventAsync, BuildPipeline);
+    }
+
+    private static DomainEventHandlerDelegate BuildPipeline(DomainEventHandlerDelegate next, ISubscriptionDomainEventBehavior pipeline)
+    {
+        return (events, cancellationToken) => pipeline.HandleAsync(events, next, cancellationToken);
     }
 
     public async Task HandleEventGridWebhookEventAsync(EventGridEvent eventGridEvent, CancellationToken cancellationToken)
     {
-        var domainEventType = Type.GetType(eventGridEvent.EventType, true)!;
+        var domainEventWrapper = new DomainEventWrapper(eventGridEvent);
 
-        var domainEvent = (IDomainEvent?)JsonSerializer.Deserialize(eventGridEvent.Data.ToString(), domainEventType, SerializerOptions);
-        if (domainEvent == null)
+        var isDomainEventTypeUnknown = this._domainEventTypeRegistry.GetDomainEventType(domainEventWrapper.DomainEventName) == null;
+        if (isDomainEventTypeUnknown)
         {
-            throw new InvalidOperationException($"Can't deserialize event Id: {eventGridEvent.Id}; Subject: {eventGridEvent.Subject}; Data version: {eventGridEvent.DataVersion}.");
+            this._logger.EventDomainTypeNotRegistered(domainEventWrapper.DomainEventName, eventGridEvent.Subject);
+            return;
         }
 
-        await this.HandleDomainEventAsync(domainEvent, domainEventType, cancellationToken).ConfigureAwait(false);
+        await this._pipeline(domainEventWrapper, cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task HandleDomainEventAsync<T>(T eventGridDomainEvent, Type domainEventType, CancellationToken cancellationToken)
-        where T : IDomainEvent
+    private async Task HandleDomainEventAsync(DomainEventWrapper domainEventWrapper, CancellationToken cancellationToken)
     {
-        async Task Handler(IDomainEvent domainEvent)
+        var domainEventType = this._domainEventTypeRegistry.GetDomainEventType(domainEventWrapper.DomainEventName)!;
+        var domainEventHandlerType = this._domainEventTypeRegistry.GetDomainEventHandlerType(domainEventWrapper.DomainEventName)!;
+
+        var domainEventHandler = this._serviceProvider.GetService(domainEventHandlerType);
+        if (domainEventHandler == null)
         {
-            var handlerType = typeof(IDomainEventHandler<>).MakeGenericType(domainEventType);
-
-            var handler = this._serviceProvider.GetService(handlerType);
-
-            if (handler == null)
-            {
-                return;
-            }
-
-            var handlerMethod = this._handlerDictionary.GetOrAdd(handlerType, static type =>
-            {
-                return type.GetMethod(DomainEventHandlerHandleMethod, BindingFlags.Public | BindingFlags.Instance) ??
-                       throw new InvalidOperationException($"No public method found with name {DomainEventHandlerHandleMethod} on type {type.FullName}.");
-            });
-
-            await ((Task)handlerMethod.Invoke(handler, new object[] { domainEvent!, cancellationToken })!).ConfigureAwait(false);
+            this._logger.EventDomainHandlerNotRegistered(domainEventWrapper.DomainEventName);
+            return;
         }
 
-        var accumulator = this._serviceProvider
-            .GetServices<ISubscribtionDomainEventBehavior>()
-            .Reverse()
-            .Aggregate(
-                Handler,
-                (SubscriberDomainEventsHandlerDelegate next, ISubscribtionDomainEventBehavior pipeline) => (events) => pipeline.Handle(events, next, cancellationToken));
+        var domainEvent = domainEventWrapper.Unwrap(domainEventType);
 
-        await accumulator(eventGridDomainEvent).ConfigureAwait(false);
+        var domainEventHandlerMethod = GenericDomainEventHandlerMethodCache.GetOrAdd(domainEventHandlerType, type =>
+        {
+            const string handleDomainEventAsyncMethodName = "HandleDomainEventAsync";
+            return type.GetMethod(handleDomainEventAsyncMethodName, BindingFlags.Public | BindingFlags.Instance) ??
+                throw new InvalidOperationException($"Public method {type.FullName}.{handleDomainEventAsyncMethodName} not found");
+        });
+
+        await ((Task)domainEventHandlerMethod.Invoke(domainEventHandler, new[] { domainEvent, cancellationToken })!).ConfigureAwait(false);
     }
 }

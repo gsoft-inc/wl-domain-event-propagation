@@ -1,0 +1,3 @@
+#nullable enable
+static Workleap.DomainEventPropagation.EventPropagationPublisherBuilderExtensions.AddApplicationInsights(this Workleap.DomainEventPropagation.IEventPropagationPublisherBuilder! builder) -> Workleap.DomainEventPropagation.IEventPropagationPublisherBuilder!
+Workleap.DomainEventPropagation.EventPropagationPublisherBuilderExtensions
