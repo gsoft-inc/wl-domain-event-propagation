@@ -4,13 +4,11 @@ namespace Workleap.DomainEventPropagation;
 
 internal sealed class SubscriptionEventGridWebhookHandler : ISubscriptionEventGridWebhookHandler
 {
-    public SubscriptionValidationResponse? HandleEventGridSubscriptionEvent(SubscriptionValidationEventData subscriptionValidationEventData, string eventType, string eventTopic)
+    public SubscriptionValidationResponse HandleEventGridSubscriptionEvent(SubscriptionValidationEventData subscriptionValidationEventData)
     {
-        var responseData = new SubscriptionValidationResponse
+        return new SubscriptionValidationResponse
         {
             ValidationResponse = subscriptionValidationEventData.ValidationCode,
         };
-
-        return responseData;
     }
 }

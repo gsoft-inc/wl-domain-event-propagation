@@ -1,9 +1,10 @@
+#nullable enable
+Workleap.DomainEventPropagation.DomainEventAttribute
+Workleap.DomainEventPropagation.DomainEventAttribute.DomainEventAttribute(string! name) -> void
+Workleap.DomainEventPropagation.DomainEventAttribute.Name.get -> string!
 Workleap.DomainEventPropagation.IDomainEvent
-Workleap.DomainEventPropagation.IDomainEvent.ExtensionAttributes.get -> System.Collections.Generic.IDictionary<string!, string!>?
-Workleap.DomainEventPropagation.IDomainEvent.ExtensionAttributes.set -> void
 Workleap.DomainEventPropagation.IDomainEventHandler<TDomainEvent>
 Workleap.DomainEventPropagation.IDomainEventHandler<TDomainEvent>.HandleDomainEventAsync(TDomainEvent domainEvent, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 Workleap.DomainEventPropagation.IEventPropagationClient
 Workleap.DomainEventPropagation.IEventPropagationClient.PublishDomainEventAsync<T>(T domainEvent, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 Workleap.DomainEventPropagation.IEventPropagationClient.PublishDomainEventsAsync<T>(System.Collections.Generic.IEnumerable<T>! domainEvents, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
-

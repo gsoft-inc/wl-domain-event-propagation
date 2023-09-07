@@ -1,6 +1,8 @@
+using Azure.Messaging.EventGrid;
+
 namespace Workleap.DomainEventPropagation;
 
 internal interface IEventGridRequestHandler
 {
-    Task<EventGridRequestResult> HandleRequestAsync(object requestContent, CancellationToken cancellationToken);
+    Task<EventGridRequestResult> HandleRequestAsync(EventGridEvent[] eventGridEvents, CancellationToken cancellationToken);
 }

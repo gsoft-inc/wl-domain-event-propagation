@@ -1,8 +1,8 @@
 namespace Workleap.DomainEventPropagation;
 
-public enum EventGridRequestType
+internal enum EventGridRequestType
 {
-    Unknown,
+    Unsupported,
     Event,
     Subscription,
 }

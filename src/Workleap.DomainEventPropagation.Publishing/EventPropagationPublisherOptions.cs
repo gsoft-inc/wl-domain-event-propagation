@@ -8,8 +8,6 @@ public sealed class EventPropagationPublisherOptions
 
     internal const string ClientName = "EventPropagationClient";
 
-    public string TopicName { get; set; } = string.Empty;
-
     public string TopicAccessKey { get; set; } = string.Empty;
 
     public TokenCredential? TokenCredential { get; set; }
