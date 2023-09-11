@@ -5,11 +5,19 @@ namespace Workleap.DomainEventPropagation;
 
 internal sealed class TracingSubscriptionDomainEventBehavior : ISubscriptionDomainEventBehavior
 {
-    public Task HandleAsync(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, CancellationToken cancellationToken)
+    public async Task HandleAsync(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, CancellationToken cancellationToken)
     {
         var propagationContext = ExtractPropagationContextFromEvent(domainEventWrapper);
-        var activity = TracingHelper.StartConsumerActivity(TracingHelper.EventGridEventsSubscriberActivityName, propagationContext.ActivityContext);
-        return activity == null ? next(domainEventWrapper, cancellationToken) : HandleWithTracing(domainEventWrapper, next, activity, cancellationToken);
+        using var activity = TracingHelper.StartConsumerActivity(TracingHelper.EventGridEventsSubscriberActivityName, propagationContext.ActivityContext);
+
+        if (activity == null)
+        {
+            await next(domainEventWrapper, cancellationToken).ConfigureAwait(false);
+        }
+        else
+        {
+            await HandleWithTracing(domainEventWrapper, next, activity, cancellationToken).ConfigureAwait(false);
+        }
     }
 
     private static PropagationContext ExtractPropagationContextFromEvent(DomainEventWrapper domainEventWrapper)
@@ -24,21 +32,18 @@ internal sealed class TracingSubscriptionDomainEventBehavior : ISubscriptionDoma
 
     private static async Task HandleWithTracing(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, Activity activity, CancellationToken cancellationToken)
     {
-        using (activity)
+        activity.DisplayName = domainEventWrapper.DomainEventName;
+
+        try
         {
-            activity.DisplayName = domainEventWrapper.DomainEventName;
+            await next(domainEventWrapper, cancellationToken).ConfigureAwait(false);
 
-            try
-            {
-                await next(domainEventWrapper, cancellationToken).ConfigureAwait(false);
-
-                TracingHelper.MarkAsSuccessful(activity);
-            }
-            catch (Exception ex)
-            {
-                TracingHelper.MarkAsFailed(activity, ex);
-                throw;
-            }
+            TracingHelper.MarkAsSuccessful(activity);
+        }
+        catch (Exception ex)
+        {
+            TracingHelper.MarkAsFailed(activity, ex);
+            throw;
         }
     }
 }
