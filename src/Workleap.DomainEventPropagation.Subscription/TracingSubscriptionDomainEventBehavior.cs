@@ -5,11 +5,18 @@ namespace Workleap.DomainEventPropagation;
 
 internal sealed class TracingSubscriptionDomainEventBehavior : ISubscriptionDomainEventBehavior
 {
-    public Task HandleAsync(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, CancellationToken cancellationToken)
+    public async Task HandleAsync(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, CancellationToken cancellationToken)
     {
         var propagationContext = ExtractPropagationContextFromEvent(domainEventWrapper);
         using var activity = TracingHelper.StartConsumerActivity(TracingHelper.EventGridEventsSubscriberActivityName, propagationContext.ActivityContext);
-        return activity == null ? next(domainEventWrapper, cancellationToken) : HandleWithTracing(domainEventWrapper, next, activity, cancellationToken);
+
+        if (activity == null)
+        {
+            await next(domainEventWrapper, cancellationToken).ConfigureAwait(false);
+            return;
+        }
+
+        await HandleWithTracing(domainEventWrapper, next, activity, cancellationToken).ConfigureAwait(false);
     }
 
     private static PropagationContext ExtractPropagationContextFromEvent(DomainEventWrapper domainEventWrapper)
