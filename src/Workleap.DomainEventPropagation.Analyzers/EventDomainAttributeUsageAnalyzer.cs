@@ -1,16 +1,15 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Operations;
 using Workleap.DomainEventPropagation.Analyzers.Internals;
 using Workleap.Extensions.MediatR.Analyzers.Internals;
 
 namespace Workleap.DomainEventPropagation.Analyzers;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
-public sealed class AttributeUsageAnalyzer : DiagnosticAnalyzer
+public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
 {
-    internal static readonly DiagnosticDescriptor UseGenericParameterRule = new DiagnosticDescriptor(
+    internal static readonly DiagnosticDescriptor UseDomainEventAttribute = new DiagnosticDescriptor(
         id: RuleIdentifiers.UseDomainEventAttribute,
         title: "Use DomainEvent attribute on event",
         messageFormat: "Use the DomainEvent attribute",
@@ -20,7 +19,7 @@ public sealed class AttributeUsageAnalyzer : DiagnosticAnalyzer
         helpLinkUri: RuleIdentifiers.HelpUri);
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-        UseGenericParameterRule);
+        UseDomainEventAttribute);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -40,37 +39,38 @@ public sealed class AttributeUsageAnalyzer : DiagnosticAnalyzer
 
     private sealed class AnalyzerImplementation
     {
-        private readonly INamedTypeSymbol _domainEventType;
+        private readonly INamedTypeSymbol? _domainEventType;
+        private readonly INamedTypeSymbol? _domainEventAttributeType;
         private readonly ImmutableHashSet<INamedTypeSymbol> _domainEventTypes;
-        private readonly INamedTypeSymbol _domainEventAttributeType;
 
         public AnalyzerImplementation(Compilation compilation)
         {
-            this._domainEventType = compilation.GetBestTypeByMetadataName(KnownSymbolNames.DomainEventInterface, KnownSymbolNames.DomainEventInterface)!;
-            this._domainEventAttributeType = compilation.GetBestTypeByMetadataName(KnownSymbolNames.DomainEventAttribute, KnownSymbolNames.DomainEventInterface)!;
+            this._domainEventType = compilation.GetBestTypeByMetadataName(KnownSymbolNames.DomainEventInterface, KnownSymbolNames.WorkleapDomainEventPropagationAbstractionsAssembly)!;
+            this._domainEventAttributeType = compilation.GetBestTypeByMetadataName(KnownSymbolNames.DomainEventAttribute, KnownSymbolNames.WorkleapDomainEventPropagationAbstractionsAssembly)!;
 
             var domainEventPropagationSymbols = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>(SymbolEqualityComparer.Default);
-            domainEventPropagationSymbols.AddIfNotNull(compilation.GetBestTypeByMetadataName(KnownSymbolNames.DomainEventInterface, KnownSymbolNames.DomainEventInterface));
-            domainEventPropagationSymbols.AddIfNotNull(compilation.GetBestTypeByMetadataName(KnownSymbolNames.DomainEventAttribute, KnownSymbolNames.DomainEventAttribute));
+            domainEventPropagationSymbols.AddIfNotNull(this._domainEventType);
+            domainEventPropagationSymbols.AddIfNotNull(this._domainEventAttributeType);
 
             this._domainEventTypes = domainEventPropagationSymbols.ToImmutable();
         }
 
-        public bool IsValid => this._domainEventTypes.Count == 1;
+        public bool IsValid => this._domainEventTypes.Count == 2 &&
+                               this._domainEventType is not null &&
+                               this._domainEventAttributeType is not null;
 
         public void AnalyzeOperationInvocation(SymbolAnalysisContext context)
         {
             if (context.Symbol is INamedTypeSymbol { TypeKind: TypeKind.Class or TypeKind.Struct, IsAbstract: false } type)
             {
-                if (this.IsDomainEventClass(context, type))
+                if (this.IsDomainEventClass(type))
                 {
-                    var hasDomainEventAttribute = type.ContainingType.GetAttributes()
+                    var hasDomainEventAttribute = type.GetAttributes()
                         .Any(x => x.AttributeClass != null && SymbolEqualityComparer.Default.Equals(x.AttributeClass, this._domainEventAttributeType));
 
-                    var targetAttribute = context.Compilation.GetTypeByMetadataName(KnownSymbolNames.DomainEventAttribute);
-                    if (targetAttribute is null)
+                    if (!hasDomainEventAttribute)
                     {
-                        context.ReportDiagnostic(UseGenericParameterRule, type);
+                        context.ReportDiagnostic(UseDomainEventAttribute, type);
                     }
                 }
             }

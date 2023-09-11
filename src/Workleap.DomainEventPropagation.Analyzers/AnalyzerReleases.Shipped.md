@@ -2,6 +2,6 @@
 
 ### New Rules
 
-| Rule ID | Category | Severity | Notes                                                                                         |
-|---------|----------|----------|-----------------------------------------------------------------------------------------------|
-| WLDEP01 | Naming   | Warning  | NamingConventionAnalyzer, [Documentation](https://github.com/gsoft-inc/wl-extensions-mediatr) |
+Rule ID | Category | Severity | Notes
+---------|----------|----------|-------
+WLDEP01 | Naming   | Warning  | UseDomainEventAttribute, [Documentation](https://github.com/gsoft-inc/wl-domain-event-propagation)
