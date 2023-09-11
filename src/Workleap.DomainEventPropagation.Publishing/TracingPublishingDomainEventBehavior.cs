@@ -8,7 +8,9 @@ internal sealed class TracingPublishingDomainEventBehavior : IPublishingDomainEv
 {
     public async Task HandleAsync(DomainEventWrapperCollection domainEventWrappers, DomainEventsHandlerDelegate next, CancellationToken cancellationToken)
     {
-        using var activity = TracingHelper.StartProducerActivity(TracingHelper.EventGridEventsPublisherActivityName);
+        var activityName = TracingHelper.GetEventGridEventsPublisherActivityName(domainEventWrappers.DomainEventName);
+
+        using var activity = TracingHelper.StartProducerActivity(activityName);
 
         if (activity == null)
         {
@@ -22,8 +24,6 @@ internal sealed class TracingPublishingDomainEventBehavior : IPublishingDomainEv
 
     private static async Task HandleWithTracing(DomainEventWrapperCollection domainEventWrappers, DomainEventsHandlerDelegate next, Activity activity, CancellationToken cancellationToken)
     {
-        activity.DisplayName = $"{TracingHelper.EventGridEventsPublisherActivityName} {domainEventWrappers.DomainEventName}";
-
         try
         {
             InjectCurrentActivityContextDataIntoEvents(domainEventWrappers);
