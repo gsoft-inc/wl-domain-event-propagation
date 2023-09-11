@@ -8,29 +8,26 @@ internal sealed class TracingPublishingDomainEventBehavior : IPublishingDomainEv
 {
     public Task HandleAsync(DomainEventWrapperCollection domainEventWrappers, DomainEventsHandlerDelegate next, CancellationToken cancellationToken)
     {
-        var activity = TracingHelper.StartProducerActivity(TracingHelper.EventGridEventsPublisherActivityName);
+        using var activity = TracingHelper.StartProducerActivity(TracingHelper.EventGridEventsPublisherActivityName);
         return activity == null ? next(domainEventWrappers, cancellationToken) : HandleWithTracing(domainEventWrappers, next, activity, cancellationToken);
     }
 
     private static async Task HandleWithTracing(DomainEventWrapperCollection domainEventWrappers, DomainEventsHandlerDelegate next, Activity activity, CancellationToken cancellationToken)
     {
-        using (activity)
+        activity.DisplayName = domainEventWrappers.DomainEventName;
+
+        try
         {
-            activity.DisplayName = domainEventWrappers.DomainEventName;
+            InjectCurrentActivityContextDataIntoEvents(domainEventWrappers);
 
-            try
-            {
-                InjectCurrentActivityContextDataIntoEvents(domainEventWrappers);
+            await next(domainEventWrappers, cancellationToken).ConfigureAwait(false);
 
-                await next(domainEventWrappers, cancellationToken).ConfigureAwait(false);
-
-                TracingHelper.MarkAsSuccessful(activity);
-            }
-            catch (Exception ex)
-            {
-                TracingHelper.MarkAsFailed(activity, ex);
-                throw;
-            }
+            TracingHelper.MarkAsSuccessful(activity);
+        }
+        catch (Exception ex)
+        {
+            TracingHelper.MarkAsFailed(activity, ex);
+            throw;
         }
     }
 
