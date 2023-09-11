@@ -13,10 +13,11 @@ internal sealed class TracingSubscriptionDomainEventBehavior : ISubscriptionDoma
         if (activity == null)
         {
             await next(domainEventWrapper, cancellationToken).ConfigureAwait(false);
-            return;
         }
-
-        await HandleWithTracing(domainEventWrapper, next, activity, cancellationToken).ConfigureAwait(false);
+        else
+        {
+            await HandleWithTracing(domainEventWrapper, next, activity, cancellationToken).ConfigureAwait(false);
+        }
     }
 
     private static PropagationContext ExtractPropagationContextFromEvent(DomainEventWrapper domainEventWrapper)
