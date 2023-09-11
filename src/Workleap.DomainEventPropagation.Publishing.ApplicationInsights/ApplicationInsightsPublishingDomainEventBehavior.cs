@@ -21,7 +21,7 @@ internal sealed class ApplicationInsightsPublishingDomainEventBehavior : IPublis
 
     private async Task HandleWithTelemetry(DomainEventWrapperCollection domainEventWrappers, DomainEventsHandlerDelegate next, CancellationToken cancellationToken)
     {
-        var activityName = $"{TracingHelper.EventGridEventsPublisherActivityName} {domainEventWrappers.DomainEventName}";
+        var activityName = TracingHelper.GetEventGridEventsPublisherActivityName(domainEventWrappers.DomainEventName);
         var operation = this._telemetryClient!.StartActivityAwareDependencyOperation(activityName);
 
         foreach (var domainEventWrapper in domainEventWrappers)
