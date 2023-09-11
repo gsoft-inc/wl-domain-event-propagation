@@ -32,7 +32,7 @@ internal sealed class TracingSubscriptionDomainEventBehavior : ISubscriptionDoma
 
     private static async Task HandleWithTracing(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, Activity activity, CancellationToken cancellationToken)
     {
-        activity.DisplayName = domainEventWrapper.DomainEventName;
+        activity.DisplayName = $"{TracingHelper.EventGridEventsSubscriberActivityName} {domainEventWrapper.DomainEventName}";
 
         try
         {

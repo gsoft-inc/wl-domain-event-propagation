@@ -7,7 +7,7 @@ namespace Workleap.DomainEventPropagation;
 
 internal static class TelemetryClientExtensions
 {
-    public static IOperationHolder<DependencyTelemetry> StartActivityAwareDependencyOperation(this TelemetryClient telemetryClient, string eventName)
+    public static IOperationHolder<DependencyTelemetry> StartActivityAwareDependencyOperation(this TelemetryClient telemetryClient, string activityName)
     {
         if (Activity.Current is { } activity && TracingHelper.IsEventGridActivity(activity))
         {
@@ -17,11 +17,11 @@ internal static class TelemetryClientExtensions
             // and bridge the gap between our activity, its own internal activity and the AI operation telemetry.
             // Not doing that could cause some Application Insights AND OpenTelemetry spans to be orphans.
             var operation = telemetryClient.StartOperation<DependencyTelemetry>(activity);
-            operation.Telemetry.Context.Operation.Name = eventName;
+            operation.Telemetry.Context.Operation.Name = activityName;
 
             return operation;
         }
 
-        return telemetryClient.StartOperation<DependencyTelemetry>(eventName);
+        return telemetryClient.StartOperation<DependencyTelemetry>(activityName);
     }
 }

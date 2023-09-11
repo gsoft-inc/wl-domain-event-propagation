@@ -22,7 +22,7 @@ internal sealed class TracingPublishingDomainEventBehavior : IPublishingDomainEv
 
     private static async Task HandleWithTracing(DomainEventWrapperCollection domainEventWrappers, DomainEventsHandlerDelegate next, Activity activity, CancellationToken cancellationToken)
     {
-        activity.DisplayName = domainEventWrappers.DomainEventName;
+        activity.DisplayName = $"{TracingHelper.EventGridEventsPublisherActivityName} {domainEventWrappers.DomainEventName}";
 
         try
         {
