@@ -391,3 +391,6 @@ $RECYCLE.BIN/
 
 # VS Code
 .vscode/
+
+# Git merge
+*.orig
