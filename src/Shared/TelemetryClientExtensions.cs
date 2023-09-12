@@ -25,7 +25,7 @@ internal static class TelemetryClientExtensions
            operation = telemetryClient.StartOperation<DependencyTelemetry>(activityName);
         }
 
-        operation.Telemetry.Type = TracingHelper.EventGridEventsPublisherActivityType;
+        operation.Telemetry.Type = activityType;
 
         return operation;
     }
