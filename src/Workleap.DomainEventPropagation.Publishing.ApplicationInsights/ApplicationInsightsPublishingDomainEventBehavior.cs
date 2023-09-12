@@ -35,8 +35,8 @@ internal sealed class ApplicationInsightsPublishingDomainEventBehavior : IPublis
 
         try
         {
-            operation.Telemetry.Name = activityName;
-            operation.Telemetry.Type = ApplicationInsightsConstants.ProducerTelemetryKind;
+            operation.Telemetry.Name = domainEventWrappers.DomainEventName;
+            operation.Telemetry.Type = TracingHelper.EventGridEventsPublisherActivityType;
 
             await next(domainEventWrappers, cancellationToken).ConfigureAwait(false);
 

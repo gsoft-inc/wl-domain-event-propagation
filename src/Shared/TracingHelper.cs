@@ -16,8 +16,8 @@ internal static class TracingHelper
     internal const string ExceptionStackTraceTag = "exception.stacktrace";
 
     // https://github.com/open-telemetry/opentelemetry-specification/blob/v1.18.0/specification/trace/semantic_conventions/cloudevents.md#conventions
-    private const string EventGridEventsPublisherActivityName = "EventGridEvents create";
-    private const string EventGridEventsSubscriberActivityName = "EventGridEvents process";
+    internal const string EventGridEventsPublisherActivityType = "EventGridEvents create";
+    internal const string EventGridEventsSubscriberActivityType = "EventGridEvents process";
 
     private static readonly Assembly Assembly = typeof(TracingHelper).Assembly;
     private static readonly AssemblyName AssemblyName = Assembly.GetName();
@@ -60,7 +60,7 @@ internal static class TracingHelper
 
     public static bool IsEventGridActivity(Activity activity) => ActivitySource.Name == activity.Source.Name;
 
-    internal static string GetEventGridEventsPublisherActivityName(string eventType) => $"{EventGridEventsPublisherActivityName} {eventType}";
+    internal static string GetEventGridEventsPublisherActivityName(string eventType) => $"{EventGridEventsPublisherActivityType} {eventType}";
 
-    internal static string GetEventGridEventsSubscriberActivityName(string eventType) => $"{EventGridEventsSubscriberActivityName} {eventType}";
+    internal static string GetEventGridEventsSubscriberActivityName(string eventType) => $"{EventGridEventsSubscriberActivityType} {eventType}";
 }

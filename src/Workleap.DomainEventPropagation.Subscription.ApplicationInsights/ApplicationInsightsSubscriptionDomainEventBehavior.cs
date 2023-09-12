@@ -36,8 +36,8 @@ internal sealed class ApplicationInsightsSubscriptionDomainEventBehavior : ISubs
 
         try
         {
-            operation.Telemetry.Name = activityName;
-            operation.Telemetry.Type = ApplicationInsightsConstants.ConsumerTelemetryKind;
+            operation.Telemetry.Name = domainEventWrapper.DomainEventName;
+            operation.Telemetry.Type = TracingHelper.EventGridEventsSubscriberActivityType;
 
             await next(domainEventWrapper, cancellationToken).ConfigureAwait(false);
 

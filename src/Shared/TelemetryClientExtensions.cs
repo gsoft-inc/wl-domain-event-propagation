@@ -16,10 +16,7 @@ internal static class TelemetryClientExtensions
             // The Application Insights SDK will take care of populating the parent-child relationship
             // and bridge the gap between our activity, its own internal activity and the AI operation telemetry.
             // Not doing that could cause some Application Insights AND OpenTelemetry spans to be orphans.
-            var operation = telemetryClient.StartOperation<DependencyTelemetry>(activity);
-            operation.Telemetry.Context.Operation.Name = activityName;
-
-            return operation;
+            return telemetryClient.StartOperation<DependencyTelemetry>(activity);
         }
 
         return telemetryClient.StartOperation<DependencyTelemetry>(activityName);
