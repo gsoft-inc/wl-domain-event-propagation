@@ -19,8 +19,9 @@ internal sealed class ApplicationInsightsSubscriptionDomainEventBehavior : ISubs
 
     private async Task HandleWithTelemetry(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, CancellationToken cancellationToken)
     {
-        var activityName = TracingHelper.GetEventGridEventsSubscriberActivityName(domainEventWrapper.DomainEventName);
-        var operation = this._telemetryClient!.StartActivityAwareDependencyOperation(activityName);
+        var operation = this._telemetryClient!.StartActivityAwareDependencyOperation(
+            domainEventWrapper.DomainEventName,
+            TracingHelper.EventGridEventsSubscriberActivityType);
 
         if (domainEventWrapper.TryGetMetadata(ApplicationInsightsConstants.ParentOperationIdField, out var parentOperationId))
         {
