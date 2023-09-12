@@ -9,7 +9,7 @@ namespace Workleap.DomainEventPropagation.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
 {
-    internal static readonly DiagnosticDescriptor UseDomainEventAttribute = new DiagnosticDescriptor(
+    internal static readonly DiagnosticDescriptor UseDomainEventAttribute = new(
         id: RuleIdentifiers.UseDomainEventAttribute,
         title: "Use DomainEvent attribute on event",
         messageFormat: "Use the DomainEvent attribute",
