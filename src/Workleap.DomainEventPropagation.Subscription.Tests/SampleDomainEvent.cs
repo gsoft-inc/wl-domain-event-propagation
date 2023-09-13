@@ -1,6 +1,6 @@
 ﻿namespace Workleap.DomainEventPropagation.Subscription.Tests;
 
-[DomainEvent("sample")]
+[DomainEvent("sample-event")]
 public class SampleDomainEvent : IDomainEvent
 {
     public string? Message { get; set; }

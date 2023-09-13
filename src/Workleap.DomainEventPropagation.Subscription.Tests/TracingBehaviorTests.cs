@@ -28,7 +28,8 @@ public sealed class TracingBehaviorTests : BaseUnitTest<TracingBehaviorFixture>
         var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(this.Services, A.Fake<IDomainEventTypeRegistry>(), NullLogger<DomainEventGridWebhookHandler>.Instance, behaviors);
         await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, CancellationToken.None);
 
-        this._activities.AssertSubscribeSuccessful();
+        var activityName = TracingHelper.GetEventGridEventsSubscriberActivityName(wrapperEvent.DomainEventName);
+        this._activities.AssertSubscribeSuccessful(activityName);
     }
 
     [Fact]
@@ -43,7 +44,8 @@ public sealed class TracingBehaviorTests : BaseUnitTest<TracingBehaviorFixture>
 
         var exception = await Assert.ThrowsAsync<Exception>(async () => await domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, CancellationToken.None));
 
-        this._activities.AssertSubscriptionFailed(wrapperEvent.DomainEventName, exception);
+        var activityName = TracingHelper.GetEventGridEventsSubscriberActivityName(wrapperEvent.DomainEventName);
+        this._activities.AssertSubscriptionFailed(activityName, exception);
     }
 
     [Fact]

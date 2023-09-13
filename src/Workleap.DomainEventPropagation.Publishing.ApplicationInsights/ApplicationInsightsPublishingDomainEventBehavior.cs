@@ -21,7 +21,9 @@ internal sealed class ApplicationInsightsPublishingDomainEventBehavior : IPublis
 
     private async Task HandleWithTelemetry(DomainEventWrapperCollection domainEventWrappers, DomainEventsHandlerDelegate next, CancellationToken cancellationToken)
     {
-        var operation = this._telemetryClient!.StartActivityAwareDependencyOperation(domainEventWrappers.DomainEventName);
+        var operation = this._telemetryClient!.StartActivityAwareDependencyOperation(
+            domainEventWrappers.DomainEventName,
+            TracingHelper.EventGridEventsPublisherActivityType);
 
         foreach (var domainEventWrapper in domainEventWrappers)
         {
@@ -34,9 +36,6 @@ internal sealed class ApplicationInsightsPublishingDomainEventBehavior : IPublis
 
         try
         {
-            operation.Telemetry.Name = TracingHelper.EventGridEventsPublisherActivityName;
-            operation.Telemetry.Type = ApplicationInsightsConstants.ProducerTelemetryKind;
-
             await next(domainEventWrappers, cancellationToken).ConfigureAwait(false);
 
             operation.Telemetry.Success = true;

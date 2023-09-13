@@ -50,13 +50,13 @@ internal sealed class InMemoryActivityTracker : IDisposable
         }
     }
 
-    public void AssertPublishSuccessful()
+    public void AssertPublishSuccessful(string activityName)
     {
         lock (this._activitiesLock)
         {
-            var activity = Assert.Single(this._activities, activity => activity.OperationName == "EventGridEvents create");
+            var activity = Assert.Single(this._activities, activity => activity.OperationName == activityName);
 
-            Assert.Equal("EventGridEvents create", activity.OperationName);
+            Assert.Equal(activityName, activity.OperationName);
             Assert.Equal(ActivityKind.Producer, activity.Kind);
             Assert.Equal(ActivityStatusCode.Ok, activity.Status);
             Assert.Equal("OK", activity.GetTagItem(TracingHelper.StatusCodeTag));
@@ -69,7 +69,7 @@ internal sealed class InMemoryActivityTracker : IDisposable
         {
             var activity = Assert.Single(this._activities);
 
-            Assert.Equal("EventGridEvents create", activity.OperationName);
+            Assert.Equal(activityName, activity.OperationName);
             Assert.Equal(activityName, activity.DisplayName);
             Assert.Equal(ActivityKind.Producer, activity.Kind);
             Assert.Equal(ActivityStatusCode.Error, activity.Status);
@@ -84,13 +84,13 @@ internal sealed class InMemoryActivityTracker : IDisposable
         }
     }
 
-    public void AssertSubscribeSuccessful()
+    public void AssertSubscribeSuccessful(string activityName)
     {
         lock (this._activitiesLock)
         {
-            var activity = Assert.Single(this._activities, activity => activity.OperationName == "EventGridEvents process");
+            var activity = Assert.Single(this._activities, activity => activity.OperationName == activityName);
 
-            Assert.Equal("EventGridEvents process", activity.OperationName);
+            Assert.Equal(activityName, activity.OperationName);
             Assert.Equal(ActivityKind.Consumer, activity.Kind);
             Assert.Equal(ActivityStatusCode.Ok, activity.Status);
             Assert.Equal("OK", activity.GetTagItem(TracingHelper.StatusCodeTag));
@@ -103,8 +103,7 @@ internal sealed class InMemoryActivityTracker : IDisposable
         lock (this._activitiesLock)
         {
             var activity = Assert.Single(this._activities);
-
-            Assert.Equal("EventGridEvents process", activity.OperationName);
+            Assert.Equal(activityName, activity.OperationName);
             Assert.Equal(activityName, activity.DisplayName);
             Assert.Equal(ActivityKind.Consumer, activity.Kind);
             Assert.Equal(ActivityStatusCode.Error, activity.Status);

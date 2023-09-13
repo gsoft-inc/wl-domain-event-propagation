@@ -7,8 +7,10 @@ internal sealed class TracingSubscriptionDomainEventBehavior : ISubscriptionDoma
 {
     public async Task HandleAsync(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, CancellationToken cancellationToken)
     {
+        var activityName = TracingHelper.GetEventGridEventsSubscriberActivityName(domainEventWrapper.DomainEventName);
         var propagationContext = ExtractPropagationContextFromEvent(domainEventWrapper);
-        using var activity = TracingHelper.StartConsumerActivity(TracingHelper.EventGridEventsSubscriberActivityName, propagationContext.ActivityContext);
+
+        using var activity = TracingHelper.StartConsumerActivity(activityName, propagationContext.ActivityContext);
 
         if (activity == null)
         {
@@ -32,8 +34,6 @@ internal sealed class TracingSubscriptionDomainEventBehavior : ISubscriptionDoma
 
     private static async Task HandleWithTracing(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, Activity activity, CancellationToken cancellationToken)
     {
-        activity.DisplayName = domainEventWrapper.DomainEventName;
-
         try
         {
             await next(domainEventWrapper, cancellationToken).ConfigureAwait(false);

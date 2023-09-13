@@ -19,7 +19,9 @@ internal sealed class ApplicationInsightsSubscriptionDomainEventBehavior : ISubs
 
     private async Task HandleWithTelemetry(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, CancellationToken cancellationToken)
     {
-        var operation = this._telemetryClient!.StartActivityAwareDependencyOperation(domainEventWrapper.DomainEventName);
+        var operation = this._telemetryClient!.StartActivityAwareDependencyOperation(
+            domainEventWrapper.DomainEventName,
+            TracingHelper.EventGridEventsSubscriberActivityType);
 
         if (domainEventWrapper.TryGetMetadata(ApplicationInsightsConstants.ParentOperationIdField, out var parentOperationId))
         {
@@ -35,9 +37,6 @@ internal sealed class ApplicationInsightsSubscriptionDomainEventBehavior : ISubs
 
         try
         {
-            operation.Telemetry.Name = TracingHelper.EventGridEventsSubscriberActivityName;
-            operation.Telemetry.Type = ApplicationInsightsConstants.ConsumerTelemetryKind;
-
             await next(domainEventWrapper, cancellationToken).ConfigureAwait(false);
 
             operation.Telemetry.Success = true;

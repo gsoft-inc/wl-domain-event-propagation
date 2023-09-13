@@ -22,7 +22,8 @@ public sealed class TracingBehaviorTests : BaseUnitTest<TracingBehaviorFixture>
         var domainEvent = new SampleDomainEvent();
         await this._eventPropagationClient.PublishDomainEventAsync(domainEvent, CancellationToken.None);
 
-        this._activities.AssertPublishSuccessful();
+        var activityName = TracingHelper.GetEventGridEventsPublisherActivityName("sample-event");
+        this._activities.AssertPublishSuccessful(activityName);
     }
 
     [Fact]
@@ -32,7 +33,8 @@ public sealed class TracingBehaviorTests : BaseUnitTest<TracingBehaviorFixture>
         var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(async () =>
             await this._eventPropagationClient.PublishDomainEventAsync(domainEvent, CancellationToken.None));
 
-        this._activities.AssertPublishFailed(nameof(ThrowingDomainEvent), exception.InnerException!);
+        var activityName = TracingHelper.GetEventGridEventsPublisherActivityName(nameof(ThrowingDomainEvent));
+        this._activities.AssertPublishFailed(activityName, exception.InnerException!);
     }
 
     [Fact]
