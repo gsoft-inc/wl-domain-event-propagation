@@ -18,6 +18,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Workleap.DomainEventPropagation.Analyzers\Workleap.DomainEventPropagation.Analyzers.csproj" PrivateAssets="All" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Include="..\..\README.md" Link="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
