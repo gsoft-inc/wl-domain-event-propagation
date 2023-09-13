@@ -4,4 +4,4 @@
 
 Rule ID | Category | Severity | Notes
 ---------|----------|----------|-------
-WLDEP01 | Naming   | Warning  | UseDomainEventAttribute, [Documentation](https://github.com/gsoft-inc/wl-domain-event-propagation)
+WLDEP01 | Naming   | Warning  | EventDomainAttributeUsageAnalyzer, [Documentation](https://github.com/gsoft-inc/wl-domain-event-propagation)

@@ -57,7 +57,7 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
 
         public void AnalyzeOperationInvocation(SymbolAnalysisContext context)
         {
-            if (context.Symbol is INamedTypeSymbol { TypeKind: TypeKind.Class or TypeKind.Struct, IsAbstract: false } type)
+            if (context.Symbol is INamedTypeSymbol { TypeKind: TypeKind.Class or TypeKind.Struct, IsAbstract: false } classTypeSymbol)
             {
                 if (this.ImplementsBaseDomainEventInterface(type))
                 {
