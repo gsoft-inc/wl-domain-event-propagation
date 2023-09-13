@@ -5,7 +5,7 @@ public class EventDomainAttributeUsageAnalyzerTests : BaseAnalyzerTest<EventDoma
     private const string TestClassName = "MeowDomainEvent";
 
     [Fact]
-    public async Task Given_RandomAttribute_When_Analyze_Then_Diagnostics()
+    public async Task Given_NoAttribute_When_Analyze_Then_Diagnostics()
     {
         const string source = @"
 public class MeowDomainEvent : IDomainEvent
