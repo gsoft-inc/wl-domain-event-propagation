@@ -44,7 +44,7 @@ public record SampleDomainEvent : IDomainEvent
     }
 
     [Fact]
-    public async Task Given_RandomAttribute_When_Analyze_Then_Diagnostics()
+    public async Task Given_NoAttribute_When_Analyze_Then_Diagnostics()
     {
         const string source = @"
 [Serializable]
