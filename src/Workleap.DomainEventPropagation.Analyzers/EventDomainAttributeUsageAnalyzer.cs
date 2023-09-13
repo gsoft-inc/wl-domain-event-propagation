@@ -13,7 +13,7 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
         id: RuleIdentifiers.UseDomainEventAttribute,
         title: "Use DomainEvent attribute on event",
         messageFormat: "Use the DomainEvent attribute",
-        category: RuleCategories.Design,
+        category: RuleCategories.Usage,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: RuleIdentifiers.HelpUri);
@@ -39,31 +39,27 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
 
     private sealed class AnalyzerImplementation
     {
-        private readonly INamedTypeSymbol? _domainEventType;
+        private readonly INamedTypeSymbol? _domainEventInterfaceType;
         private readonly INamedTypeSymbol? _domainEventAttributeType;
-        private readonly ImmutableHashSet<INamedTypeSymbol> _domainEventTypes;
 
         public AnalyzerImplementation(Compilation compilation)
         {
-            this._domainEventType = compilation.GetBestTypeByMetadataName(KnownSymbolNames.DomainEventInterface, KnownSymbolNames.WorkleapDomainEventPropagationAbstractionsAssembly)!;
+            this._domainEventInterfaceType = compilation.GetBestTypeByMetadataName(KnownSymbolNames.DomainEventInterface, KnownSymbolNames.WorkleapDomainEventPropagationAbstractionsAssembly)!;
             this._domainEventAttributeType = compilation.GetBestTypeByMetadataName(KnownSymbolNames.DomainEventAttribute, KnownSymbolNames.WorkleapDomainEventPropagationAbstractionsAssembly)!;
 
             var domainEventPropagationSymbols = ImmutableHashSet.CreateBuilder<INamedTypeSymbol>(SymbolEqualityComparer.Default);
-            domainEventPropagationSymbols.AddIfNotNull(this._domainEventType);
+            domainEventPropagationSymbols.AddIfNotNull(this._domainEventInterfaceType);
             domainEventPropagationSymbols.AddIfNotNull(this._domainEventAttributeType);
-
-            this._domainEventTypes = domainEventPropagationSymbols.ToImmutable();
         }
 
-        public bool IsValid => this._domainEventTypes.Count == 2 &&
-                               this._domainEventType is not null &&
+        public bool IsValid => this._domainEventInterfaceType is not null &&
                                this._domainEventAttributeType is not null;
 
         public void AnalyzeOperationInvocation(SymbolAnalysisContext context)
         {
             if (context.Symbol is INamedTypeSymbol { TypeKind: TypeKind.Class or TypeKind.Struct, IsAbstract: false } type)
             {
-                if (this.IsDomainEventClass(type))
+                if (this.ImplementsBaseDomainEventInterface(type))
                 {
                     var hasDomainEventAttribute = type.GetAttributes()
                         .Any(x => x.AttributeClass != null && SymbolEqualityComparer.Default.Equals(x.AttributeClass, this._domainEventAttributeType));
@@ -76,19 +72,9 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
             }
         }
 
-        private bool IsDomainEventClass(ITypeSymbol type)
-        {
-            if (this.ImplementsBaseDomainEventInterface(type))
-            {
-                return true;
-            }
-
-            return false;
-        }
-
         private bool ImplementsBaseDomainEventInterface(ITypeSymbol type)
         {
-            return type.AllInterfaces.Any(x => SymbolEqualityComparer.Default.Equals(x, this._domainEventType));
+            return type.AllInterfaces.Any(x => SymbolEqualityComparer.Default.Equals(x, this._domainEventInterfaceType));
         }
     }
 }

@@ -2,13 +2,13 @@ namespace Workleap.DomainEventPropagation.Analyzers.Tests;
 
 public class EventDomainAttributeUsageAnalyzerTests : BaseAnalyzerTest<EventDomainAttributeUsageAnalyzer>
 {
-    private const string TestClassName = "MeowDomainEvent";
+    private const string TestClassName = "SampleDomainEvent";
 
     [Fact]
     public async Task Given_RandomAttribute_When_Analyze_Then_Diagnostics()
     {
         const string source = @"
-public class MeowDomainEvent : IDomainEvent
+public class SampleDomainEvent : IDomainEvent
 {    
 }";
 
@@ -21,8 +21,8 @@ public class MeowDomainEvent : IDomainEvent
     public async Task Given_EventAttribute_When_Analyze_Then_No_Diagnostic()
     {
         const string source = @"
-[DomainEvent(""Meow"")]
-public class MeowDomainEvent : IDomainEvent
+[DomainEvent(""Sample"")]
+public class SampleDomainEvent : IDomainEvent
 {    
 }";
 
