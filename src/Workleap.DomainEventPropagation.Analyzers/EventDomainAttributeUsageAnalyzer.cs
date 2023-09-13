@@ -59,14 +59,14 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
         {
             if (context.Symbol is INamedTypeSymbol { TypeKind: TypeKind.Class or TypeKind.Struct, IsAbstract: false } classTypeSymbol)
             {
-                if (this.ImplementsBaseDomainEventInterface(type))
+                if (this.ImplementsBaseDomainEventInterface(classTypeSymbol))
                 {
-                    var hasDomainEventAttribute = type.GetAttributes()
+                    var hasDomainEventAttribute = classTypeSymbol.GetAttributes()
                         .Any(x => x.AttributeClass != null && SymbolEqualityComparer.Default.Equals(x.AttributeClass, this._domainEventAttributeType));
 
                     if (!hasDomainEventAttribute)
                     {
-                        context.ReportDiagnostic(UseDomainEventAttribute, type);
+                        context.ReportDiagnostic(UseDomainEventAttribute, classTypeSymbol);
                     }
                 }
             }
