@@ -18,8 +18,17 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
         isEnabledByDefault: true,
         helpLinkUri: RuleIdentifiers.HelpUri);
 
+    internal static readonly DiagnosticDescriptor UseSameNameForAttributeValueAndClass = new(
+        id: RuleIdentifiers.UseSameNameForAttributeValueAndClass,
+        title: "Use the same name for the class and the attribute value",
+        messageFormat: "Use the same name for the class and the attribute value",
+        category: RuleCategories.Usage,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: RuleIdentifiers.HelpUri);
+
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-        UseDomainEventAttribute);
+        UseDomainEventAttribute, UseSameNameForAttributeValueAndClass);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -61,12 +70,21 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
             {
                 if (this.ImplementsBaseDomainEventInterface(classTypeSymbol))
                 {
-                    var hasDomainEventAttribute = classTypeSymbol.GetAttributes()
-                        .Any(x => x.AttributeClass != null && SymbolEqualityComparer.Default.Equals(x.AttributeClass, this._domainEventAttributeType));
+                    var domainEventAttribute = classTypeSymbol.GetAttributes()
+                        .FirstOrDefault(x => x.AttributeClass != null && SymbolEqualityComparer.Default.Equals(x.AttributeClass, this._domainEventAttributeType));
 
-                    if (!hasDomainEventAttribute)
+                    if (domainEventAttribute is null)
                     {
                         context.ReportDiagnostic(UseDomainEventAttribute, classTypeSymbol);
+                    }
+
+                    if (domainEventAttribute is not null && domainEventAttribute.ConstructorArguments.Length == 1)
+                    {
+                        var attributeArgument = domainEventAttribute.ConstructorArguments[0].Value;
+                        if (attributeArgument is string attributeArgumentString && attributeArgumentString != classTypeSymbol.Name)
+                        {
+                            context.ReportDiagnostic(UseSameNameForAttributeValueAndClass, classTypeSymbol);
+                        }
                     }
                 }
             }
