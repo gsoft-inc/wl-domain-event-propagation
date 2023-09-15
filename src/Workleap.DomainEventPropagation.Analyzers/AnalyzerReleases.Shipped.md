@@ -3,5 +3,13 @@
 ### New Rules
 
 Rule ID | Category | Severity | Notes
----------|----------|----------|-------
-WLDEP01 | Naming   | Warning  | EventDomainAttributeUsageAnalyzer, [Documentation](https://github.com/gsoft-inc/wl-domain-event-propagation)
+--------|----------|----------|--------------------
+WLDEP01 | Usage    | Warning  | EventDomainAttributeUsageAnalyzer, [Documentation](https://github.com/gsoft-inc/wl-domain-event-propagation)
+
+## Release 0.2.0
+
+### New Rules
+
+Rule ID | Category | Severity | Notes
+--------|----------|----------|--------------------
+WLDEP02 | Usage    | Warning  | UseUniqueNameForAttributeValue, [Documentation](https://github.com/gsoft-inc/wl-domain-event-propagation)

@@ -8,5 +8,5 @@ internal static class RuleIdentifiers
     // Projects can customize the severity level of analysis rules using a .editorconfig file.
     public const string UseDomainEventAttribute = "WLDEP01";
 
-    public const string UseSameNameForAttributeValueAndClass = "WLDEP02";
+    public const string UseUniqueNameForAttributeValue = "WLDEP02";
 }

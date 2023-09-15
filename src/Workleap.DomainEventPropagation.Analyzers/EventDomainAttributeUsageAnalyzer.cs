@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -18,17 +19,17 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
         isEnabledByDefault: true,
         helpLinkUri: RuleIdentifiers.HelpUri);
 
-    internal static readonly DiagnosticDescriptor UseSameNameForAttributeValueAndClass = new(
-        id: RuleIdentifiers.UseSameNameForAttributeValueAndClass,
-        title: "Use the same name for the class and the attribute value",
-        messageFormat: "Use the same name for the class and the attribute value",
+    internal static readonly DiagnosticDescriptor UseUniqueAttribute = new(
+        id: RuleIdentifiers.UseUniqueNameForAttributeValue,
+        title: "Use unique event name in attribute",
+        messageFormat: "Use unique event name in attribute",
         category: RuleCategories.Usage,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: RuleIdentifiers.HelpUri);
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-        UseDomainEventAttribute, UseSameNameForAttributeValueAndClass);
+        UseDomainEventAttribute, UseUniqueAttribute);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -50,6 +51,7 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
     {
         private readonly INamedTypeSymbol? _domainEventInterfaceType;
         private readonly INamedTypeSymbol? _domainEventAttributeType;
+        private readonly ConcurrentDictionary<string, string> _existingAttributes = new();
 
         public AnalyzerImplementation(Compilation compilation)
         {
@@ -81,9 +83,14 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
                     if (domainEventAttribute is not null && domainEventAttribute.ConstructorArguments.Length == 1)
                     {
                         var attributeArgument = domainEventAttribute.ConstructorArguments[0].Value;
-                        if (attributeArgument is string attributeArgumentString && attributeArgumentString != classTypeSymbol.Name)
+                        if (attributeArgument is string attributeArgumentString)
                         {
-                            context.ReportDiagnostic(UseSameNameForAttributeValueAndClass, classTypeSymbol);
+                            var wasAdded = this._existingAttributes.TryAdd(attributeArgumentString, string.Empty);
+
+                            if (!wasAdded)
+                            {
+                                context.ReportDiagnostic(UseUniqueAttribute, classTypeSymbol);
+                            }
                         }
                     }
                 }
