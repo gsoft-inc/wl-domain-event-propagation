@@ -19,7 +19,7 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
         isEnabledByDefault: true,
         helpLinkUri: RuleIdentifiers.HelpUri);
 
-    internal static readonly DiagnosticDescriptor UseUniqueAttribute = new(
+    internal static readonly DiagnosticDescriptor UseUniqueNameAttribute = new(
         id: RuleIdentifiers.UseUniqueNameForAttributeValue,
         title: "Use unique event name in attribute",
         messageFormat: "Use unique event name in attribute",
@@ -29,7 +29,7 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
         helpLinkUri: RuleIdentifiers.HelpUri);
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-        UseDomainEventAttribute, UseUniqueAttribute);
+        UseDomainEventAttribute, UseUniqueNameAttribute);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -89,7 +89,7 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
 
                             if (!wasAdded)
                             {
-                                context.ReportDiagnostic(UseUniqueAttribute, classTypeSymbol);
+                                context.ReportDiagnostic(UseUniqueNameAttribute, classTypeSymbol);
                             }
                         }
                     }

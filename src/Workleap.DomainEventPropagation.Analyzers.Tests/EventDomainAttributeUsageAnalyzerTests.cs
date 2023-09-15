@@ -98,7 +98,7 @@ public class SampleDomainEvent2 : IDomainEvent
 }";
 
         await this.WithSourceCode(source)
-            .WithExpectedDiagnostic(EventDomainAttributeUsageAnalyzer.UseUniqueAttribute, startLine: 3, startColumn: 14, endLine: 3, endColumn: 31, TestClassName)
+            .WithExpectedDiagnostic(EventDomainAttributeUsageAnalyzer.UseUniqueNameAttribute, startLine: 3, startColumn: 14, endLine: 3, endColumn: 31, TestClassName)
             .RunAsync();
     }
 
