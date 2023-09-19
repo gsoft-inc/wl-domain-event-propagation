@@ -3,14 +3,13 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Workleap.DomainEventPropagation.Analyzers.Internals;
-using Workleap.Extensions.MediatR.Analyzers.Internals;
 
 namespace Workleap.DomainEventPropagation.Analyzers;
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
 {
-    internal static readonly DiagnosticDescriptor UseDomainEventAttribute = new(
+    internal static readonly DiagnosticDescriptor UseDomainEventAttribute = new DiagnosticDescriptor(
         id: RuleIdentifiers.UseDomainEventAttribute,
         title: "Use DomainEvent attribute on event",
         messageFormat: "Use the DomainEvent attribute",
@@ -19,7 +18,7 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
         isEnabledByDefault: true,
         helpLinkUri: RuleIdentifiers.HelpUri);
 
-    internal static readonly DiagnosticDescriptor UseUniqueNameAttribute = new(
+    internal static readonly DiagnosticDescriptor UseUniqueNameAttribute = new DiagnosticDescriptor(
         id: RuleIdentifiers.UseUniqueNameForAttributeValue,
         title: "Use unique event name in attribute",
         messageFormat: "Use unique event name in attribute",
@@ -51,7 +50,7 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
     {
         private readonly INamedTypeSymbol? _domainEventInterfaceType;
         private readonly INamedTypeSymbol? _domainEventAttributeType;
-        private readonly ConcurrentDictionary<string, string> _existingAttributes = new();
+        private readonly ConcurrentDictionary<string, bool> _existingAttributes = new ConcurrentDictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
 
         public AnalyzerImplementation(Compilation compilation)
         {
@@ -73,19 +72,18 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
                 if (this.ImplementsBaseDomainEventInterface(classTypeSymbol))
                 {
                     var domainEventAttribute = classTypeSymbol.GetAttributes()
-                        .FirstOrDefault(x => x.AttributeClass != null && SymbolEqualityComparer.Default.Equals(x.AttributeClass, this._domainEventAttributeType));
+                        .FirstOrDefault(x => SymbolEqualityComparer.Default.Equals(x.AttributeClass, this._domainEventAttributeType));
 
                     if (domainEventAttribute is null)
                     {
                         context.ReportDiagnostic(UseDomainEventAttribute, classTypeSymbol);
                     }
-
-                    if (domainEventAttribute is not null && domainEventAttribute.ConstructorArguments.Length == 1)
+                    else if (domainEventAttribute.ConstructorArguments.Length == 1)
                     {
                         var attributeArgument = domainEventAttribute.ConstructorArguments[0].Value;
                         if (attributeArgument is string attributeArgumentString)
                         {
-                            var wasAdded = this._existingAttributes.TryAdd(attributeArgumentString, string.Empty);
+                            var wasAdded = this._existingAttributes.TryAdd(attributeArgumentString, true);
 
                             if (!wasAdded)
                             {
