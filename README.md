@@ -155,6 +155,23 @@ A new *preview* NuGet package is **automatically published** on any new commit o
 
 When you are ready to **officially release** a stable NuGet package by following the [SemVer guidelines](https://semver.org/), simply **manually create a tag** with the format `x.y.z`. This will automatically create and publish a NuGet package for this version.
 
+## Included Roslyn analyzers
+
+| Rule ID | Category | Severity | Description                                                        |
+|---------|----------|----------|--------------------------------------------------------------------|
+| WLDEP01 | Usage    | Warning  | Use DomainEvent attribute on event                                 |
+| WLDEP02 | Usage    | Warning  | Use unique event name in attribute                                 | 
+
+To modify the severity of one of these diagnostic rules, you can use a `.editorconfig` file. For example:
+
+```ini
+## Disable analyzer for test files
+[**Tests*/**.cs]
+dotnet_diagnostic.WLDEP01.severity = none
+dotnet_diagnostic.WLDEP02.severity = none
+```
+
+To learn more about configuring or suppressing code analysis warnings, refer to [this documentation](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/suppress-warnings).
 
 ## License
 

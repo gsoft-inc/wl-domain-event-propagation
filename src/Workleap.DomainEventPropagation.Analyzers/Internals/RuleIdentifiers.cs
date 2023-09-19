@@ -1,4 +1,4 @@
-﻿namespace Workleap.Extensions.MediatR.Analyzers.Internals;
+﻿namespace Workleap.DomainEventPropagation.Analyzers.Internals;
 
 internal static class RuleIdentifiers
 {
@@ -7,4 +7,6 @@ internal static class RuleIdentifiers
     // DO NOT change the identifier of existing rules.
     // Projects can customize the severity level of analysis rules using a .editorconfig file.
     public const string UseDomainEventAttribute = "WLDEP01";
+
+    public const string UseUniqueNameForAttributeValue = "WLDEP02";
 }
