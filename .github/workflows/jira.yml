@@ -13,16 +13,16 @@ jobs:
       shell: pwsh
       run: |
             Install-Module JiraPS -Scope CurrentUser -Force
-            if ("${{ github.event.pull_request.head.ref }}" -like "*/renovate/*" -eq $True)
+            if ("$env:GITHUB_REF_NAME" -like "*/renovate/*" -eq $True)
             {
               Write-Host "Skipping, renovate branch detected"
               return
             }
 
             Set-JiraConfigServer -Server "${{ secrets.JIRA_URL }}"
-            if("${{ github.event.pull_request.head.ref }}" -match "IDP-[0-9]+" -eq $False)
+            if("$env:GITHUB_REF_NAME" -match "IDP-[0-9]+" -eq $False)
             {
-              throw "Branch name ${{ $env:GITHUB_REF_NAME }} doesn't respect the required pattern."
+              throw "Branch name $env:GITHUB_REF_NAME doesn't respect the required pattern."
             }
 
             $JiraIssueKey = $Matches[0]
