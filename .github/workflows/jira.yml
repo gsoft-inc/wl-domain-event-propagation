@@ -19,7 +19,7 @@ jobs:
               return
             }
 
-            Set-JiraConfigServer -Server "https://gsoftdev.atlassian.net/"
+            Set-JiraConfigServer -Server "${{ secrets.JIRA_URL }}"
             if("${{ github.event.pull_request.head.ref }}" -match "IDP-[0-9]+" -eq $False)
             {
               throw "Branch name ${{ github.event.pull_request.head.ref }} doesn't respect the required pattern."
