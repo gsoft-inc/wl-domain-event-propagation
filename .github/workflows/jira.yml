@@ -22,7 +22,7 @@ jobs:
             Set-JiraConfigServer -Server "${{ secrets.JIRA_URL }}"
             if("${{ github.event.pull_request.head.ref }}" -match "IDP-[0-9]+" -eq $False)
             {
-              throw "Branch name ${{ github.event.pull_request.head.ref }} doesn't respect the required pattern."
+              throw "Branch name ${{ $env:GITHUB_REF_NAME }} doesn't respect the required pattern."
             }
 
             $JiraIssueKey = $Matches[0]
