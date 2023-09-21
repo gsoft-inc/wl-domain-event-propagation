@@ -19,7 +19,7 @@
   "packageRules": [
     {
       "matchManagers": ["nuget"],
-      "excludePackagePatterns": ["^Microsoft\\.Extensions\\.", "^System\\.", "^dotnet-sdk$"],
+      "excludePackagePatterns": ["^Microsoft\\.Extensions\\.", "^System\\.", "^dotnet-sdk$", "^Microsoft\\.CodeAnalysis\\.CSharp\\."],
       "groupName": "NuGet dependencies"
     },
     {
