@@ -1,3 +1,5 @@
+using Polly;
+
 namespace Workleap.DomainEventPropagation.Analyzers.Tests;
 
 public class EventDomainAttributeUsageAnalyzerTests : BaseAnalyzerTest<EventDomainAttributeUsageAnalyzer>
@@ -95,11 +97,19 @@ public class SampleDomainEvent : IDomainEvent
 [DomainEvent(""SampleDomainEvent"")]
 public class SampleDomainEvent2 : IDomainEvent
 {    
-}";
+}"; 
 
-        await this.WithSourceCode(source)
-            .WithExpectedDiagnostic(EventDomainAttributeUsageAnalyzer.UseUniqueNameAttribute, startLine: 3, startColumn: 14, endLine: 3, endColumn: 31, TestClassName)
-            .RunAsync();
+        // Retrying this test to ensure expected diagnostic by line numbers.
+        // We don't know exactly which of the above defined "source" will get
+        // executed by analyzer first because of the concurrent execution.
+        var retryPolicy = Policy.Handle<Exception>().RetryAsync(10);
+        await retryPolicy.ExecuteAsync(async () =>
+        {
+            await new BaseAnalyzerTest<EventDomainAttributeUsageAnalyzer>()
+                .WithSourceCode(source)
+                .WithExpectedDiagnostic(EventDomainAttributeUsageAnalyzer.UseUniqueNameAttribute, startLine: 3, startColumn: 14, endLine: 3, endColumn: 31, TestClassName)
+                .RunAsync();
+        });
     }
 
     [Fact]

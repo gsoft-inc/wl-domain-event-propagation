@@ -23,7 +23,7 @@ global using Workleap.DomainEventPropagation;";
 
     private const string SourceFileName = "Program.cs";
 
-    protected BaseAnalyzerTest()
+    public BaseAnalyzerTest()
     {
         this.TestState.Sources.Add(CSharp10GlobalUsings);
         this.TestState.Sources.Add(DomainEventPropagationGlobalUsings);
@@ -45,7 +45,7 @@ global using Workleap.DomainEventPropagation;";
         return this;
     }
 
-    protected BaseAnalyzerTest<TAnalyzer> WithSourceCode(string sourceCode)
+    public BaseAnalyzerTest<TAnalyzer> WithSourceCode(string sourceCode)
     {
         this.TestState.Sources.Add((SourceFileName, sourceCode));
         return this;
