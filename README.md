@@ -115,7 +115,7 @@ services.AddEventPropagationSubscriber()
 
 // Method 2: Register all domain event handlers from a given assembly
 services.AddEventPropagationSubscriber()
-    .AddDomainEventHandlersFromAssembly(Assembly.GetExecutingAssembly());
+    .AddDomainEventHandlers(Assembly.GetExecutingAssembly());
 
 // Register the webhook endpoint in your ASP.NET Core app (startup-based approach)
 app.UseEndpoints(builder =>
