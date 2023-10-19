@@ -53,10 +53,10 @@ services.AddEventPropagationPublisher(options =>
 // Method 3: Set options values directly in C#
 services.AddEventPropagationPublisher(options =>
 {
-    options.TopicEndpoint = "<azure_topic_uri>",
+    options.TopicEndpoint = "<azure_topic_uri>";
 
     // Using an access key        
-    options.TopicAccessKey = "<secret_value>"
+    options.TopicAccessKey = "<secret_value>";
     
     // Using Azure Identity (RBAC)
     options.TokenCredential = new DefaultAzureCredential();
@@ -115,7 +115,7 @@ services.AddEventPropagationSubscriber()
 
 // Method 2: Register all domain event handlers from a given assembly
 services.AddEventPropagationSubscriber()
-    .AddDomainEventHandlersFromAssembly(Assembly.GetExecutingAssembly());
+    .AddDomainEventHandlers(Assembly.GetExecutingAssembly());
 
 // Register the webhook endpoint in your ASP.NET Core app (startup-based approach)
 app.UseEndpoints(builder =>
