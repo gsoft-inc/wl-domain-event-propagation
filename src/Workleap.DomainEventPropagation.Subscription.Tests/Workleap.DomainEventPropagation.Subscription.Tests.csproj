@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="FakeItEasy" Version="7.4.0" />
+    <PackageReference Include="FakeItEasy" Version="8.0.0" />
     <PackageReference Include="GSoft.Extensions.Xunit" Version="1.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.20" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
