@@ -1,3 +1,5 @@
+#nullable disable // To reproduce users that don't have nullable enabled 
+
 using Azure.Identity;
 
 namespace Workleap.DomainEventPropagation.Publishing.Tests;
