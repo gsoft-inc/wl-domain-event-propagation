@@ -111,7 +111,7 @@ Then, you can use on of the following methods to register the required services 
 // Method 1: Register only selected domain event handlers
 services.AddEventPropagationSubscriber()
     .AddDomainEventHandler<ExampleDomainEvent, ExampleDomainEventHandler>()
-    .AddDomainEventHandler<ExampleDomainEvent, OtherDomainEventHandler>();
+    .AddDomainEventHandler<OtherDomainEvent, OtherDomainEventHandler>();
 
 // Method 2: Register all domain event handlers from a given assembly
 services.AddEventPropagationSubscriber()
