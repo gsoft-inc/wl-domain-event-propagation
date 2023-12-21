@@ -85,7 +85,6 @@ public class DomainEventWrapperTests
         Assert.Equal(domainEvent.Message, unwrappedEvent.Message);
     }
 
-
     [Fact]
     public void GivenDomainCloudEvent_WhenWrapEvent_ThenEventWrappedProperly()
     {
@@ -110,7 +109,6 @@ public class DomainEventWrapperTests
     {
         public string? Message { get; set; }
     }
-
 
     [DomainEvent(CloudEventDomainEventName, EventSchema.CloudEvent)]
     private class CloudEventSampleDomainEvent : IDomainEvent

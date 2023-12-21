@@ -23,7 +23,6 @@ public class DomainEventSchemaCacheTests
         public string? Message { get; set; }
     }
 
-
     [DomainEvent("sample-cloud-event", EventSchema.CloudEvent)]
     private class CloudEventSampleDomainEvent : IDomainEvent
     {
