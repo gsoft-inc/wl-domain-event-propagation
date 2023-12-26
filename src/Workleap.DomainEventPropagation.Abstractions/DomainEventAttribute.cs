@@ -14,11 +14,6 @@ public sealed class DomainEventAttribute : Attribute
             throw new ArgumentNullException(nameof(name));
         }
 
-        if (eventSchema == null)
-        {
-            throw new ArgumentNullException(nameof(eventSchema));
-        }
-
         if (string.IsNullOrEmpty(name))
         {
             throw new ArgumentException("Domain event name cannot be empty", nameof(name));

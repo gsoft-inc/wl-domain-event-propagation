@@ -37,19 +37,23 @@ public class DomainEventWrapperTests
     }
 
     [Fact]
-    public void GivenCloudEvent_WhenSetMetadata_ThenNothingOccurs()
+    public void GivenCloudEvent_WhenSetMetadata_ThenExceptionIsThrown()
     {
         // Given
         var eventWrapper = new DomainEventWrapper(this._cloudEvent);
 
         // When
-        eventWrapper.SetMetadata("someKey", "someValue");
+        Assert.Throws<NotSupportedException>(() => eventWrapper.SetMetadata("someKey", "someValue"));
+    }
 
-        // Then
-        var valueFound = eventWrapper.TryGetMetadata("someKey", out var value);
+    [Fact]
+    public void GivenCloudEvent_WhenGetMetadata_ThenExceptionIsThrown()
+    {
+        // Given
+        var eventWrapper = new DomainEventWrapper(this._cloudEvent);
 
-        Assert.False(valueFound);
-        Assert.Null(value);
+        // When
+        Assert.Throws<NotSupportedException>(() => eventWrapper.TryGetMetadata("someKey", out _));
     }
 
     [Fact]

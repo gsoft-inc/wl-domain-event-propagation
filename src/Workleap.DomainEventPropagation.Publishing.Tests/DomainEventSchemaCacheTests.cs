@@ -6,14 +6,22 @@ namespace Workleap.DomainEventPropagation.Publishing.Tests;
 public class DomainEventSchemaCacheTests
 {
     [Fact]
-    public void Given_DomainEvent_When_RetrievingSchema_Then_ExpectedSchemaIsRetrieved()
+    public void Given_EventGridEvent_When_RetrievingSchema_Then_ExpectedSchemaIsRetrieved()
     {
         // Arrange & Act
         var eventGridSchema = DomainEventSchemaCache.GetEventSchema<EventGridSampleDomainEvent>();
-        var cloudEventSchema = DomainEventSchemaCache.GetEventSchema<CloudEventSampleDomainEvent>();
 
         // Assert
         Assert.Equal(EventSchema.EventGridEvent, eventGridSchema);
+    }
+
+    [Fact]
+    public void Given_CloudEvent_When_RetrievingSchema_Then_ExpectedSchemaIsRetrieved()
+    {
+        // Arrange & Act
+        var cloudEventSchema = DomainEventSchemaCache.GetEventSchema<CloudEventSampleDomainEvent>();
+
+        // Assert
         Assert.Equal(EventSchema.CloudEvent, cloudEventSchema);
     }
 
