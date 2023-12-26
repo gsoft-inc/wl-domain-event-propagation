@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using System.Text.Json.Nodes;
+using Azure.Messaging;
 using Azure.Messaging.EventGrid;
 
 namespace Workleap.DomainEventPropagation;
@@ -12,25 +13,46 @@ internal sealed class DomainEventWrapper
     {
         this.Data = eventGridEvent.Data.ToObjectFromJson<JsonObject>();
         this.DomainEventName = eventGridEvent.EventType;
+        this.DomainEventSchema = EventSchema.EventGridEvent;
     }
 
-    private DomainEventWrapper(JsonObject data, string domainEventName)
+    public DomainEventWrapper(CloudEvent cloudEvent)
+    {
+        this.Data = cloudEvent.Data!.ToObjectFromJson<JsonObject>();
+        this.DomainEventName = cloudEvent.Type;
+        this.DomainEventSchema = EventSchema.CloudEvent;
+    }
+
+    private DomainEventWrapper(JsonObject data, string domainEventName, EventSchema schema)
     {
         this.Data = data;
         this.DomainEventName = domainEventName;
+        this.DomainEventSchema = schema;
     }
 
     public JsonObject Data { get; }
 
     public string DomainEventName { get; }
 
+    public EventSchema DomainEventSchema { get; }
+
     public void SetMetadata(string key, string value)
     {
+        if (this.DomainEventSchema == EventSchema.CloudEvent)
+        {
+            throw new NotSupportedException();
+        }
+
         this.Data[GetMetadataKey(key)] = value;
     }
 
     public bool TryGetMetadata(string key, out string? value)
     {
+        if (this.DomainEventSchema == EventSchema.CloudEvent)
+        {
+            throw new NotSupportedException();
+        }
+
         if (this.Data.TryGetPropertyValue(GetMetadataKey(key), out var nodeValue) && nodeValue != null)
         {
             value = nodeValue.GetValue<string?>();
@@ -52,9 +74,10 @@ internal sealed class DomainEventWrapper
         where T : IDomainEvent
     {
         var domainEventName = DomainEventNameCache.GetName<T>();
+        var domainEventSchema = DomainEventSchemaCache.GetEventSchema<T>();
         var serializedEvent = (JsonObject?)JsonSerializer.SerializeToNode(domainEvent, domainEvent.GetType(), DomainEventWrapperSerializerOptions)
-            ?? throw new ArgumentException("The event cannot be serialized to JSON");
+                              ?? throw new ArgumentException("The event cannot be serialized to JSON");
 
-        return new DomainEventWrapper(serializedEvent, domainEventName);
+        return new DomainEventWrapper(serializedEvent, domainEventName, domainEventSchema);
     }
 }
