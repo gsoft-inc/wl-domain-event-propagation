@@ -21,6 +21,11 @@ internal sealed class EventPropagationPublisherOptionsValidator : IValidateOptio
             return ValidateOptionsResult.Fail("The topic endpoint must be an absolute URI");
         }
 
+        if (options.TopicType == TopicType.Namespace && string.IsNullOrWhiteSpace(options.TopicName))
+        {
+            return ValidateOptionsResult.Fail("A topic name is required when using a namespace topic type");
+        }
+
         return ValidateOptionsResult.Success;
     }
 }
