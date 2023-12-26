@@ -20,7 +20,7 @@ public sealed class EventPropagationPublisherOptions
 
     public string TopicEndpoint { get; set; } = string.Empty;
 
-    public string TopicName { get; set; } = string.Empty;
+    public string? TopicName { get; set; } = string.Empty;
 
     public TopicType TopicType { get; set; } = TopicType.Default;
 }

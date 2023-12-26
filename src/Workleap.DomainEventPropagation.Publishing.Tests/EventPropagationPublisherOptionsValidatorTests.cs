@@ -20,6 +20,7 @@ public class EventPropagationPublisherOptionsValidatorTests
     [InlineData(TopicType.Default, "accessKey", "http://topicurl.com", " ", true, true)]
     [InlineData(TopicType.Namespace, "accessKey", "http://topicurl.com", "topicName", true, true)]
     [InlineData(TopicType.Namespace, "accessKey", "http://topicurl.com", "", true, false)]
+    [InlineData(TopicType.Namespace, "accessKey", "http://topicurl.com", null, true, false)]
     public void GivenEventPropagationConfigurations_WhenValidateOptions_ThenAccessCredentialsValidated(TopicType topicType, string topicAccessKey, string topicEndpoint, string topicName, bool useTokenCredential, bool optionsValid)
     {
         var validator = new EventPropagationPublisherOptionsValidator();
