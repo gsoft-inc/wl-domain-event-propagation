@@ -44,7 +44,6 @@ internal sealed class DomainEventWrapper
         }
 
         this.Data[GetMetadataKey(key)] = value;
-
     }
 
     public bool TryGetMetadata(string key, out string? value)
