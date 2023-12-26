@@ -3,7 +3,11 @@
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
 public sealed class DomainEventAttribute : Attribute
 {
-    public DomainEventAttribute(string name)
+    public DomainEventAttribute(string name) : this(name, EventSchema.EventGridEvent)
+    {
+    }
+
+    public DomainEventAttribute(string name, EventSchema eventSchema = EventSchema.EventGridEvent)
     {
         if (name == null)
         {
@@ -16,7 +20,10 @@ public sealed class DomainEventAttribute : Attribute
         }
 
         this.Name = name;
+        this.Schema = eventSchema;
     }
 
     public string Name { get; }
+
+    public EventSchema Schema { get; }
 }

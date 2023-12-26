@@ -1,15 +1,24 @@
-﻿using Azure.Messaging.EventGrid;
+﻿using Azure.Messaging;
+using Azure.Messaging.EventGrid;
 
 namespace Workleap.DomainEventPropagation.Publishing.Tests;
 
 public class DomainEventWrapperTests
 {
-    private const string DomainEventName = "sample-event";
+    private const string EventGridDomainEventName = "sample-eg-event";
+    private const string CloudEventDomainEventName = "sample-cloud-event";
+
     private readonly EventGridEvent _eventGridEvent = new(
         "subject",
         "eventType",
         "1.0",
         new BinaryData(new SampleDomainEvent()));
+
+    private readonly CloudEvent _cloudEvent = new(
+        "source",
+        "eventType",
+        new BinaryData(new CloudEventSampleDomainEvent()),
+        nameof(CloudEventSampleDomainEvent));
 
     [Fact]
     public void GivenEventGridEvent_WhenSetMetadata_ThenMetadataIsSet()
@@ -25,6 +34,26 @@ public class DomainEventWrapperTests
 
         Assert.True(valueFound);
         Assert.Equal("someValue", value);
+    }
+
+    [Fact]
+    public void GivenCloudEvent_WhenSetMetadata_ThenExceptionIsThrown()
+    {
+        // Given
+        var eventWrapper = new DomainEventWrapper(this._cloudEvent);
+
+        // When
+        Assert.Throws<NotSupportedException>(() => eventWrapper.SetMetadata("someKey", "someValue"));
+    }
+
+    [Fact]
+    public void GivenCloudEvent_WhenGetMetadata_ThenExceptionIsThrown()
+    {
+        // Given
+        var eventWrapper = new DomainEventWrapper(this._cloudEvent);
+
+        // When
+        Assert.Throws<NotSupportedException>(() => eventWrapper.TryGetMetadata("someKey", out _));
     }
 
     [Fact]
@@ -51,7 +80,8 @@ public class DomainEventWrapperTests
         var wrappedEvent = DomainEventWrapper.Wrap(domainEvent);
 
         // Then
-        Assert.Equal(DomainEventName, wrappedEvent.DomainEventName);
+        Assert.Equal(EventGridDomainEventName, wrappedEvent.DomainEventName);
+        Assert.Equal(EventSchema.EventGridEvent, wrappedEvent.DomainEventSchema);
 
         var unwrappedEvent = (SampleDomainEvent)wrappedEvent.Unwrap(typeof(SampleDomainEvent));
 
@@ -59,8 +89,33 @@ public class DomainEventWrapperTests
         Assert.Equal(domainEvent.Message, unwrappedEvent.Message);
     }
 
-    [DomainEvent(DomainEventName)]
+    [Fact]
+    public void GivenDomainCloudEvent_WhenWrapEvent_ThenEventWrappedProperly()
+    {
+        // Given
+        var domainEvent = new CloudEventSampleDomainEvent() { Message = "Hello world" };
+
+        // When
+        var wrappedEvent = DomainEventWrapper.Wrap(domainEvent);
+
+        // Then
+        Assert.Equal(CloudEventDomainEventName, wrappedEvent.DomainEventName);
+        Assert.Equal(EventSchema.CloudEvent, wrappedEvent.DomainEventSchema);
+
+        var unwrappedEvent = (CloudEventSampleDomainEvent)wrappedEvent.Unwrap(typeof(CloudEventSampleDomainEvent));
+
+        Assert.NotNull(unwrappedEvent);
+        Assert.Equal(domainEvent.Message, unwrappedEvent.Message);
+    }
+
+    [DomainEvent(EventGridDomainEventName)]
     private class SampleDomainEvent : IDomainEvent
+    {
+        public string? Message { get; set; }
+    }
+
+    [DomainEvent(CloudEventDomainEventName, EventSchema.CloudEvent)]
+    private class CloudEventSampleDomainEvent : IDomainEvent
     {
         public string? Message { get; set; }
     }
