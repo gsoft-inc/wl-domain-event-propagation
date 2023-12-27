@@ -14,7 +14,7 @@ internal sealed class ApplicationInsightsPublishingDomainEventBehavior : IPublis
 
     public Task HandleAsync(DomainEventWrapperCollection domainEventWrappers, DomainEventsHandlerDelegate next, CancellationToken cancellationToken)
     {
-        return this._telemetryClient == null
+        return this._telemetryClient == null || domainEventWrappers.DomainSchema == EventSchema.CloudEvent
             ? next(domainEventWrappers, cancellationToken)
             : this.HandleWithTelemetry(domainEventWrappers, next, cancellationToken);
     }
