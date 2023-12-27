@@ -9,7 +9,7 @@ internal static class DomainEventNameCache
     private static readonly ConcurrentDictionary<Type, string> DomainEventNameTypeMappings = new ConcurrentDictionary<Type, string>();
 
     public static string GetName<T>()
-        where T : IDomainEvent
+        where T : IDomainEvent, new()
     {
         return GetName(typeof(T));
     }

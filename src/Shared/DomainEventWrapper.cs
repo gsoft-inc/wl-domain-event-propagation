@@ -71,7 +71,7 @@ internal sealed class DomainEventWrapper
     }
 
     public static DomainEventWrapper Wrap<T>(T domainEvent)
-        where T : IDomainEvent
+        where T : IDomainEvent, new()
     {
         var domainEventName = DomainEventNameCache.GetName<T>();
         var domainEventSchema = DomainEventSchemaCache.GetEventSchema<T>();
