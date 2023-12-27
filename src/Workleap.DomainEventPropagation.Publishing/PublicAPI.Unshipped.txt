@@ -4,5 +4,5 @@ Workleap.DomainEventPropagation.EventPropagationPublisherOptions.TopicName.set -
 Workleap.DomainEventPropagation.EventPropagationPublisherOptions.TopicType.get -> Workleap.DomainEventPropagation.TopicType
 Workleap.DomainEventPropagation.EventPropagationPublisherOptions.TopicType.set -> void
 Workleap.DomainEventPropagation.TopicType
-Workleap.DomainEventPropagation.TopicType.Default = 0 -> Workleap.DomainEventPropagation.TopicType
+Workleap.DomainEventPropagation.TopicType.Custom = 0 -> Workleap.DomainEventPropagation.TopicType
 Workleap.DomainEventPropagation.TopicType.Namespace = 1 -> Workleap.DomainEventPropagation.TopicType
