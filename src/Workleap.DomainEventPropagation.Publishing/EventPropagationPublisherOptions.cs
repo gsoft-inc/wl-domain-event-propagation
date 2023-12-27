@@ -4,7 +4,7 @@ namespace Workleap.DomainEventPropagation;
 
 public enum TopicType
 {
-    Default = 0,
+    Custom = 0,
     Namespace = 1,
 }
 
@@ -12,7 +12,10 @@ public sealed class EventPropagationPublisherOptions
 {
     internal const string SectionName = "EventPropagation:Publisher";
 
-    internal const string ClientName = "EventPropagationClient";
+    // EventPropagationClient was the legacy name when only one kind of topic was supported
+    internal const string CustomTopicClientName = "EventPropagationClient";
+
+    internal const string NamespaceTopicClientName = "NamespaceTopicClient";
 
     public string TopicAccessKey { get; set; } = string.Empty;
 
@@ -22,5 +25,5 @@ public sealed class EventPropagationPublisherOptions
 
     public string? TopicName { get; set; } = string.Empty;
 
-    public TopicType TopicType { get; set; } = TopicType.Default;
+    public TopicType TopicType { get; set; } = TopicType.Custom;
 }
