@@ -21,7 +21,7 @@ internal sealed class DomainEventWrapperCollection : IReadOnlyCollection<DomainE
     public EventSchema DomainSchema { get; }
 
     public static DomainEventWrapperCollection Create<T>(IEnumerable<T> domainEvents)
-        where T : IDomainEvent
+        where T : IDomainEvent, new()
     {
         var domainEventWrappers = domainEvents.Select(DomainEventWrapper.Wrap).ToArray();
         if (domainEventWrappers.Select(x => x.DomainEventName).Distinct().Count() > 1)
