@@ -1,4 +1,6 @@
+using Azure.Messaging;
 using Azure.Messaging.EventGrid;
+using Azure.Messaging.EventGrid.Namespaces;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Options;
 
@@ -11,18 +13,25 @@ internal sealed class EventPropagationClient : IEventPropagationClient
 {
     private const string DomainEventDefaultVersion = "1.0";
 
-    private readonly EventGridPublisherClient _eventGridPublisherClient;
     private readonly EventPropagationPublisherOptions _eventPropagationPublisherOptions;
     private readonly DomainEventsHandlerDelegate _pipeline;
+    private readonly EventGridPublisherClient _eventGridPublisherClient;
+    private readonly EventGridClient _eventGridClient;
 
+    /// <summary>
+    /// To support Namespace topic, we need to use the following EventGridClient https://github.com/Azure/azure-sdk-for-net/blob/Azure.Messaging.EventGrid_4.17.0-beta.1/sdk/eventgrid/Azure.Messaging.EventGridV2/src/Generated/EventGridClient.cs
+    /// Note that even if this client as the same name, it is different from the deprecated one found here https://learn.microsoft.com/en-us/dotnet/api/microsoft.azure.eventgrid.eventgridclient?view=azure-dotnet-legacy
+    /// </summary>
     public EventPropagationClient(
         IAzureClientFactory<EventGridPublisherClient> eventGridPublisherClientFactory,
+        IAzureClientFactory<EventGridClient> eventGridClientFactory,
         IOptions<EventPropagationPublisherOptions> eventPropagationPublisherOptions,
         IEnumerable<IPublishingDomainEventBehavior> publishingDomainEventBehaviors)
     {
-        this._eventGridPublisherClient = eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.ClientName);
         this._eventPropagationPublisherOptions = eventPropagationPublisherOptions.Value;
         this._pipeline = publishingDomainEventBehaviors.Reverse().Aggregate((DomainEventsHandlerDelegate)this.SendDomainEventsAsync, BuildPipeline);
+        this._eventGridPublisherClient = eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.CustomTopicClientName);
+        this._eventGridClient = eventGridClientFactory.CreateClient(EventPropagationPublisherOptions.NamespaceTopicClientName);
     }
 
     private static DomainEventsHandlerDelegate BuildPipeline(DomainEventsHandlerDelegate accumulator, IPublishingDomainEventBehavior next)
@@ -58,14 +67,51 @@ internal sealed class EventPropagationClient : IEventPropagationClient
         }
     }
 
-    private async Task SendDomainEventsAsync(DomainEventWrapperCollection domainEventWrappers, CancellationToken cancellationToken)
+    private Task SendDomainEventsAsync(DomainEventWrapperCollection domainEventWrappers, CancellationToken cancellationToken)
     {
+        return domainEventWrappers.DomainSchema switch
+        {
+            EventSchema.EventGridEvent => this.SendEventGridEvents(domainEventWrappers, cancellationToken),
+            EventSchema.CloudEvent => this.SendCloudEvents(domainEventWrappers, cancellationToken),
+            _ => throw new NotSupportedException($"Event schema {domainEventWrappers.DomainSchema} is not supported"),
+        };
+    }
+
+    private Task SendEventGridEvents(
+        DomainEventWrapperCollection domainEventWrappers,
+        CancellationToken cancellationToken)
+    {
+        var topicType = this._eventPropagationPublisherOptions.TopicType;
         var eventGridEvents = domainEventWrappers.Select(wrapper => new EventGridEvent(
             subject: wrapper.DomainEventName,
             eventType: wrapper.DomainEventName,
             dataVersion: DomainEventDefaultVersion,
             data: new BinaryData(wrapper.Data)));
 
-        await this._eventGridPublisherClient.SendEventsAsync(eventGridEvents, cancellationToken).ConfigureAwait(false);
+        return topicType switch
+        {
+            TopicType.Custom => this._eventGridPublisherClient.SendEventsAsync(eventGridEvents, cancellationToken),
+            TopicType.Namespace => throw new NotSupportedException("Cannot send EventGridEvents to a namespace topic"),
+            _ => throw new NotSupportedException($"Topic type {topicType} is not supported"),
+        };
+    }
+
+    private Task SendCloudEvents(
+        DomainEventWrapperCollection domainEventWrappers,
+        CancellationToken cancellationToken)
+    {
+        var topicType = this._eventPropagationPublisherOptions.TopicType;
+        var topicName = this._eventPropagationPublisherOptions.TopicName;
+        var cloudEvents = domainEventWrappers.Select(wrapper => new CloudEvent(
+            type: wrapper.DomainEventName,
+            source: this._eventPropagationPublisherOptions.TopicEndpoint,
+            jsonSerializableData: wrapper.Data));
+
+        return topicType switch
+        {
+            TopicType.Custom => this._eventGridPublisherClient.SendEventsAsync(cloudEvents, cancellationToken),
+            TopicType.Namespace => this._eventGridClient.PublishCloudEventsAsync(topicName, cloudEvents, cancellationToken),
+            _ => throw new NotSupportedException($"Topic type {topicType} is not supported"),
+        };
     }
 }
