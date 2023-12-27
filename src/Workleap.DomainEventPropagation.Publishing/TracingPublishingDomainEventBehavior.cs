@@ -8,6 +8,12 @@ internal sealed class TracingPublishingDomainEventBehavior : IPublishingDomainEv
 {
     public async Task HandleAsync(DomainEventWrapperCollection domainEventWrappers, DomainEventsHandlerDelegate next, CancellationToken cancellationToken)
     {
+        if (domainEventWrappers.DomainSchema == EventSchema.CloudEvent)
+        {
+            await next(domainEventWrappers, cancellationToken).ConfigureAwait(false);
+            return;
+        }
+
         var activityName = TracingHelper.GetEventGridEventsPublisherActivityName(domainEventWrappers.DomainEventName);
 
         using var activity = TracingHelper.StartProducerActivity(activityName);
