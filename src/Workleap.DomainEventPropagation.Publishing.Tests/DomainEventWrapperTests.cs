@@ -17,8 +17,7 @@ public class DomainEventWrapperTests
     private readonly CloudEvent _cloudEvent = new(
         "source",
         "eventType",
-        new BinaryData(new CloudEventSampleDomainEvent()),
-        nameof(CloudEventSampleDomainEvent));
+        new CloudEventSampleDomainEvent());
 
     [Fact]
     public void GivenEventGridEvent_WhenSetMetadata_ThenMetadataIsSet()
