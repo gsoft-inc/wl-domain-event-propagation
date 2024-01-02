@@ -29,6 +29,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Workleap.DomainEventPropaga
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Workleap.DomainEventPropagation.Analyzers.Tests", "Workleap.DomainEventPropagation.Analyzers.Tests\Workleap.DomainEventPropagation.Analyzers.Tests.csproj", "{8883071A-7B43-4B4C-9647-BE6CB0F16457}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Workleap.DomainEventPropagation.Subscription.PullDelivery", "Workleap.DomainEventPropagation.Subscription.PullDelivery\Workleap.DomainEventPropagation.Subscription.PullDelivery.csproj", "{25A7D9D2-5804-49E0-84CB-7F489009F8B6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests", "Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests\Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests.csproj", "{B06DE020-8945-4EF8-82E5-CE573BA5F032}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -71,6 +75,14 @@ Global
 		{8883071A-7B43-4B4C-9647-BE6CB0F16457}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8883071A-7B43-4B4C-9647-BE6CB0F16457}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8883071A-7B43-4B4C-9647-BE6CB0F16457}.Release|Any CPU.Build.0 = Release|Any CPU
+		{25A7D9D2-5804-49E0-84CB-7F489009F8B6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{25A7D9D2-5804-49E0-84CB-7F489009F8B6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{25A7D9D2-5804-49E0-84CB-7F489009F8B6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{25A7D9D2-5804-49E0-84CB-7F489009F8B6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B06DE020-8945-4EF8-82E5-CE573BA5F032}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B06DE020-8945-4EF8-82E5-CE573BA5F032}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B06DE020-8945-4EF8-82E5-CE573BA5F032}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B06DE020-8945-4EF8-82E5-CE573BA5F032}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -82,5 +94,6 @@ Global
 		{2A5429CC-E179-47E7-85BB-C1E33E2AFD8A} = {52515FB6-FE9A-4121-9AB3-6066E49BCA79}
 		{B2F1E4B9-C32E-4835-BD1A-557ACCA85B58} = {52515FB6-FE9A-4121-9AB3-6066E49BCA79}
 		{8883071A-7B43-4B4C-9647-BE6CB0F16457} = {52515FB6-FE9A-4121-9AB3-6066E49BCA79}
+		{B06DE020-8945-4EF8-82E5-CE573BA5F032} = {52515FB6-FE9A-4121-9AB3-6066E49BCA79}
 	EndGlobalSection
 EndGlobal
