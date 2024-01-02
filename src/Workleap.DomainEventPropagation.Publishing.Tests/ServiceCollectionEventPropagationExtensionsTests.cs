@@ -12,7 +12,7 @@ public class ServiceCollectionEventPropagationExtensionsTests
     [Fact]
     public void GivenEventPropagationConfigPresent_WhenAddEventPropagationPublisher_ThenOptionsAreSet()
     {
-
+        // Given
         var inMemorySettings = new Dictionary<string, string?>
         {
             [$"{EventPropagationPublisherOptions.SectionName}:TopicEndpoint"] = "http://topicEndpoint.io",
