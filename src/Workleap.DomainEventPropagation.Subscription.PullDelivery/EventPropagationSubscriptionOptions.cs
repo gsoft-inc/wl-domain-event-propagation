@@ -4,7 +4,7 @@ namespace Workleap.DomainEventPropagation;
 
 public class EventPropagationSubscriptionOptions
 {
-    internal const string SectionName = "EventPropagation:Subscription";
+    internal const string DefaultSectionName = "EventPropagation:Subscription";
 
     public string TopicAccessKey { get; set; } = string.Empty;
 

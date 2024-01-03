@@ -7,7 +7,10 @@ public static class ServiceCollectionEventSubscriptionExtensions
     public static IEventPropagationSubscriberBuilder AddEventPropagationSubscriber(this IServiceCollection services)
         => services.AddEventPropagationSubscriber(_ => { });
 
-    public static IEventPropagationSubscriberBuilder AddEventPropagationSubscriber(this IServiceCollection services, Action<EventPropagationSubscriptionOptions> configure)
+    public static IEventPropagationSubscriberBuilder AddEventPropagationSubscriber(this IServiceCollection services, string optionsSectionName)
+        => services.AddEventPropagationSubscriber(_ => { }, optionsSectionName);
+
+    public static IEventPropagationSubscriberBuilder AddEventPropagationSubscriber(this IServiceCollection services, Action<EventPropagationSubscriptionOptions> configure, string optionsSectionName = EventPropagationSubscriptionOptions.DefaultSectionName)
     {
         if (services == null)
         {
@@ -19,6 +22,6 @@ public static class ServiceCollectionEventSubscriptionExtensions
             throw new ArgumentNullException(nameof(configure));
         }
 
-        return new EventPropagationSubscriberBuilder(services, configure);
+        return new EventPropagationSubscriberBuilder(services, configure, optionsSectionName);
     }
 }

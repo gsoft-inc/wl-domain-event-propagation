@@ -8,26 +8,27 @@ namespace Workleap.DomainEventPropagation;
 
 internal sealed class EventPropagationSubscriberBuilder : IEventPropagationSubscriberBuilder
 {
-    public EventPropagationSubscriberBuilder(IServiceCollection services, Action<EventPropagationSubscriptionOptions> configure)
+    public EventPropagationSubscriberBuilder(IServiceCollection services, Action<EventPropagationSubscriptionOptions> configure, string optionsSectionName)
     {
         this.Services = services;
-        this.AddRegistrations(configure);
+        this.AddRegistrations(configure, optionsSectionName);
     }
 
     public IServiceCollection Services { get; }
 
-    private void AddRegistrations(Action<EventPropagationSubscriptionOptions> configure)
+    private void AddRegistrations(Action<EventPropagationSubscriptionOptions> configure, string optionsSectionName)
     {
         this.Services
-            .AddOptions<EventPropagationSubscriptionOptions>()
-            .Configure<IConfiguration>(BindFromWellKnownConfigurationSection)
+            .AddOptions<EventPropagationSubscriptionOptions>(optionsSectionName)
+            .Configure<IConfiguration>((opt, cfg) => BindFromWellKnownConfigurationSection(opt, cfg, optionsSectionName))
             .Configure(configure);
 
         this.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<EventPropagationSubscriptionOptions>, EventPropagationSubscriptionOptionsValidator>());
     }
 
-    private static void BindFromWellKnownConfigurationSection(EventPropagationSubscriptionOptions options, IConfiguration configuration)
+    private static void BindFromWellKnownConfigurationSection(EventPropagationSubscriptionOptions options, IConfiguration configuration, string optionsSectionName)
     {
-        configuration.GetSection(EventPropagationSubscriptionOptions.SectionName).Bind(options);
+        var section = configuration.GetSection(optionsSectionName);
+        section.Bind(options);
     }
 }

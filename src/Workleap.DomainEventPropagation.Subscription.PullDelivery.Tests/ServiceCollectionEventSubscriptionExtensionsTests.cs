@@ -6,63 +6,122 @@ namespace Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests;
 
 public class ServiceCollectionEventSubscriptionExtensionsTests
 {
+    private const string AccessKey = "accessKey";
+    private const string TopicEndPoint = "http://topicurl.com";
+    private const string TopicName = "topic-name";
+    private const string SubscriptionName = "sub-name";
+
     [Fact]
-    public void GivenIConfiguration_WhenAddSubscriber_ThenOptionsAreRegistered()
+    public void GivenUnnamedConfiguration_WhenAddSubscriber_ThenOptionsAreRegistered()
     {
         // Given
-        var myConfiguration = new Dictionary<string, string>
-        {
-            [$"{EventPropagationSubscriptionOptions.SectionName}:{nameof(EventPropagationSubscriptionOptions.TopicAccessKey)}"] = "accessKey",
-            [$"{EventPropagationSubscriptionOptions.SectionName}:{nameof(EventPropagationSubscriptionOptions.TopicEndpoint)}"] = "http://topicurl.com",
-            [$"{EventPropagationSubscriptionOptions.SectionName}:{nameof(EventPropagationSubscriptionOptions.SubscriptionName)}"] = "sub-name",
-            [$"{EventPropagationSubscriptionOptions.SectionName}:{nameof(EventPropagationSubscriptionOptions.TopicName)}"] = "topic-name",
-        };
-
         var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(myConfiguration)
-            .Build();
-        services.AddSingleton<IConfiguration>(configuration);
+        GivenConfigurations(services, EventPropagationSubscriptionOptions.DefaultSectionName);
 
         // When
         services.AddEventPropagationSubscriber();
         var serviceProvider = services.BuildServiceProvider();
-        var options = serviceProvider.GetRequiredService<IOptions<EventPropagationSubscriptionOptions>>().Value;
+        var options = serviceProvider.GetRequiredService<IOptionsMonitor<EventPropagationSubscriptionOptions>>().Get(EventPropagationSubscriptionOptions.DefaultSectionName);
 
         // Then
-        Assert.Equal(myConfiguration[$"{EventPropagationSubscriptionOptions.SectionName}:{nameof(EventPropagationSubscriptionOptions.TopicEndpoint)}"], options.TopicEndpoint);
-        Assert.Equal(myConfiguration[$"{EventPropagationSubscriptionOptions.SectionName}:{nameof(EventPropagationSubscriptionOptions.TopicAccessKey)}"], options.TopicAccessKey);
-        Assert.Equal(myConfiguration[$"{EventPropagationSubscriptionOptions.SectionName}:{nameof(EventPropagationSubscriptionOptions.SubscriptionName)}"], options.SubscriptionName);
-        Assert.Equal(myConfiguration[$"{EventPropagationSubscriptionOptions.SectionName}:{nameof(EventPropagationSubscriptionOptions.TopicName)}"], options.TopicName);
+        Assert.Equal(AccessKey, options.TopicAccessKey);
+        Assert.Equal(TopicEndPoint, options.TopicEndpoint);
+        Assert.Equal(TopicName, options.TopicName);
+        Assert.Equal(SubscriptionName, options.SubscriptionName);
     }
 
     [Fact]
-    public void GivenIConfiguration_WhenAddSubscriber_CanOverrideConfiguration()
+    public void GivenUnnamedConfiguration_WhenAddSubscriber_CanOverrideConfiguration()
     {
         // Given
-        var myConfiguration = new Dictionary<string, string>
-        {
-            [$"{EventPropagationSubscriptionOptions.SectionName}:{nameof(EventPropagationSubscriptionOptions.TopicAccessKey)}"] = "accessKey",
-            [$"{EventPropagationSubscriptionOptions.SectionName}:{nameof(EventPropagationSubscriptionOptions.TopicEndpoint)}"] = "http://topicurl.com",
-            [$"{EventPropagationSubscriptionOptions.SectionName}:{nameof(EventPropagationSubscriptionOptions.SubscriptionName)}"] = "sub-name",
-            [$"{EventPropagationSubscriptionOptions.SectionName}:{nameof(EventPropagationSubscriptionOptions.TopicName)}"] = "topic-name",
-        };
-
         var services = new ServiceCollection();
-        var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(myConfiguration)
-            .Build();
-        services.AddSingleton<IConfiguration>(configuration);
+        GivenConfigurations(services, EventPropagationSubscriptionOptions.DefaultSectionName);
 
         // When
         services.AddEventPropagationSubscriber(options => { options.TopicEndpoint = "http://ovewrite.io"; });
         var serviceProvider = services.BuildServiceProvider();
-        var options = serviceProvider.GetRequiredService<IOptions<EventPropagationSubscriptionOptions>>().Value;
+        var options = serviceProvider.GetRequiredService<IOptionsMonitor<EventPropagationSubscriptionOptions>>().Get(EventPropagationSubscriptionOptions.DefaultSectionName);
 
         // Then
         Assert.Equal("http://ovewrite.io", options.TopicEndpoint);
-        Assert.Equal(myConfiguration[$"{EventPropagationSubscriptionOptions.SectionName}:{nameof(EventPropagationSubscriptionOptions.TopicAccessKey)}"], options.TopicAccessKey);
-        Assert.Equal(myConfiguration[$"{EventPropagationSubscriptionOptions.SectionName}:{nameof(EventPropagationSubscriptionOptions.SubscriptionName)}"], options.SubscriptionName);
-        Assert.Equal(myConfiguration[$"{EventPropagationSubscriptionOptions.SectionName}:{nameof(EventPropagationSubscriptionOptions.TopicName)}"], options.TopicName);
+        Assert.Equal(AccessKey, options.TopicAccessKey);
+        Assert.Equal(SubscriptionName, options.SubscriptionName);
+        Assert.Equal(TopicName, options.TopicName);
+    }
+
+    [Fact]
+    public void GivenNamedConfigurations_WhenAddSubscribers_ThenOptionsAreRegistered()
+    {
+        // Given
+        var services = new ServiceCollection();
+        const string sectionName1 = "EventPropagation:Sub1";
+        const string sectionName2 = "EventPropagation:Sub2";
+        GivenConfigurations(services, sectionName1, sectionName2);
+
+        // When
+        services.AddEventPropagationSubscriber(sectionName1);
+        services.AddEventPropagationSubscriber(sectionName2);
+        var serviceProvider = services.BuildServiceProvider();
+        var monitor = serviceProvider.GetRequiredService<IOptionsMonitor<EventPropagationSubscriptionOptions>>();
+        var options1 = monitor.Get(sectionName1);
+        var options2 = monitor.Get(sectionName2);
+
+        // Then
+        Assert.Equal(AccessKey, options1.TopicAccessKey);
+        Assert.Equal(TopicEndPoint, options1.TopicEndpoint);
+        Assert.Equal(TopicName, options1.TopicName);
+        Assert.Equal(SubscriptionName, options1.SubscriptionName);
+
+        Assert.Equal(AccessKey, options2.TopicAccessKey);
+        Assert.Equal(TopicEndPoint, options2.TopicEndpoint);
+        Assert.Equal(TopicName, options2.TopicName);
+        Assert.Equal(SubscriptionName, options2.SubscriptionName);
+    }
+
+    [Fact]
+    public void GivenNamedConfigurations_WhenAddSubscribers_CanOverrideConfigurations()
+    {
+        // Given
+        var services = new ServiceCollection();
+        const string sectionName1 = "EventPropagation:Sub1";
+        const string sectionName2 = "EventPropagation:Sub2";
+        GivenConfigurations(services, sectionName1, sectionName2);
+
+        // When
+        services.AddEventPropagationSubscriber(options => { options.TopicEndpoint = "http://ovewrite1.io"; }, sectionName1);
+        services.AddEventPropagationSubscriber(options => { options.TopicEndpoint = "http://ovewrite2.io"; }, sectionName2);
+        var serviceProvider = services.BuildServiceProvider();
+        var monitor = serviceProvider.GetRequiredService<IOptionsMonitor<EventPropagationSubscriptionOptions>>();
+        var options1 = monitor.Get(sectionName1);
+        var options2 = monitor.Get(sectionName2);
+
+        // Then
+        Assert.Equal("http://ovewrite1.io", options1.TopicEndpoint);
+        Assert.Equal(AccessKey, options1.TopicAccessKey);
+        Assert.Equal(TopicName, options1.TopicName);
+        Assert.Equal(SubscriptionName, options1.SubscriptionName);
+
+        Assert.Equal("http://ovewrite2.io", options2.TopicEndpoint);
+        Assert.Equal(AccessKey, options2.TopicAccessKey);
+        Assert.Equal(TopicName, options2.TopicName);
+        Assert.Equal(SubscriptionName, options2.SubscriptionName);
+    }
+
+    private static void GivenConfigurations(IServiceCollection services, params string[] sections)
+    {
+        var dictionnary = new Dictionary<string, string>();
+
+        foreach (var section in sections)
+        {
+            dictionnary[$"{section}:{nameof(EventPropagationSubscriptionOptions.TopicAccessKey)}"] = AccessKey;
+            dictionnary[$"{section}:{nameof(EventPropagationSubscriptionOptions.TopicEndpoint)}"] = TopicEndPoint;
+            dictionnary[$"{section}:{nameof(EventPropagationSubscriptionOptions.TopicName)}"] = TopicName;
+            dictionnary[$"{section}:{nameof(EventPropagationSubscriptionOptions.SubscriptionName)}"] = SubscriptionName;
+        }
+
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(dictionnary)
+            .Build();
+        services.AddSingleton<IConfiguration>(configuration);
     }
 }

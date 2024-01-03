@@ -30,7 +30,7 @@ public class EventPropagationSubscriptionOptionsValidatorTests
     // Subscription name
     [InlineData("accessKey", false, "http://topicurl.com", "topicName", "", false)]
     [InlineData("accessKey", false, "http://topicurl.com", "topicName", null, false)]
-    public void GivenEventPropagationConfigurations_WhenValidateOptions_ThenAccessCredentialsValidated(string topicAccessKey, bool useTokenCredential, string topicEndpoint, string topicName, string subName, bool validationSucceeded)
+    public void GivenNamedConfiguration_WhenValidate_ThenOptionsAreValidated(string topicAccessKey, bool useTokenCredential, string topicEndpoint, string topicName, string subName, bool validationSucceeded)
     {
         var validator = new EventPropagationSubscriptionOptionsValidator();
 
