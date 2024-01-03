@@ -19,7 +19,7 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         GivenConfigurations(services, EventPropagationSubscriptionOptions.DefaultSectionName);
 
         // When
-        services.AddEventPropagationSubscriber();
+        services.AddPullDeliverySubscription().AddSubscriber();
         var serviceProvider = services.BuildServiceProvider();
         var options = serviceProvider.GetRequiredService<IOptionsMonitor<EventPropagationSubscriptionOptions>>().Get(EventPropagationSubscriptionOptions.DefaultSectionName);
 
@@ -38,7 +38,7 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         GivenConfigurations(services, EventPropagationSubscriptionOptions.DefaultSectionName);
 
         // When
-        services.AddEventPropagationSubscriber(options => { options.TopicEndpoint = "http://ovewrite.io"; });
+        services.AddPullDeliverySubscription().AddSubscriber(options => { options.TopicEndpoint = "http://ovewrite.io"; });
         var serviceProvider = services.BuildServiceProvider();
         var options = serviceProvider.GetRequiredService<IOptionsMonitor<EventPropagationSubscriptionOptions>>().Get(EventPropagationSubscriptionOptions.DefaultSectionName);
 
@@ -59,8 +59,9 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         GivenConfigurations(services, sectionName1, sectionName2);
 
         // When
-        services.AddEventPropagationSubscriber(sectionName1);
-        services.AddEventPropagationSubscriber(sectionName2);
+        services.AddPullDeliverySubscription()
+            .AddSubscriber(sectionName1)
+            .AddSubscriber(sectionName2);
         var serviceProvider = services.BuildServiceProvider();
         var monitor = serviceProvider.GetRequiredService<IOptionsMonitor<EventPropagationSubscriptionOptions>>();
         var options1 = monitor.Get(sectionName1);
@@ -88,8 +89,9 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         GivenConfigurations(services, sectionName1, sectionName2);
 
         // When
-        services.AddEventPropagationSubscriber(options => { options.TopicEndpoint = "http://ovewrite1.io"; }, sectionName1);
-        services.AddEventPropagationSubscriber(options => { options.TopicEndpoint = "http://ovewrite2.io"; }, sectionName2);
+        services.AddPullDeliverySubscription()
+            .AddSubscriber(options => { options.TopicEndpoint = "http://ovewrite1.io"; }, sectionName1)
+            .AddSubscriber(options => { options.TopicEndpoint = "http://ovewrite2.io"; }, sectionName2);
         var serviceProvider = services.BuildServiceProvider();
         var monitor = serviceProvider.GetRequiredService<IOptionsMonitor<EventPropagationSubscriptionOptions>>();
         var options1 = monitor.Get(sectionName1);
