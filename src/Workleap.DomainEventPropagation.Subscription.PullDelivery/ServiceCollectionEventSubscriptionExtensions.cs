@@ -1,4 +1,7 @@
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 
 namespace Workleap.DomainEventPropagation;
 
@@ -27,7 +30,18 @@ public static class ServiceCollectionEventSubscriptionExtensions
             throw new ArgumentNullException(nameof(configure));
         }
 
-        builder.ConfigureSubscriber(configure, optionsSectionName);
+        builder.Services.AddOptions<EventPropagationSubscriptionOptions>(optionsSectionName)
+            .Configure<IConfiguration>((opt, cfg) => BindFromWellKnownConfigurationSection(opt, cfg, optionsSectionName))
+            .Configure(configure);
+
+        builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<EventPropagationSubscriptionOptions>, EventPropagationSubscriptionOptionsValidator>());
+
         return builder;
+    }
+
+    private static void BindFromWellKnownConfigurationSection(EventPropagationSubscriptionOptions options, IConfiguration configuration, string optionsSectionName)
+    {
+        var section = configuration.GetSection(optionsSectionName);
+        section.Bind(options);
     }
 }

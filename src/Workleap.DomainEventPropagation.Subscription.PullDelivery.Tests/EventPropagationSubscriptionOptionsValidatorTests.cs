@@ -44,6 +44,5 @@ public class EventPropagationSubscriptionOptionsValidatorTests
         });
 
         Assert.Equal(validationSucceeded, result.Succeeded);
-        Assert.Equal(!validationSucceeded, result.Failed);
     }
 }

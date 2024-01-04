@@ -13,19 +13,4 @@ internal sealed class EventPropagationSubscriberBuilder : IEventPropagationSubsc
     }
 
     public IServiceCollection Services { get; }
-
-    public void ConfigureSubscriber(Action<EventPropagationSubscriptionOptions> configure, string optionsSectionName)
-    {
-        this.Services.AddOptions<EventPropagationSubscriptionOptions>(optionsSectionName)
-            .Configure<IConfiguration>((opt, cfg) => BindFromWellKnownConfigurationSection(opt, cfg, optionsSectionName))
-            .Configure(configure);
-
-        this.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<EventPropagationSubscriptionOptions>, EventPropagationSubscriptionOptionsValidator>());
-    }
-
-    private static void BindFromWellKnownConfigurationSection(EventPropagationSubscriptionOptions options, IConfiguration configuration, string optionsSectionName)
-    {
-        var section = configuration.GetSection(optionsSectionName);
-        section.Bind(options);
-    }
 }
