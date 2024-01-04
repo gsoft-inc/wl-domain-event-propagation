@@ -9,9 +9,7 @@ internal sealed class EventPropagationSubscriberBuilder : IEventPropagationSubsc
         this.Services = services;
 
         this.Services.AddSingleton<IDomainEventTypeRegistry, DomainEventTypeRegistry>();
-
-        this.Services.AddSingleton<EventPuller>();
-        this.Services.AddHostedService<EventPuller>(sp => sp.GetRequiredService<EventPuller>());
+        this.Services.AddHostedService<EventPuller>();
     }
 
     public IServiceCollection Services { get; }

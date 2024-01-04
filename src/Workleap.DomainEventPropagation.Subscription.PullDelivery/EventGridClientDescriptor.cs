@@ -1,3 +1,3 @@
 ﻿namespace Workleap.DomainEventPropagation;
 
-internal record EventGridClientDescriptor(string Name);
+internal sealed record EventGridClientDescriptor(string Name);

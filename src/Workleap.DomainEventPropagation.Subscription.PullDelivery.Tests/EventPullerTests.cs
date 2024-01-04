@@ -1,6 +1,7 @@
 ﻿using Azure.Messaging.EventGrid.Namespaces;
 using FakeItEasy;
 using Microsoft.Extensions.Azure;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
 namespace Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests;
@@ -28,7 +29,7 @@ public class EventPullerTests
         A.CallTo(() => optionMonitor.Get(sub2)).Returns(options2);
 
         // When
-        var puller = new EventPuller(eventGridClientDescriptors, clientFactory, optionMonitor);
+        var puller = new EventPuller(eventGridClientDescriptors, clientFactory, optionMonitor, new NullLogger<EventPuller>());
 
 // We need this to start on the thread pool otherwise it will just block the test
 #pragma warning disable CS4014
