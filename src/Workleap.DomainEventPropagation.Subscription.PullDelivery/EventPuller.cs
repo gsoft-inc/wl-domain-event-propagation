@@ -2,7 +2,7 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Workleap.DomainEventPropagation.ClientWrapper;
+using Workleap.DomainEventPropagation.EventGridClientAdapter;
 
 namespace Workleap.DomainEventPropagation;
 
@@ -45,17 +45,17 @@ internal class EventPuller : BackgroundService
                     var status = await this._cloudEventHandler.HandleCloudEventAsync(cloudEvent, stoppingToken).ConfigureAwait(false);
                     switch (status)
                     {
-                        case HandlingStatus.Handled:
+                        case EventProcessingStatus.Handled:
                             await AcknowledgeEvent(channel, lockToken, stoppingToken).ConfigureAwait(false);
                             break;
-                        case HandlingStatus.Released:
+                        case EventProcessingStatus.Released:
                             await ReleaseEvent(channel, lockToken, stoppingToken).ConfigureAwait(false);
                             break;
-                        case HandlingStatus.Rejected:
+                        case EventProcessingStatus.Rejected:
                             await RejectEvent(channel, lockToken, stoppingToken).ConfigureAwait(false);
                             break;
                         default:
-                            throw new NotSupportedException($"{status} is not a supported {nameof(HandlingStatus)}");
+                            throw new NotSupportedException($"{status} is not a supported {nameof(EventProcessingStatus)}");
                     }
                 }
             }
@@ -68,18 +68,18 @@ internal class EventPuller : BackgroundService
 
     private static Task AcknowledgeEvent(EventGridReceptionChannel channel, string? lockToken, CancellationToken stoppingToken)
     {
-        return channel.Client.AcknowledgeCloudEventsAsync(channel.Topic, channel.Subscription, new AcknowledgeOptions(new[] { lockToken }), stoppingToken);
+        return channel.Client.AcknowledgeCloudEventsAsync(channel.Topic, channel.Subscription, lockToken, stoppingToken);
     }
 
     private static Task ReleaseEvent(EventGridReceptionChannel channel, string? lockToken, CancellationToken stoppingToken)
     {
-        return channel.Client.ReleaseCloudEventsAsync(channel.Topic, channel.Subscription, new ReleaseOptions(new[] { lockToken }), stoppingToken);
+        return channel.Client.ReleaseCloudEventsAsync(channel.Topic, channel.Subscription, lockToken, stoppingToken);
     }
 
     private static Task RejectEvent(EventGridReceptionChannel channel, string? lockToken, CancellationToken stoppingToken)
     {
-        return channel.Client.RejectCloudEventsAsync(channel.Topic, channel.Subscription, new RejectOptions(new[] { lockToken }), stoppingToken);
+        return channel.Client.RejectCloudEventsAsync(channel.Topic, channel.Subscription, lockToken, stoppingToken);
     }
 
-    private record EventGridReceptionChannel(string Topic, string Subscription, EventGridClientWrapper Client);
+    private record EventGridReceptionChannel(string Topic, string Subscription, IEventGridClientAdapter Client);
 }

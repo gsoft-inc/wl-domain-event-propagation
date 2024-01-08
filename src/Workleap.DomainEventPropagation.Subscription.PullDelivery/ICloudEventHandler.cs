@@ -2,7 +2,7 @@
 
 namespace Workleap.DomainEventPropagation;
 
-internal enum HandlingStatus
+internal enum EventProcessingStatus
 {
     Handled,
     Released,
@@ -11,5 +11,5 @@ internal enum HandlingStatus
 
 internal interface ICloudEventHandler
 {
-    Task<HandlingStatus> HandleCloudEventAsync(CloudEvent cloudEvent, CancellationToken cancellationToken);
+    Task<EventProcessingStatus> HandleCloudEventAsync(CloudEvent cloudEvent, CancellationToken cancellationToken);
 }

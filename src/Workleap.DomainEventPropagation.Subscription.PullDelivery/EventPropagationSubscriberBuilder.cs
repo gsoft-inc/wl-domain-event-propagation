@@ -1,5 +1,5 @@
 using Microsoft.Extensions.DependencyInjection;
-using Workleap.DomainEventPropagation.ClientWrapper;
+using Workleap.DomainEventPropagation.EventGridClientAdapter;
 
 namespace Workleap.DomainEventPropagation;
 
@@ -10,7 +10,7 @@ internal sealed class EventPropagationSubscriberBuilder : IEventPropagationSubsc
         this.Services = services;
 
         this.Services.AddSingleton<IDomainEventTypeRegistry, DomainEventTypeRegistry>();
-        this.Services.AddTransient<IEventGridClientWrapperFactory, EventGridClientWrapperFactory>();
+        this.Services.AddTransient<IEventGridClientWrapperFactory, EventGridClientAdapterFactory>();
         this.Services.AddTransient<ICloudEventHandler, CloudEventHandler>();
         this.Services.AddHostedService<EventPuller>();
     }

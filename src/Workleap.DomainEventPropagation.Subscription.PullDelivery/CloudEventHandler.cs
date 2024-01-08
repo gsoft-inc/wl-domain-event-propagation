@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Workleap.DomainEventPropagation;
 
-internal class CloudEventHandler : ICloudEventHandler
+internal sealed class CloudEventHandler : ICloudEventHandler
 {
     private readonly IDomainEventTypeRegistry _domainEventTypeRegistry;
     private readonly ILogger<CloudEventHandler> _logger;
@@ -19,7 +19,7 @@ internal class CloudEventHandler : ICloudEventHandler
         this._pipeline = domainEventBehaviors.Reverse().Aggregate((DomainEventHandlerDelegate)HandleDomainEventAsync, BuildPipeline);
     }
 
-    public async Task<HandlingStatus> HandleCloudEventAsync(CloudEvent cloudEvent, CancellationToken cancellationToken)
+    public async Task<EventProcessingStatus> HandleCloudEventAsync(CloudEvent cloudEvent, CancellationToken cancellationToken)
     {
         var domainEventWrapper = new DomainEventWrapper(cloudEvent);
 
@@ -27,7 +27,7 @@ internal class CloudEventHandler : ICloudEventHandler
         if (domainEventType == null)
         {
             this._logger.EventDomainTypeNotRegistered(domainEventWrapper.DomainEventName, cloudEvent.Subject ?? "Unknown");
-            return HandlingStatus.Rejected;
+            return EventProcessingStatus.Rejected;
         }
 
         return await this._pipeline(domainEventWrapper, cancellationToken).ConfigureAwait(false);
@@ -38,11 +38,11 @@ internal class CloudEventHandler : ICloudEventHandler
         return (@event, cancellationToken) => pipeline.HandleAsync(@event, next, cancellationToken);
     }
 
-    private static Task<HandlingStatus> HandleDomainEventAsync(
+    private static Task<EventProcessingStatus> HandleDomainEventAsync(
         DomainEventWrapper domainEventWrapper,
         CancellationToken cancellationToken)
     {
         // Todo : Get event handler that matches wrapper type and invoke it
-        return Task.FromResult(HandlingStatus.Handled);
+        return Task.FromResult(EventProcessingStatus.Handled);
     }
 }

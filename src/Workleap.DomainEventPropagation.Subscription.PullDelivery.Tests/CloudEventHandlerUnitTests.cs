@@ -21,7 +21,7 @@ public class CloudEventHandlerUnitTests
         var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
 
         // Then
-        result.Should().Be(HandlingStatus.Rejected);
+        result.Should().Be(EventProcessingStatus.Rejected);
     }
 
     [Fact]
@@ -37,7 +37,7 @@ public class CloudEventHandlerUnitTests
         var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
 
         // Then
-        result.Should().Be(HandlingStatus.Handled);
+        result.Should().Be(EventProcessingStatus.Handled);
     }
 
     private static CloudEvent GivenCloudEvent()

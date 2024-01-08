@@ -1,12 +1,12 @@
 ﻿namespace Workleap.DomainEventPropagation;
 
-internal delegate Task<HandlingStatus> DomainEventHandlerDelegate(
+internal delegate Task<EventProcessingStatus> DomainEventHandlerDelegate(
     DomainEventWrapper domainEventWrapper,
     CancellationToken cancellationToken);
 
 internal interface IDomainEventBehavior
 {
-    Task<HandlingStatus> HandleAsync(
+    Task<EventProcessingStatus> HandleAsync(
         DomainEventWrapper domainEventWrapper,
         DomainEventHandlerDelegate next,
         CancellationToken cancellationToken);
