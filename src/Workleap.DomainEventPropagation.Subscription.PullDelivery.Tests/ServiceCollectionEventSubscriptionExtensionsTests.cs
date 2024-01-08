@@ -149,6 +149,7 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         var fakeClientFactory = A.Fake<IAzureClientFactory<EventGridClient>>();
         services.Replace(new ServiceDescriptor(typeof(IAzureClientFactory<EventGridClient>), fakeClientFactory));
         services.AddTransient<ILogger<EventPuller>, NullLogger<EventPuller>>();
+        services.AddTransient<ILogger<CloudEventHandler>, NullLogger<CloudEventHandler>>();
 
         // When
         services.AddPullDeliverySubscription()
