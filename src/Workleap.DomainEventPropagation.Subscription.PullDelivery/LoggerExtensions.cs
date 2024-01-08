@@ -6,4 +6,7 @@ internal static partial class LoggerExtensions
 {
     [LoggerMessage(1, LogLevel.Warning, "Failed to pull CloudEvents from the Event Grid topic {topicName} on subscription {subscription} with reason: {reason}")]
     public static partial void CloudEventCannotBeReceived(this ILogger logger, string topicName, string subscription, string reason);
+
+    [LoggerMessage(1, LogLevel.Warning, "Failed to handle event {eventName} with reason {reason}")]
+    public static partial void EventHandlingFailed(this ILogger logger, string eventName, string reason);
 }

@@ -1,6 +1,7 @@
 ﻿using AutoBogus;
 using Azure.Messaging;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests;
@@ -15,7 +16,7 @@ public class CloudEventHandlerUnitTests
         // Given
         var cloudEvent = GivenCloudEvent();
         var domainEventTypeRegistry = new DomainEventTypeRegistry();
-        var handler = new CloudEventHandler(domainEventTypeRegistry, Enumerable.Empty<IDomainEventBehavior>(), new NullLogger<CloudEventHandler>());
+        var handler = new CloudEventHandler(new ServiceCollection().BuildServiceProvider(), domainEventTypeRegistry, Enumerable.Empty<IDomainEventBehavior>(), new NullLogger<CloudEventHandler>());
 
         // When
         var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
@@ -31,7 +32,7 @@ public class CloudEventHandlerUnitTests
         var cloudEvent = GivenCloudEvent();
         var domainEventTypeRegistry = new DomainEventTypeRegistry();
         domainEventTypeRegistry.RegisterDomainEvent(typeof(SampleEvent));
-        var handler = new CloudEventHandler(domainEventTypeRegistry, Enumerable.Empty<IDomainEventBehavior>(), new NullLogger<CloudEventHandler>());
+        var handler = new CloudEventHandler(new ServiceCollection().BuildServiceProvider(), domainEventTypeRegistry, Enumerable.Empty<IDomainEventBehavior>(), new NullLogger<CloudEventHandler>());
 
         // When
         var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
