@@ -22,7 +22,7 @@ public class EventPullerTests
         return fakeClient;
     }
 
-    private static EventPropagationSubscriptionOptions GivenOption(IOptionsMonitor<EventPropagationSubscriptionOptions> optionMonitor, string clientName)
+    private static EventPropagationSubscriptionOptions GivenEventPropagationSubscriptionOptions(IOptionsMonitor<EventPropagationSubscriptionOptions> optionMonitor, string clientName)
     {
         var option = AutoFaker.Generate<EventPropagationSubscriptionOptions>();
         A.CallTo(() => optionMonitor.Get(clientName)).Returns(option);
@@ -50,7 +50,7 @@ public class EventPullerTests
     public class TwoSubscribers : EventPullerTests
     {
         [Fact]
-        public async Task GivenPuller_AfterStarting_EveryRegisteredClientWasCalled()
+        public async Task GivenPuller_WhenStarted_ThenEveryRegisteredClientWasCalled()
         {
             // Given
             var clientName1 = AutoFaker.Generate<string>();
@@ -62,11 +62,11 @@ public class EventPullerTests
             var fakeClient2 = GivenFakeClient(clientFactory, clientName2);
 
             var optionMonitor = A.Fake<IOptionsMonitor<EventPropagationSubscriptionOptions>>();
-            var options1 = GivenOption(optionMonitor, clientName1);
-            var options2 = GivenOption(optionMonitor, clientName2);
+            var options1 = GivenEventPropagationSubscriptionOptions(optionMonitor, clientName1);
+            var options2 = GivenEventPropagationSubscriptionOptions(optionMonitor, clientName2);
 
             // When
-            var puller = new EventPuller(eventGridClientDescriptors, clientFactory, A.Fake<ICloudEventHandler>(), optionMonitor, new NullLogger<EventPuller>());
+            using var puller = new EventPuller(eventGridClientDescriptors, clientFactory, A.Fake<ICloudEventHandler>(), optionMonitor, new NullLogger<EventPuller>());
             await StartWaitAndStop(puller);
 
             // Then
@@ -85,7 +85,7 @@ public class EventPullerTests
         }
 
         [Fact]
-        public async Task GivenFailingClient_AfterErrorOccured_KeepsPollingAndDoesNotInterfereWithOtherClients()
+        public async Task GivenFailingClient_WhenErrorOccured_ThenKeepsPollingAndDoesNotInterfereWithOtherClients()
         {
             // Given
             var clientName1 = AutoFaker.Generate<string>();
@@ -101,15 +101,15 @@ public class EventPullerTests
             var functionalClient = GivenFakeClient(clientFactory, clientName2);
 
             var optionMonitor = A.Fake<IOptionsMonitor<EventPropagationSubscriptionOptions>>();
-            var options1 = GivenOption(optionMonitor, clientName1);
-            var options2 = GivenOption(optionMonitor, clientName2);
+            var options1 = GivenEventPropagationSubscriptionOptions(optionMonitor, clientName1);
+            var options2 = GivenEventPropagationSubscriptionOptions(optionMonitor, clientName2);
 
             var eventBundle = AutoFaker.Generate<EventGridClientAdapter.EventGridClientAdapter.EventBundle>();
             RegisterCloudEventsInClient(functionalClient, options2, eventBundle);
             var eventHandler = A.Fake<ICloudEventHandler>();
 
             // When
-            var puller = new EventPuller(eventGridClientDescriptors, clientFactory, eventHandler, optionMonitor, new NullLogger<EventPuller>());
+            using var puller = new EventPuller(eventGridClientDescriptors, clientFactory, eventHandler, optionMonitor, new NullLogger<EventPuller>());
             await StartWaitAndStop(puller);
 
             // Then
@@ -139,7 +139,7 @@ public class EventPullerTests
             var eventGridClientDescriptors = new EventGridClientDescriptor[] { new(clientName) };
 
             var optionMonitor = A.Fake<IOptionsMonitor<EventPropagationSubscriptionOptions>>();
-            this._option = GivenOption(optionMonitor, clientName);
+            this._option = GivenEventPropagationSubscriptionOptions(optionMonitor, clientName);
 
             var clientFactory = A.Fake<IEventGridClientWrapperFactory>();
             this._client = GivenFakeClient(clientFactory, clientName);
@@ -194,13 +194,13 @@ public class EventPullerTests
             await StartWaitAndStop(this._puller);
 
             // Then
-            A.CallTo(() => this._client.AcknowledgeCloudEventsAsync(
+            A.CallTo(() => this._client.AcknowledgeCloudEventAsync(
                 this._option.TopicName,
                 this._option.SubscriptionName,
                 this._eventBundle1.LockToken,
                 A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
 
-            A.CallTo(() => this._client.AcknowledgeCloudEventsAsync(
+            A.CallTo(() => this._client.AcknowledgeCloudEventAsync(
                 this._option.TopicName,
                 this._option.SubscriptionName,
                 this._eventBundle2.LockToken,
@@ -218,13 +218,13 @@ public class EventPullerTests
             await StartWaitAndStop(this._puller);
 
             // Then
-            A.CallTo(() => this._client.ReleaseCloudEventsAsync(
+            A.CallTo(() => this._client.ReleaseCloudEventAsync(
                 this._option.TopicName,
                 this._option.SubscriptionName,
                 this._eventBundle1.LockToken,
                 A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
 
-            A.CallTo(() => this._client.ReleaseCloudEventsAsync(
+            A.CallTo(() => this._client.ReleaseCloudEventAsync(
                 this._option.TopicName,
                 this._option.SubscriptionName,
                 this._eventBundle2.LockToken,
@@ -242,13 +242,13 @@ public class EventPullerTests
             await StartWaitAndStop(this._puller);
 
             // Then
-            A.CallTo(() => this._client.RejectCloudEventsAsync(
+            A.CallTo(() => this._client.RejectCloudEventAsync(
                 this._option.TopicName,
                 this._option.SubscriptionName,
                 this._eventBundle1.LockToken,
                 A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
 
-            A.CallTo(() => this._client.RejectCloudEventsAsync(
+            A.CallTo(() => this._client.RejectCloudEventAsync(
                 this._option.TopicName,
                 this._option.SubscriptionName,
                 this._eventBundle2.LockToken,

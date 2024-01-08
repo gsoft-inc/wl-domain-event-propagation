@@ -66,19 +66,19 @@ internal class EventPuller : BackgroundService
         }
     }
 
-    private static Task AcknowledgeEvent(EventGridReceptionChannel channel, string? lockToken, CancellationToken stoppingToken)
+    private static Task AcknowledgeEvent(EventGridReceptionChannel channel, string lockToken, CancellationToken stoppingToken)
     {
-        return channel.Client.AcknowledgeCloudEventsAsync(channel.Topic, channel.Subscription, lockToken, stoppingToken);
+        return channel.Client.AcknowledgeCloudEventAsync(channel.Topic, channel.Subscription, lockToken, stoppingToken);
     }
 
-    private static Task ReleaseEvent(EventGridReceptionChannel channel, string? lockToken, CancellationToken stoppingToken)
+    private static Task ReleaseEvent(EventGridReceptionChannel channel, string lockToken, CancellationToken stoppingToken)
     {
-        return channel.Client.ReleaseCloudEventsAsync(channel.Topic, channel.Subscription, lockToken, stoppingToken);
+        return channel.Client.ReleaseCloudEventAsync(channel.Topic, channel.Subscription, lockToken, stoppingToken);
     }
 
-    private static Task RejectEvent(EventGridReceptionChannel channel, string? lockToken, CancellationToken stoppingToken)
+    private static Task RejectEvent(EventGridReceptionChannel channel, string lockToken, CancellationToken stoppingToken)
     {
-        return channel.Client.RejectCloudEventsAsync(channel.Topic, channel.Subscription, lockToken, stoppingToken);
+        return channel.Client.RejectCloudEventAsync(channel.Topic, channel.Subscription, lockToken, stoppingToken);
     }
 
     private record EventGridReceptionChannel(string Topic, string Subscription, IEventGridClientAdapter Client);
