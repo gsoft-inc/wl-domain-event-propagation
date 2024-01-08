@@ -1,3 +1,7 @@
+using Azure;
+using Azure.Core;
+using Azure.Messaging.EventGrid.Namespaces;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
@@ -34,7 +38,15 @@ public static class ServiceCollectionEventSubscriptionExtensions
             .Configure<IConfiguration>((opt, cfg) => BindFromWellKnownConfigurationSection(opt, cfg, optionsSectionName))
             .Configure(configure);
 
+        builder.Services.AddScoped<EventGridClientDescriptor>(sp => new EventGridClientDescriptor(optionsSectionName));
         builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<EventPropagationSubscriptionOptions>, EventPropagationSubscriptionOptionsValidator>());
+
+        builder.Services.AddAzureClients(builder =>
+        {
+            builder.AddClient<EventGridClient, EventGridClientOptions>((opts, sp) => EventGridClientFactory(opts, sp, optionsSectionName))
+                .WithName(optionsSectionName)
+                .ConfigureOptions(ConfigureEventGridClientOptions);
+        });
 
         return builder;
     }
@@ -43,5 +55,22 @@ public static class ServiceCollectionEventSubscriptionExtensions
     {
         var section = configuration.GetSection(optionsSectionName);
         section.Bind(options);
+    }
+
+    private static EventGridClient EventGridClientFactory(EventGridClientOptions eventGridClientOptions, IServiceProvider serviceProvider, string optionsSectionName)
+    {
+        var subscriberOptions = serviceProvider.GetRequiredService<IOptionsMonitor<EventPropagationSubscriptionOptions>>().Get(optionsSectionName);
+        var topicEndpointUri = new Uri(subscriberOptions.TopicEndpoint);
+
+        return subscriberOptions.TokenCredential is not null
+            ? new EventGridClient(topicEndpointUri, subscriberOptions.TokenCredential, eventGridClientOptions)
+            : new EventGridClient(topicEndpointUri, new AzureKeyCredential(subscriberOptions.TopicAccessKey), eventGridClientOptions);
+    }
+
+    private static void ConfigureEventGridClientOptions(EventGridClientOptions options)
+    {
+        options.Retry.Mode = RetryMode.Fixed;
+        options.Retry.MaxRetries = 20;
+        options.Retry.NetworkTimeout = TimeSpan.FromSeconds(4);
     }
 }

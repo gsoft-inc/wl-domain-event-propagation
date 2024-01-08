@@ -1,5 +1,13 @@
+using Azure.Messaging.EventGrid.Namespaces;
+using FakeItEasy;
+using FluentAssertions;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 
 namespace Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests;
@@ -107,6 +115,51 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         Assert.Equal(AccessKey, options2.TopicAccessKey);
         Assert.Equal(TopicName, options2.TopicName);
         Assert.Equal(SubscriptionName, options2.SubscriptionName);
+    }
+
+    [Fact]
+    public void GivenNamedConfigurations_WhenResolveClientDescriptors_ThenListEveryRegisteredConfiguration()
+    {
+        // Given
+        var services = new ServiceCollection();
+        const string sectionName1 = "EventPropagation:Sub1";
+        const string sectionName2 = "EventPropagation:Sub2";
+        GivenConfigurations(services, sectionName1, sectionName2);
+
+        // When
+        services.AddPullDeliverySubscription()
+            .AddSubscriber(sectionName1)
+            .AddSubscriber(sectionName2);
+        var serviceProvider = services.BuildServiceProvider();
+        var clientDescriptors = serviceProvider.GetRequiredService<IEnumerable<EventGridClientDescriptor>>().ToArray();
+
+        // Then
+        clientDescriptors.Should().HaveCount(2);
+        clientDescriptors.Select(d => d.Name).Should().BeEquivalentTo(sectionName1, sectionName2);
+    }
+
+    [Fact]
+    public void GivenNamedConfigurations_WhenResolveEventPuller_ThenCreatesEveryClients()
+    {
+        // Given
+        var services = new ServiceCollection();
+        const string sectionName1 = "EventPropagation:Sub1";
+        const string sectionName2 = "EventPropagation:Sub2";
+        GivenConfigurations(services, sectionName1, sectionName2);
+        var fakeClientFactory = A.Fake<IAzureClientFactory<EventGridClient>>();
+        services.Replace(new ServiceDescriptor(typeof(IAzureClientFactory<EventGridClient>), fakeClientFactory));
+        services.AddTransient<ILogger<EventPuller>, NullLogger<EventPuller>>();
+
+        // When
+        services.AddPullDeliverySubscription()
+            .AddSubscriber(sectionName1)
+            .AddSubscriber(sectionName2);
+        var serviceProvider = services.BuildServiceProvider();
+        _ = serviceProvider.GetRequiredService<IEnumerable<IHostedService>>();
+
+        // Then
+        A.CallTo(() => fakeClientFactory.CreateClient(sectionName1)).MustHaveHappenedOnceExactly();
+        A.CallTo(() => fakeClientFactory.CreateClient(sectionName2)).MustHaveHappenedOnceExactly();
     }
 
     private static void GivenConfigurations(IServiceCollection services, params string[] sections)
