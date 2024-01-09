@@ -1,8 +1,6 @@
 ﻿using AutoBogus;
 using Azure.Messaging;
-using Azure.Messaging.EventGrid.Namespaces;
 using FakeItEasy;
-using FakeItEasy.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;

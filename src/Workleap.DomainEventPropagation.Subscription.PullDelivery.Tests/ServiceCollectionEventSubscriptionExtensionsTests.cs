@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+using System.Reflection;
 using Azure.Messaging.EventGrid.Namespaces;
 using FakeItEasy;
 using FluentAssertions;
@@ -149,7 +151,7 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         var fakeClientFactory = A.Fake<IAzureClientFactory<EventGridClient>>();
         services.Replace(new ServiceDescriptor(typeof(IAzureClientFactory<EventGridClient>), fakeClientFactory));
         services.AddTransient<ILogger<EventPuller>, NullLogger<EventPuller>>();
-        services.AddTransient<ILogger<CloudEventHandler>, NullLogger<CloudEventHandler>>();
+        services.AddTransient<ILogger<ICloudEventHandler>, NullLogger<CloudEventHandler>>();
 
         // When
         services.AddPullDeliverySubscription()
@@ -161,6 +163,49 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         // Then
         A.CallTo(() => fakeClientFactory.CreateClient(sectionName1)).MustHaveHappenedOnceExactly();
         A.CallTo(() => fakeClientFactory.CreateClient(sectionName2)).MustHaveHappenedOnceExactly();
+    }
+
+    [Fact]
+    public void GivenNoSubscriber_WhenRegisterHandler_ThenExceptionIsThrown()
+    {
+        // Given
+        var services = new ServiceCollection();
+
+        // When
+        var act = () => services.AddPullDeliverySubscription()
+            .AddDomainEventHandler<SampleEvent, TestHandler>();
+
+        // Then
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void GivenNoSubscriber_WhenRegisterHandlerFromAssembly_ThenExceptionIsThrown()
+    {
+        // Given
+        var services = new ServiceCollection();
+
+        // When
+        var act = () => services.AddPullDeliverySubscription()
+            .AddDomainEventHandlers(Assembly.GetAssembly(typeof(ServiceCollectionEventSubscriptionExtensionsTests))!);
+
+        // Then
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void GivenMultipleHandlersForSameEvent_WhenRegisters_ThenExceptionIsThrown()
+    {
+        // Given
+        var services = new ServiceCollection();
+
+        // When
+        var act = () => services.AddPullDeliverySubscription()
+            .AddDomainEventHandler<SampleEvent, TestHandler>()
+            .AddDomainEventHandler<SampleEvent, AnotherTestHandler>();
+
+        // Then
+        act.Should().Throw<InvalidOperationException>();
     }
 
     private static void GivenConfigurations(IServiceCollection services, params string[] sections)
@@ -179,5 +224,34 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
             .AddInMemoryCollection(dictionnary)
             .Build();
         services.AddSingleton<IConfiguration>(configuration);
+    }
+
+    [DomainEvent("an-event", EventSchema.CloudEvent)]
+    public class SampleEvent : IDomainEvent
+    {
+        public string? Message { get; set; }
+    }
+
+    // This needs to be public for AddDomainEventHandlers to be able to find it
+    public class TestHandler : IDomainEventHandler<SampleEvent>
+    {
+        public static ConcurrentQueue<SampleEvent> ReceivedEvents { get; } = new();
+
+        public Task HandleDomainEventAsync(SampleEvent domainEvent, CancellationToken cancellationToken)
+        {
+            ReceivedEvents.Enqueue(domainEvent);
+            return Task.CompletedTask;
+        }
+    }
+
+    private class AnotherTestHandler : IDomainEventHandler<SampleEvent>
+    {
+        public static ConcurrentQueue<SampleEvent> ReceivedEvents { get; } = new();
+
+        public Task HandleDomainEventAsync(SampleEvent domainEvent, CancellationToken cancellationToken)
+        {
+            ReceivedEvents.Enqueue(domainEvent);
+            return Task.CompletedTask;
+        }
     }
 }
