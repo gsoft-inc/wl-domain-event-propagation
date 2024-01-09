@@ -194,18 +194,20 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
     }
 
     [Fact]
-    public void GivenMultipleHandlersForSameEvent_WhenRegisters_ThenExceptionIsThrown()
+    public void GivenMultipleHandlersForSameEvent_WhenRegisters_ThenOnlyFirstOneIsRegistered()
     {
         // Given
         var services = new ServiceCollection();
 
         // When
-        var act = () => services.AddPullDeliverySubscription()
+        services.AddPullDeliverySubscription()
+            .AddSubscriber()
             .AddDomainEventHandler<SampleEvent, TestHandler>()
             .AddDomainEventHandler<SampleEvent, AnotherTestHandler>();
 
         // Then
-        act.Should().Throw<InvalidOperationException>();
+        services.Count(x => x.ServiceType == typeof(IDomainEventHandler<SampleEvent>)).Should().Be(1);
+        services.BuildServiceProvider().GetRequiredService<IDomainEventHandler<SampleEvent>>().Should().BeOfType<TestHandler>();
     }
 
     private static void GivenConfigurations(IServiceCollection services, params string[] sections)
