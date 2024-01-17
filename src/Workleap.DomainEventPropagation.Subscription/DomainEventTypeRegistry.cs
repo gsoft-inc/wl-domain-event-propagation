@@ -19,10 +19,21 @@ internal sealed class DomainEventTypeRegistry : IDomainEventTypeRegistry
     {
         var domainEventName = DomainEventNameCache.GetName(domainEventType);
 
+        var isOVEvent = !domainEventType.IsAbstract &&
+                        domainEventType.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition().FullName == "Officevibe.DomainEvents.IDomainEvent");
+
         if (!this._nameToDomainEventTypeMapping.TryGetValue(domainEventName, out var otherDomainEventType))
         {
             this._nameToDomainEventTypeMapping[domainEventName] = domainEventType;
-            this._nameToDomainEventHandlerTypeMapping[domainEventName] = typeof(IDomainEventHandler<>).MakeGenericType(domainEventType);
+
+            var handlerType = typeof(IDomainEventHandler<>).MakeGenericType(domainEventType);
+            this._nameToDomainEventHandlerTypeMapping[domainEventName] = handlerType;
+
+            if (isOVEvent)
+            {
+                this._nameToDomainEventTypeMapping[domainEventType.FullName!] = domainEventType;
+                this._nameToDomainEventHandlerTypeMapping[domainEventType.FullName!] = handlerType;
+            }
         }
         else if (otherDomainEventType != domainEventType)
         {
