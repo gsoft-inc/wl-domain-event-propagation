@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Reflection;
+using System.Text.Json;
 using Azure.Messaging.EventGrid;
 using Microsoft.Extensions.Logging;
 
@@ -33,6 +34,14 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
 
     public async Task HandleEventGridWebhookEventAsync(EventGridEvent eventGridEvent, CancellationToken cancellationToken)
     {
+        // Check if OV event or not
+        var domainEventType = Type.GetType(eventGridEvent.EventType);
+        if (domainEventType != null)
+        {
+            await this.HandleOvDomainEventAsync(eventGridEvent, domainEventType, cancellationToken).ConfigureAwait(false);
+            return;
+        }
+
         var domainEventWrapper = new DomainEventWrapper(eventGridEvent);
 
         var isDomainEventTypeUnknown = this._domainEventTypeRegistry.GetDomainEventType(domainEventWrapper.DomainEventName) == null;
@@ -67,5 +76,24 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
         });
 
         await ((Task)domainEventHandlerMethod.Invoke(domainEventHandler, new[] { domainEvent, cancellationToken })!).ConfigureAwait(false);
+    }
+
+    private async Task HandleOvDomainEventAsync(EventGridEvent eventGridEvent, Type domainEventType, CancellationToken cancellationToken)
+    {
+        var domainEventHandlerType = this._domainEventTypeRegistry.GetDomainEventHandlerType(domainEventType.FullName!)!;
+        var domainEventHandler = this._serviceProvider.GetService(domainEventHandlerType);
+
+        var domainEvent = JsonSerializer.Deserialize(eventGridEvent.Data, domainEventType);
+
+        var domainEventHandlerMethod = GenericDomainEventHandlerMethodCache.GetOrAdd(domainEventHandlerType, type =>
+        {
+            const string handleDomainEventAsyncMethodName = "HandleDomainEventAsync";
+            return type.GetMethod(handleDomainEventAsyncMethodName, BindingFlags.Public | BindingFlags.Instance) ??
+                   throw new InvalidOperationException($"Public method {type.FullName}.{handleDomainEventAsyncMethodName} not found");
+        });
+
+        await ((Task)domainEventHandlerMethod.Invoke(domainEventHandler, new[] { domainEvent, cancellationToken })!).ConfigureAwait(false);
+
+        await Task.CompletedTask.ConfigureAwait(false);
     }
 }
