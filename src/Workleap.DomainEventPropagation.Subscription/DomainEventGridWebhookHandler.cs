@@ -71,6 +71,7 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
 
         var domainEvent = domainEventWrapper.Unwrap(domainEventType);
 
+        // TODO extract this code
         var domainEventHandlerMethod = GenericDomainEventHandlerMethodCache.GetOrAdd(domainEventHandlerType, type =>
         {
             const string handleDomainEventAsyncMethodName = "HandleDomainEventAsync";
@@ -88,6 +89,7 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
 
         var domainEvent = JsonSerializer.Deserialize(eventGridEvent.Data, domainEventType);
 
+        // TODO extract this code
         var domainEventHandlerMethod = GenericDomainEventHandlerMethodCache.GetOrAdd(domainEventHandlerType, type =>
         {
             const string handleDomainEventAsyncMethodName = "HandleDomainEventAsync";
