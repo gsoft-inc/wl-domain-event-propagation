@@ -35,11 +35,14 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
     public async Task HandleEventGridWebhookEventAsync(EventGridEvent eventGridEvent, CancellationToken cancellationToken)
     {
         // Check if OV event or not
-        var domainEventType = Type.GetType(eventGridEvent.EventType);
-        if (domainEventType != null)
+        if (eventGridEvent.EventType.StartsWith("Officevibe"))
         {
-            await this.HandleOvDomainEventAsync(eventGridEvent, domainEventType, cancellationToken).ConfigureAwait(false);
-            return;
+            var domainEventType = GetOfficevibeDomainEventType(eventGridEvent.EventType);
+            if (domainEventType != null)
+            {
+                await this.HandleOvDomainEventAsync(eventGridEvent, domainEventType, cancellationToken).ConfigureAwait(false);
+                return;
+            }
         }
 
         var domainEventWrapper = new DomainEventWrapper(eventGridEvent);
@@ -95,5 +98,27 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
         await ((Task)domainEventHandlerMethod.Invoke(domainEventHandler, new[] { domainEvent, cancellationToken })!).ConfigureAwait(false);
 
         await Task.CompletedTask.ConfigureAwait(false);
+    }
+
+    private static Type? GetOfficevibeDomainEventType(string eventType)
+    {
+        var domainEventInterfaceType = typeof(IDomainEvent);
+        var domainEventAssemblies = AppDomain.CurrentDomain.GetAssemblies()
+            .SelectMany(s => s.GetTypes())
+            .Where(p => !p.IsInterface && !p.IsAbstract && domainEventInterfaceType.IsAssignableFrom(p))
+            .Select(x => x.Assembly)
+            .Distinct();
+
+        foreach (var assembly in domainEventAssemblies)
+        {
+            var domainEventType = assembly.GetType(eventType);
+
+            if (domainEventType != null)
+            {
+                return domainEventType;
+            }
+        }
+
+        return null;
     }
 }
