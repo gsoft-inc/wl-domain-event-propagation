@@ -1,4 +1,5 @@
 ﻿using Workleap.DomainEventPropagation;
+using Workleap.DomainEventPropagation.Subscription.Tests.OfficevibeMigrationTests;
 
 // ReSharper disable CheckNamespace
 namespace Officevibe.DomainEvents;
@@ -20,8 +21,16 @@ public class OfficevibeEvent : IDomainEvent, Workleap.DomainEventPropagation.IDo
 
 public class OfficevibeDomainEventHandler : IDomainEventHandler<OfficevibeEvent>
 {
+    private readonly SubscriberMigrationTestState _testState;
+
+    public OfficevibeDomainEventHandler(SubscriberMigrationTestState testState)
+    {
+        this._testState = testState;
+    }
+
     public Task HandleDomainEventAsync(OfficevibeEvent domainEvent, CancellationToken cancellationToken)
     {
+        this._testState.OfficevibeDomainEventHandlerCallCount++;
         return Task.CompletedTask;
     }
 }
