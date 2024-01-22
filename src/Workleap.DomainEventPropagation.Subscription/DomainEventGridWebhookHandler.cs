@@ -34,15 +34,18 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
 
     public async Task HandleEventGridWebhookEventAsync(EventGridEvent eventGridEvent, CancellationToken cancellationToken)
     {
-        // Check if OV event or not
-        if (eventGridEvent.EventType.StartsWith("Officevibe"))
+        // Check if it's an old Officevibe event
+        if (eventGridEvent.EventType.StartsWith("Officevibe", StringComparison.Ordinal))
         {
-            var domainEventType = GetOfficevibeDomainEventType(eventGridEvent.EventType);
+            var domainEventType = this._domainEventTypeRegistry.GetDomainEventType(eventGridEvent.EventType);
             if (domainEventType != null)
             {
-                await this.HandleOvDomainEventAsync(eventGridEvent, domainEventType, cancellationToken).ConfigureAwait(false);
+                await this.HandleOfficevibeDomainEventAsync(eventGridEvent, domainEventType, cancellationToken).ConfigureAwait(false);
                 return;
             }
+
+            this._logger.EventDomainTypeNotRegistered(eventGridEvent.EventType, eventGridEvent.Subject);
+            return;
         }
 
         var domainEventWrapper = new DomainEventWrapper(eventGridEvent);
@@ -70,57 +73,35 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
         }
 
         var domainEvent = domainEventWrapper.Unwrap(domainEventType);
-
-        // TODO extract this code
-        var domainEventHandlerMethod = GenericDomainEventHandlerMethodCache.GetOrAdd(domainEventHandlerType, type =>
-        {
-            const string handleDomainEventAsyncMethodName = "HandleDomainEventAsync";
-            return type.GetMethod(handleDomainEventAsyncMethodName, BindingFlags.Public | BindingFlags.Instance) ??
-                throw new InvalidOperationException($"Public method {type.FullName}.{handleDomainEventAsyncMethodName} not found");
-        });
+        var domainEventHandlerMethod = GetHandleDomainEventAsyncMethod(domainEventHandlerType);
 
         await ((Task)domainEventHandlerMethod.Invoke(domainEventHandler, new[] { domainEvent, cancellationToken })!).ConfigureAwait(false);
     }
 
-    private async Task HandleOvDomainEventAsync(EventGridEvent eventGridEvent, Type domainEventType, CancellationToken cancellationToken)
+    private async Task HandleOfficevibeDomainEventAsync(EventGridEvent eventGridEvent, Type domainEventType, CancellationToken cancellationToken)
     {
         var domainEventHandlerType = this._domainEventTypeRegistry.GetDomainEventHandlerType(domainEventType.FullName!)!;
         var domainEventHandler = this._serviceProvider.GetService(domainEventHandlerType);
 
-        var domainEvent = JsonSerializer.Deserialize(eventGridEvent.Data, domainEventType);
+        if (domainEventHandler == null)
+        {
+            this._logger.EventDomainHandlerNotRegistered(eventGridEvent.EventType);
+            return;
+        }
 
-        // TODO extract this code
-        var domainEventHandlerMethod = GenericDomainEventHandlerMethodCache.GetOrAdd(domainEventHandlerType, type =>
+        var domainEvent = JsonSerializer.Deserialize(eventGridEvent.Data, domainEventType);
+        var domainEventHandlerMethod = GetHandleDomainEventAsyncMethod(domainEventHandlerType);
+
+        await ((Task)domainEventHandlerMethod.Invoke(domainEventHandler, new[] { domainEvent, cancellationToken })!).ConfigureAwait(false);
+    }
+
+    private static MethodInfo GetHandleDomainEventAsyncMethod(Type domainEventHandlerType)
+    {
+        return GenericDomainEventHandlerMethodCache.GetOrAdd(domainEventHandlerType, type =>
         {
             const string handleDomainEventAsyncMethodName = "HandleDomainEventAsync";
             return type.GetMethod(handleDomainEventAsyncMethodName, BindingFlags.Public | BindingFlags.Instance) ??
                    throw new InvalidOperationException($"Public method {type.FullName}.{handleDomainEventAsyncMethodName} not found");
         });
-
-        await ((Task)domainEventHandlerMethod.Invoke(domainEventHandler, new[] { domainEvent, cancellationToken })!).ConfigureAwait(false);
-
-        await Task.CompletedTask.ConfigureAwait(false);
-    }
-
-    private static Type? GetOfficevibeDomainEventType(string eventType)
-    {
-        var domainEventInterfaceType = typeof(IDomainEvent);
-        var domainEventAssemblies = AppDomain.CurrentDomain.GetAssemblies()
-            .SelectMany(s => s.GetTypes())
-            .Where(p => !p.IsInterface && !p.IsAbstract && domainEventInterfaceType.IsAssignableFrom(p))
-            .Select(x => x.Assembly)
-            .Distinct();
-
-        foreach (var assembly in domainEventAssemblies)
-        {
-            var domainEventType = assembly.GetType(eventType);
-
-            if (domainEventType != null)
-            {
-                return domainEventType;
-            }
-        }
-
-        return null;
     }
 }
