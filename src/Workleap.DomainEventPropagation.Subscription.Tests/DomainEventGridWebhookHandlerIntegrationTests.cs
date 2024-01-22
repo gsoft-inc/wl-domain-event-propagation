@@ -17,10 +17,9 @@ public sealed class DomainEventGridWebhookHandlerIntegrationTests :
     public async Task GivenDomainEvent_WhenHandleEventGridWebhookEventAsync_ThenEventHandled()
     {
         // Given
-        var domainEvent = new TestDomainEvent() { Message = "Hello world" };
+        var domainEvent = new OfficevibeEvent() { Number = 1, Text = "Hello world" };
         var domainEventWrapper = DomainEventWrapper.Wrap(domainEvent);
 
-        // Serializing the same way the Officevibe library does
         var eventGridEvent = new EventGridEvent(
             domainEventWrapper.DomainEventName,
             domainEventWrapper.DomainEventName,
@@ -64,34 +63,11 @@ public sealed class DomainEventGridWebhookHandlerIntegrationTests :
             base.ConfigureServices(services);
 
             services.AddEventPropagationSubscriber()
-                .AddDomainEventHandler<OfficevibeEvent, OfficevibeDomainEventHandler>()
-                .AddDomainEventHandler<TestDomainEvent, TestDomainEventHandler>();
+                .AddDomainEventHandler<OfficevibeEvent, OfficevibeDomainEventHandler>();
 
             services.AddSingleton<DomainEventGridWebhookHandlerTestState>();
 
             return services;
-        }
-    }
-
-    [DomainEvent("test-event")]
-    private class TestDomainEvent : IDomainEvent
-    {
-        public string? Message { get; set; }
-    }
-
-    private class TestDomainEventHandler : IDomainEventHandler<TestDomainEvent>
-    {
-        private readonly DomainEventGridWebhookHandlerTestState _testState;
-
-        public TestDomainEventHandler(DomainEventGridWebhookHandlerTestState testState)
-        {
-            this._testState = testState;
-        }
-
-        public Task HandleDomainEventAsync(TestDomainEvent domainEvent, CancellationToken cancellationToken)
-        {
-            this._testState.OfficevibeDomainEventHandlerCallCount++;
-            return Task.CompletedTask;
         }
     }
 
