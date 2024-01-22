@@ -1,10 +1,9 @@
 ﻿using Azure.Messaging.EventGrid;
 using FakeItEasy;
 using Microsoft.Extensions.Logging;
-using Workleap.DomainEventPropagation;
+using Officevibe.DomainEvents;
 
-// ReSharper disable once CheckNamespace
-namespace Officevibe.DomainEvents;
+namespace Workleap.DomainEventPropagation.Subscription.Tests.OfficevibeMigration;
 
 public class DomainEventGridWebhookHandlerTests
 {
