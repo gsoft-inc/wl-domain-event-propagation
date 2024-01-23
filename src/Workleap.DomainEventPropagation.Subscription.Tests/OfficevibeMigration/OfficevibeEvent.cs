@@ -1,5 +1,6 @@
 ﻿using Workleap.DomainEventPropagation;
 using Workleap.DomainEventPropagation.Subscription.Tests;
+using Workleap.DomainEventPropagation.Subscription.Tests.OfficevibeMigration;
 
 // ReSharper disable CheckNamespace
 namespace Officevibe.DomainEvents;
@@ -10,6 +11,10 @@ public class OfficevibeEvent : IDomainEvent, Workleap.DomainEventPropagation.IDo
     public string Text { get; set; } = string.Empty;
 
     public int Number { get; set; }
+
+    public MeasuringUnit MeasuringUnit { get; set; }
+
+    public DateTime OfficevibeDate { get; set; }
 
     public string DataVersion { get; } = "1.0";
 }
@@ -25,6 +30,7 @@ public class OfficevibeDomainEventHandler : IDomainEventHandler<OfficevibeEvent>
 
     public Task HandleDomainEventAsync(OfficevibeEvent domainEvent, CancellationToken cancellationToken)
     {
+        this._testState.OfficevibeEvent = domainEvent;
         this._testState.OfficevibeDomainEventHandlerCallCount++;
         return Task.CompletedTask;
     }

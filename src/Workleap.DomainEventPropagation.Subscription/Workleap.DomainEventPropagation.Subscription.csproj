@@ -42,6 +42,7 @@
 
   <ItemGroup>
     <Compile Include="..\Shared\DomainEventWrapper.cs" Link="Shared\DomainEventWrapper.cs" />
+    <Compile Include="..\Shared\JsonSerializerConstants.cs" Link="Shared\JsonSerializerConstants.cs" />
     <Compile Include="..\Shared\TracingHelper.cs" Link="Shared\TracingHelper.cs" />
   </ItemGroup>
 </Project>

@@ -89,7 +89,7 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
             return;
         }
 
-        var domainEvent = JsonSerializer.Deserialize(eventGridEvent.Data, domainEventType);
+        var domainEvent = JsonSerializer.Deserialize(eventGridEvent.Data, domainEventType, JsonSerializerConstants.DomainEventSerializerOptions);
         var domainEventHandlerMethod = GetHandleDomainEventAsyncMethod(domainEventHandlerType);
 
         await ((Task)domainEventHandlerMethod.Invoke(domainEventHandler, new[] { domainEvent, cancellationToken })!).ConfigureAwait(false);

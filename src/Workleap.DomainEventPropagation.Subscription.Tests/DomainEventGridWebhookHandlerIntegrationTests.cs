@@ -3,12 +3,21 @@ using GSoft.Extensions.Xunit;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using Officevibe.DomainEvents;
+using Workleap.DomainEventPropagation.Subscription.Tests.OfficevibeMigration;
 
 namespace Workleap.DomainEventPropagation.Subscription.Tests;
 
 public sealed class DomainEventGridWebhookHandlerIntegrationTests :
     BaseIntegrationTest<DomainEventGridWebhookHandlerIntegrationTests.OfficevibeSubscriptionMigrationFixture>
 {
+    private static readonly OfficevibeEvent DomainEvent = new()
+    {
+        Number = 25,
+        Text = "Hello world",
+        MeasuringUnit = MeasuringUnit.Imperial,
+        OfficevibeDate = DateTime.UtcNow,
+    };
+
     public DomainEventGridWebhookHandlerIntegrationTests(OfficevibeSubscriptionMigrationFixture fixture, ITestOutputHelper testOutputHelper) : base(fixture, testOutputHelper)
     {
     }
@@ -17,8 +26,7 @@ public sealed class DomainEventGridWebhookHandlerIntegrationTests :
     public async Task GivenDomainEvent_WhenHandleEventGridWebhookEventAsync_ThenEventHandled()
     {
         // Given
-        var domainEvent = new OfficevibeEvent() { Number = 1, Text = "Hello world" };
-        var domainEventWrapper = DomainEventWrapper.Wrap(domainEvent);
+        var domainEventWrapper = DomainEventWrapper.Wrap(DomainEvent);
 
         var eventGridEvent = new EventGridEvent(
             domainEventWrapper.DomainEventName,
@@ -34,17 +42,20 @@ public sealed class DomainEventGridWebhookHandlerIntegrationTests :
 
         // Then
         Assert.Equal(1, testState.OfficevibeDomainEventHandlerCallCount);
+        Assert.NotNull(testState.OfficevibeEvent);
+        Assert.Equal(DomainEvent.Number, testState.OfficevibeEvent.Number);
+        Assert.Equal(DomainEvent.MeasuringUnit, testState.OfficevibeEvent.MeasuringUnit);
+        Assert.Equal(DomainEvent.OfficevibeDate, testState.OfficevibeEvent.OfficevibeDate);
     }
 
     [Fact]
     public async Task GivenEventSerializedFromOfficevibe_WhenHandleEventGridWebhookEventAsync_ThenEventHandled()
     {
         // Given
-        var domainEvent = new OfficevibeEvent() { Number = 1, Text = "Hello world" };
 
         // Serializing the same way the Officevibe library does
-        var serializedEvent = JsonConvert.SerializeObject(domainEvent);
-        var eventGridEvent = new EventGridEvent("subject", domainEvent.GetType().FullName, "1.0", BinaryData.FromString(serializedEvent));
+        var serializedEvent = JsonConvert.SerializeObject(DomainEvent);
+        var eventGridEvent = new EventGridEvent("subject", DomainEvent.GetType().FullName, "1.0", BinaryData.FromString(serializedEvent));
 
         var webhookHandler = this.Services.GetRequiredService<IDomainEventGridWebhookHandler>();
 
@@ -54,6 +65,10 @@ public sealed class DomainEventGridWebhookHandlerIntegrationTests :
 
         // Then
         Assert.Equal(1, testState.OfficevibeDomainEventHandlerCallCount);
+        Assert.NotNull(testState.OfficevibeEvent);
+        Assert.Equal(DomainEvent.Number, testState.OfficevibeEvent.Number);
+        Assert.Equal(DomainEvent.MeasuringUnit, testState.OfficevibeEvent.MeasuringUnit);
+        Assert.Equal(DomainEvent.OfficevibeDate, testState.OfficevibeEvent.OfficevibeDate);
     }
 
     public sealed class OfficevibeSubscriptionMigrationFixture : BaseIntegrationFixture
@@ -74,5 +89,7 @@ public sealed class DomainEventGridWebhookHandlerIntegrationTests :
     public class DomainEventGridWebhookHandlerTestState
     {
         public int OfficevibeDomainEventHandlerCallCount { get; set; }
+
+        public OfficevibeEvent? OfficevibeEvent { get; set; }
     }
 }
