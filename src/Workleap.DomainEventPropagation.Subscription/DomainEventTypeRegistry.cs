@@ -22,11 +22,25 @@ internal sealed class DomainEventTypeRegistry : IDomainEventTypeRegistry
         if (!this._nameToDomainEventTypeMapping.TryGetValue(domainEventName, out var otherDomainEventType))
         {
             this._nameToDomainEventTypeMapping[domainEventName] = domainEventType;
-            this._nameToDomainEventHandlerTypeMapping[domainEventName] = typeof(IDomainEventHandler<>).MakeGenericType(domainEventType);
+
+            var handlerType = typeof(IDomainEventHandler<>).MakeGenericType(domainEventType);
+            this._nameToDomainEventHandlerTypeMapping[domainEventName] = handlerType;
+
+            if (IsOfficevibeEvent(domainEventType))
+            {
+                this._nameToDomainEventTypeMapping[domainEventType.FullName!] = domainEventType;
+                this._nameToDomainEventHandlerTypeMapping[domainEventType.FullName!] = handlerType;
+            }
         }
         else if (otherDomainEventType != domainEventType)
         {
             throw new ArgumentException($"Two domain event types cannot have the same name '{domainEventName}': '{domainEventType.FullName}' and '{otherDomainEventType.FullName}'");
         }
+    }
+
+    private static bool IsOfficevibeEvent(Type domainEventType)
+    {
+        return !domainEventType.IsAbstract &&
+               domainEventType.GetInterfaces().Any(i => i.FullName == "Officevibe.DomainEvents.IDomainEvent");
     }
 }

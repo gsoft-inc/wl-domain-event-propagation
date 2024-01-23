@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Reflection;
+using System.Text.Json;
 using Azure.Messaging.EventGrid;
 using Microsoft.Extensions.Logging;
 
@@ -33,6 +34,20 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
 
     public async Task HandleEventGridWebhookEventAsync(EventGridEvent eventGridEvent, CancellationToken cancellationToken)
     {
+        // Check if it's an old Officevibe event
+        if (eventGridEvent.EventType.StartsWith("Officevibe", StringComparison.Ordinal))
+        {
+            var domainEventType = this._domainEventTypeRegistry.GetDomainEventType(eventGridEvent.EventType);
+            if (domainEventType != null)
+            {
+                await this.HandleOfficevibeDomainEventAsync(eventGridEvent, domainEventType, cancellationToken).ConfigureAwait(false);
+                return;
+            }
+
+            this._logger.EventDomainTypeNotRegistered(eventGridEvent.EventType, eventGridEvent.Subject);
+            return;
+        }
+
         var domainEventWrapper = new DomainEventWrapper(eventGridEvent);
 
         var isDomainEventTypeUnknown = this._domainEventTypeRegistry.GetDomainEventType(domainEventWrapper.DomainEventName) == null;
@@ -58,14 +73,35 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
         }
 
         var domainEvent = domainEventWrapper.Unwrap(domainEventType);
+        var domainEventHandlerMethod = GetHandleDomainEventAsyncMethod(domainEventHandlerType);
 
-        var domainEventHandlerMethod = GenericDomainEventHandlerMethodCache.GetOrAdd(domainEventHandlerType, type =>
+        await ((Task)domainEventHandlerMethod.Invoke(domainEventHandler, new[] { domainEvent, cancellationToken })!).ConfigureAwait(false);
+    }
+
+    private async Task HandleOfficevibeDomainEventAsync(EventGridEvent eventGridEvent, Type domainEventType, CancellationToken cancellationToken)
+    {
+        var domainEventHandlerType = this._domainEventTypeRegistry.GetDomainEventHandlerType(domainEventType.FullName!)!;
+        var domainEventHandler = this._serviceProvider.GetService(domainEventHandlerType);
+
+        if (domainEventHandler == null)
+        {
+            this._logger.EventDomainHandlerNotRegistered(eventGridEvent.EventType);
+            return;
+        }
+
+        var domainEvent = JsonSerializer.Deserialize(eventGridEvent.Data, domainEventType, JsonSerializerConstants.DomainEventSerializerOptions);
+        var domainEventHandlerMethod = GetHandleDomainEventAsyncMethod(domainEventHandlerType);
+
+        await ((Task)domainEventHandlerMethod.Invoke(domainEventHandler, new[] { domainEvent, cancellationToken })!).ConfigureAwait(false);
+    }
+
+    private static MethodInfo GetHandleDomainEventAsyncMethod(Type domainEventHandlerType)
+    {
+        return GenericDomainEventHandlerMethodCache.GetOrAdd(domainEventHandlerType, type =>
         {
             const string handleDomainEventAsyncMethodName = "HandleDomainEventAsync";
             return type.GetMethod(handleDomainEventAsyncMethodName, BindingFlags.Public | BindingFlags.Instance) ??
-                throw new InvalidOperationException($"Public method {type.FullName}.{handleDomainEventAsyncMethodName} not found");
+                   throw new InvalidOperationException($"Public method {type.FullName}.{handleDomainEventAsyncMethodName} not found");
         });
-
-        await ((Task)domainEventHandlerMethod.Invoke(domainEventHandler, new[] { domainEvent, cancellationToken })!).ConfigureAwait(false);
     }
 }
