@@ -6,14 +6,20 @@ namespace Workleap.DomainEventPropagation;
 
 internal static class ServiceCollectionExtensions
 {
-    public static void AddDomainEventHandlers(this IServiceCollection services, IDomainEventTypeRegistry domainEventTypeRegistry, Assembly assembly)
+    public static void AddDomainEventHandlers(
+        this IServiceCollection services,
+        IDomainEventTypeRegistry domainEventTypeRegistry,
+        Assembly assembly,
+        Func<Type, bool>? predicate = null)
     {
         if (assembly == null)
         {
             throw new ArgumentNullException(nameof(assembly));
         }
 
-        var concreteHandlerTypes = assembly.GetTypes().Where(IsConcreteDomainEventHandlerType);
+        var concreteHandlerTypes = assembly.GetTypes()
+            .Where(IsConcreteDomainEventHandlerType)
+            .Where(predicate ?? (_ => true));
 
         foreach (var concreteHandlerType in concreteHandlerTypes)
         {

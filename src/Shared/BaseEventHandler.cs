@@ -1,39 +1,30 @@
 ﻿using System.Collections.Concurrent;
 using System.Reflection;
-using Microsoft.Extensions.Logging;
 
 namespace Workleap.DomainEventPropagation;
 
 internal abstract class BaseEventHandler
 {
-    private readonly IServiceProvider _serviceProvider;
-    private readonly IDomainEventTypeRegistry _domainEventTypeRegistry;
-
     private static readonly ConcurrentDictionary<Type, MethodInfo> GenericDomainEventHandlerMethodCache = new();
 
-    protected BaseEventHandler(IServiceProvider serviceProvider, IDomainEventTypeRegistry domainEventTypeRegistry)
-    {
-        this._serviceProvider = serviceProvider;
-        this._domainEventTypeRegistry = domainEventTypeRegistry;
-    }
+    protected abstract Type? GetDomainEventType(string domainEventName);
 
-    protected bool IsDomainEventRegistrationMissing(string eventName)
-    {
-        return this._domainEventTypeRegistry.GetDomainEventType(eventName) == null;
-    }
+    protected abstract Type? GetDomainEventHandlerType(string domainEventName);
+
+    protected abstract object? ResolveDomainEventHandler(Type domainEventHandlerType);
 
     protected Func<Task>? BuildDomainEventHandler(DomainEventWrapper domainEventWrapper, CancellationToken cancellationToken)
     {
-        var domainEventType = this._domainEventTypeRegistry.GetDomainEventType(domainEventWrapper.DomainEventName)!;
-        var domainEventHandlerType = this._domainEventTypeRegistry.GetDomainEventHandlerType(domainEventWrapper.DomainEventName)!;
+        var domainEventType = this.GetDomainEventType(domainEventWrapper.DomainEventName);
+        var domainEventHandlerType = this.GetDomainEventHandlerType(domainEventWrapper.DomainEventName)!;
 
-        var domainEventHandler = this._serviceProvider.GetService(domainEventHandlerType);
+        var domainEventHandler = this.ResolveDomainEventHandler(domainEventHandlerType);
         if (domainEventHandler == null)
         {
             return null;
         }
 
-        var domainEvent = domainEventWrapper.Unwrap(domainEventType);
+        var domainEvent = domainEventWrapper.Unwrap(domainEventType!);
 
         var domainEventHandlerMethod = GenericDomainEventHandlerMethodCache.GetOrAdd(domainEventHandlerType, type =>
         {

@@ -1,6 +1,6 @@
 namespace Workleap.DomainEventPropagation;
 
-internal sealed class DomainEventTypeRegistry : IDomainEventTypeRegistry
+internal sealed class DomainEventTypeRegistry : IGlobalDomainEventTypeRegistry, IKeyedDomainEventTypeRegistry
 {
     private readonly Dictionary<string, Type> _nameToDomainEventTypeMapping = new Dictionary<string, Type>(StringComparer.Ordinal);
     private readonly Dictionary<string, Type> _nameToDomainEventHandlerTypeMapping = new Dictionary<string, Type>(StringComparer.Ordinal);

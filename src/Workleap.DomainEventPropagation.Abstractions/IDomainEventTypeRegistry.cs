@@ -8,3 +8,11 @@ internal interface IDomainEventTypeRegistry
 
     void RegisterDomainEvent(Type domainEventType);
 }
+
+internal interface IKeyedDomainEventTypeRegistry : IDomainEventTypeRegistry
+{
+}
+
+internal interface IGlobalDomainEventTypeRegistry : IDomainEventTypeRegistry
+{
+}
