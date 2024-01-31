@@ -30,51 +30,15 @@ internal sealed class EventPropagationSubscriberBuilder : IEventPropagationSubsc
 
     public IEventPropagationSubscriberBuilder AddDomainEventHandlers(Assembly assembly)
     {
-        if (assembly == null)
-        {
-            throw new ArgumentNullException(nameof(assembly));
-        }
-
-        var concreteHandlerTypes = assembly.GetTypes().Where(IsConcreteDomainEventHandlerType);
-
-        foreach (var concreteHandlerType in concreteHandlerTypes)
-        {
-            this.AddHandler(concreteHandlerType);
-        }
-
+        this.Services.AddDomainEventHandlers(this._domainEventTypeRegistry, AssemblyHelper.GetConcreteHandlerTypes(assembly));
         return this;
-    }
-
-    private static bool IsConcreteDomainEventHandlerType(Type type)
-    {
-        return !type.IsAbstract && type.GetInterfaces().Any(i => i.IsGenericType && i.GetGenericTypeDefinition() == typeof(IDomainEventHandler<>));
     }
 
     public IEventPropagationSubscriberBuilder AddDomainEventHandler<TEvent, THandler>()
         where THandler : IDomainEventHandler<TEvent>
         where TEvent : IDomainEvent
     {
-        this.AddHandler(typeof(THandler));
+        this.Services.AddDomainEventHandler<TEvent, THandler>(this._domainEventTypeRegistry);
         return this;
-    }
-
-    private void AddHandler(Type concreteHandlerType)
-    {
-        foreach (var handlerInterfaceType in FindGenericDomainEventHandlerInterfaces(concreteHandlerType))
-        {
-            var domainEventType = handlerInterfaceType.GenericTypeArguments[0];
-            this._domainEventTypeRegistry.RegisterDomainEvent(domainEventType);
-            this.Services.TryAddTransient(handlerInterfaceType, concreteHandlerType);
-        }
-    }
-
-    private static IEnumerable<Type> FindGenericDomainEventHandlerInterfaces(Type handlerType)
-    {
-        return handlerType.FindInterfaces(FilterGenericInterfaceOf, typeof(IDomainEventHandler<>));
-
-        static bool FilterGenericInterfaceOf(Type interfaceType, object? criteria)
-        {
-            return interfaceType.IsGenericType && ReferenceEquals(interfaceType.GetGenericTypeDefinition(), criteria);
-        }
     }
 }
