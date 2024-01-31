@@ -27,7 +27,7 @@ public class CloudEventHandlerUnitTests
         services
             .AddPullDeliverySubscription()
             .AddTopicSubscription()
-            .AddDomainEventHandler<SampleEvent, TestHandler>();
+            .AddDomainEventHandler<SampleEvent, SampleEventTestHandler>();
         var handler = GivenCloudEventHandler(services);
 
         // When
@@ -105,14 +105,14 @@ public class CloudEventHandlerUnitTests
         services
             .AddPullDeliverySubscription()
             .AddTopicSubscription()
-            .AddDomainEventHandler<SampleEvent, TestHandler>();
+            .AddDomainEventHandler<SampleEvent, SampleEventTestHandler>();
         var handler = GivenCloudEventHandler(services);
 
         // When
         var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
 
         // Then
-        TestHandler.ReceivedEvents.Should().Contain(e => e.Message == eventMessage);
+        SampleEventTestHandler.ReceivedEvents.Should().Contain(e => e.Message == eventMessage);
         result.Should().Be(EventProcessingStatus.Handled);
     }
 
@@ -133,7 +133,7 @@ public class CloudEventHandlerUnitTests
         var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
 
         // Then
-        TestHandler.ReceivedEvents.Should().Contain(e => e.Message == eventMessage);
+        SampleEventTestHandler.ReceivedEvents.Should().Contain(e => e.Message == eventMessage);
         result.Should().Be(EventProcessingStatus.Handled);
     }
 
