@@ -29,8 +29,7 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         GivenConfigurations(services, EventPropagationSubscriptionOptions.DefaultSectionName);
 
         // When
-        services.AddPullDeliverySubscription()
-            .AddTopicSubscription();
+        services.AddPullDeliverySubscription().AddTopicSubscription();
         var serviceProvider = services.BuildServiceProvider();
         var options = serviceProvider.GetRequiredService<IOptionsMonitor<EventPropagationSubscriptionOptions>>().Get(EventPropagationSubscriptionOptions.DefaultSectionName);
 
@@ -184,8 +183,8 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         // When
         var fct = () => services.AddPullDeliverySubscription()
             .AddTopicSubscription()
-            .AddDomainEventHandler<MisconfiguredTestAssembly.SampleEvent, MisconfiguredTestAssembly.TestHandler>()
-            .AddDomainEventHandler<MisconfiguredTestAssembly.SampleEvent, MisconfiguredTestAssembly.AnotherTestHandler>();
+            .AddDomainEventHandler<MisconfiguredTestAssembly.SampleEvent, MisconfiguredTestAssembly.SampleEventTestHandler>()
+            .AddDomainEventHandler<MisconfiguredTestAssembly.SampleEvent, MisconfiguredTestAssembly.AnotherSampleEventTestHandler>();
 
         // Then
         fct.Should().Throw<InvalidOperationException>();
