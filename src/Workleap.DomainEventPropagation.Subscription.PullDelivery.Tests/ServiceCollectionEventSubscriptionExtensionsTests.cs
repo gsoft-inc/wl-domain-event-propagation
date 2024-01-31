@@ -29,7 +29,8 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         GivenConfigurations(services, EventPropagationSubscriptionOptions.DefaultSectionName);
 
         // When
-        services.AddPullDeliverySubscription().AddTopicSubscription();
+        services.AddPullDeliverySubscription()
+            .AddTopicSubscription();
         var serviceProvider = services.BuildServiceProvider();
         var options = serviceProvider.GetRequiredService<IOptionsMonitor<EventPropagationSubscriptionOptions>>().Get(EventPropagationSubscriptionOptions.DefaultSectionName);
 
