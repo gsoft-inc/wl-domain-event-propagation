@@ -76,7 +76,7 @@ public class CloudEventHandlerUnitTests
     public async Task Given_FailingEventHandler_When_HandleCloudEventAsync_Then_ReturnsReleased()
     {
         // Given
-        var wrapper = DomainEventWrapper.Wrap(new SampleEventThatCausesException() { Message = "A message" });
+        var wrapper = DomainEventWrapper.Wrap(new SampleThatCausesExceptionDomainEvent() { Message = "A message" });
         var cloudEvent = new CloudEvent(
             type: wrapper.DomainEventName,
             source: "http://source.com",
@@ -85,7 +85,7 @@ public class CloudEventHandlerUnitTests
         services
             .AddPullDeliverySubscription()
             .AddTopicSubscription()
-            .AddDomainEventHandler<SampleEventThatCausesException, FailingHandler>();
+            .AddDomainEventHandler<SampleThatCausesExceptionDomainEvent, SampleThatCausesExceptionDomainEventHandler>();
         var handler = GivenCloudEventHandler(services);
 
         // When

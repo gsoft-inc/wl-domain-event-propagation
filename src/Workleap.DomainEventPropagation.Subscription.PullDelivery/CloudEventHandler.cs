@@ -52,7 +52,7 @@ internal sealed class CloudEventHandler : BaseEventHandler, ICloudEventHandler
             domainEventWrapper = new DomainEventWrapper(cloudEvent);
             return true;
         }
-        catch (Exception e)
+        catch (Exception)
         {
             return false;
         }
