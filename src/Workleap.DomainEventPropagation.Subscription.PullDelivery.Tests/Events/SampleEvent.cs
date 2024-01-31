@@ -8,7 +8,7 @@ public class SampleEvent : IDomainEvent
     public string? Message { get; set; }
 }
 
-public class TestHandler : IDomainEventHandler<SampleEvent>
+public class SampleEventTestHandler : IDomainEventHandler<SampleEvent>
 {
     public static ConcurrentQueue<SampleEvent> ReceivedEvents { get; } = new();
 

@@ -121,7 +121,7 @@ internal sealed class EventPropagationSubscriberBuilder : IEventPropagationSubsc
         if (this.Services.All(x => x.ServiceType != typeof(EventGridClientDescriptor)))
         {
             throw new InvalidOperationException(
-                $"No subscriber was found. Please call {nameof(this.AddTopicSubscription)} before calling AddDomainEventHandlers.");
+                $"No subscriber was found. Please call {nameof(this.AddTopicSubscription)} before calling {nameof(this.AddDomainEventHandlers)}.");
         }
     }
 

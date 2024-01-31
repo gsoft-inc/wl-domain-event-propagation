@@ -29,8 +29,7 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         GivenConfigurations(services, EventPropagationSubscriptionOptions.DefaultSectionName);
 
         // When
-        services.AddPullDeliverySubscription()
-            .AddTopicSubscription();
+        services.AddPullDeliverySubscription().AddTopicSubscription();
         var serviceProvider = services.BuildServiceProvider();
         var options = serviceProvider.GetRequiredService<IOptionsMonitor<EventPropagationSubscriptionOptions>>().Get(EventPropagationSubscriptionOptions.DefaultSectionName);
 
@@ -155,14 +154,14 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
 
         // When
         var act = () => services.AddPullDeliverySubscription()
-            .AddDomainEventHandler<SampleEvent, TestHandler>();
+            .AddDomainEventHandler<SampleEvent, SampleEventTestHandler>();
 
         // Then
         act.Should().Throw<InvalidOperationException>();
     }
 
     [Fact]
-    public void GivenNoSubscriber_WhenRegisterHandlerFromAssembly_ThenExceptionIsThrown()
+    public void GivenNoSubscriber_WhenRegisterHandlersFromAssembly_ThenExceptionIsThrown()
     {
         // Given
         var services = new ServiceCollection();
@@ -192,7 +191,7 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
     }
 
     [Fact]
-    public void GivenMultipleHandlersForSameEvent_WhenRegistersThemIndividuallyAndFromAssembly_ThenExceptionIsThrown()
+    public void GivenMultipleHandlersForSameEvent_WhenIndividuallyRegisteredAndFromAssembly_ThenExceptionIsThrown()
     {
         // Given
         var services = new ServiceCollection();
@@ -200,7 +199,7 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         // When
         var fct = () => services.AddPullDeliverySubscription()
             .AddTopicSubscription()
-            .AddDomainEventHandler<SampleEvent, TestHandler>()
+            .AddDomainEventHandler<SampleEvent, SampleEventTestHandler>()
             .AddDomainEventHandlers(Assembly.GetAssembly(typeof(ServiceCollectionEventSubscriptionExtensionsTests))!);
 
         // Then
