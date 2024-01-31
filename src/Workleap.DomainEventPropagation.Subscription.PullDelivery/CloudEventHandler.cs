@@ -3,18 +3,18 @@ using Microsoft.Extensions.Logging;
 
 namespace Workleap.DomainEventPropagation;
 
-internal sealed class CloudEventHandler : ICloudEventHandler
+internal sealed class CloudEventHandler : BaseEventHandler, ICloudEventHandler
 {
-    private readonly IDomainEventTypeRegistry _domainEventTypeRegistry;
-    private readonly ILogger<CloudEventHandler> _logger;
+    private readonly ILogger<ICloudEventHandler> _logger;
     private readonly DomainEventHandlerDelegate _pipeline;
 
     public CloudEventHandler(
+        IServiceProvider serviceProvider,
         IDomainEventTypeRegistry domainEventTypeRegistry,
         IEnumerable<IDomainEventBehavior> domainEventBehaviors,
-        ILogger<CloudEventHandler> logger)
+        ILogger<ICloudEventHandler> logger)
+        : base(serviceProvider, domainEventTypeRegistry)
     {
-        this._domainEventTypeRegistry = domainEventTypeRegistry;
         this._logger = logger;
         this._pipeline = domainEventBehaviors.Reverse().Aggregate((DomainEventHandlerDelegate)HandleDomainEventAsync, BuildPipeline);
     }
@@ -23,8 +23,7 @@ internal sealed class CloudEventHandler : ICloudEventHandler
     {
         var domainEventWrapper = new DomainEventWrapper(cloudEvent);
 
-        var domainEventType = this._domainEventTypeRegistry.GetDomainEventType(domainEventWrapper.DomainEventName);
-        if (domainEventType == null)
+        if (this.GetDomainEventType(domainEventWrapper!.DomainEventName) == null)
         {
             this._logger.EventDomainTypeNotRegistered(domainEventWrapper.DomainEventName, cloudEvent.Subject ?? "Unknown");
             return EventProcessingStatus.Rejected;
@@ -33,9 +32,9 @@ internal sealed class CloudEventHandler : ICloudEventHandler
         return await this._pipeline(domainEventWrapper, cancellationToken).ConfigureAwait(false);
     }
 
-    private static DomainEventHandlerDelegate BuildPipeline(DomainEventHandlerDelegate next, IDomainEventBehavior pipeline)
+    private static DomainEventHandlerDelegate BuildPipeline(DomainEventHandlerDelegate next, IDomainEventBehavior behavior)
     {
-        return (@event, cancellationToken) => pipeline.HandleAsync(@event, next, cancellationToken);
+        return (@event, cancellationToken) => behavior.HandleAsync(@event, next, cancellationToken);
     }
 
     private static Task<EventProcessingStatus> HandleDomainEventAsync(

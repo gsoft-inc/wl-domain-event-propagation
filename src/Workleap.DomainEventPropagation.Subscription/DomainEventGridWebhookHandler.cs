@@ -1,16 +1,10 @@
-using System.Collections.Concurrent;
-using System.Reflection;
 using Azure.Messaging.EventGrid;
 using Microsoft.Extensions.Logging;
 
 namespace Workleap.DomainEventPropagation;
 
-internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHandler
+internal sealed class DomainEventGridWebhookHandler : BaseEventHandler, IDomainEventGridWebhookHandler
 {
-    private static readonly ConcurrentDictionary<Type, MethodInfo> GenericDomainEventHandlerMethodCache = new ConcurrentDictionary<Type, MethodInfo>();
-
-    private readonly IServiceProvider _serviceProvider;
-    private readonly IDomainEventTypeRegistry _domainEventTypeRegistry;
     private readonly ILogger<DomainEventGridWebhookHandler> _logger;
     private readonly DomainEventHandlerDelegate _pipeline;
 
@@ -19,9 +13,8 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
         IDomainEventTypeRegistry domainEventTypeRegistry,
         ILogger<DomainEventGridWebhookHandler> logger,
         IEnumerable<ISubscriptionDomainEventBehavior> subscriptionDomainEventBehaviors)
+        : base(serviceProvider, domainEventTypeRegistry)
     {
-        this._serviceProvider = serviceProvider;
-        this._domainEventTypeRegistry = domainEventTypeRegistry;
         this._logger = logger;
         this._pipeline = subscriptionDomainEventBehaviors.Reverse().Aggregate((DomainEventHandlerDelegate)this.HandleDomainEventAsync, BuildPipeline);
     }
@@ -35,8 +28,7 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
     {
         var domainEventWrapper = new DomainEventWrapper(eventGridEvent);
 
-        var isDomainEventTypeUnknown = this._domainEventTypeRegistry.GetDomainEventType(domainEventWrapper.DomainEventName) == null;
-        if (isDomainEventTypeUnknown)
+        if (this.GetDomainEventType(domainEventWrapper.DomainEventName) == null)
         {
             this._logger.EventDomainTypeNotRegistered(domainEventWrapper.DomainEventName, eventGridEvent.Subject);
             return;
@@ -47,25 +39,13 @@ internal sealed class DomainEventGridWebhookHandler : IDomainEventGridWebhookHan
 
     private async Task HandleDomainEventAsync(DomainEventWrapper domainEventWrapper, CancellationToken cancellationToken)
     {
-        var domainEventType = this._domainEventTypeRegistry.GetDomainEventType(domainEventWrapper.DomainEventName)!;
-        var domainEventHandlerType = this._domainEventTypeRegistry.GetDomainEventHandlerType(domainEventWrapper.DomainEventName)!;
-
-        var domainEventHandler = this._serviceProvider.GetService(domainEventHandlerType);
-        if (domainEventHandler == null)
+        var handler = this.BuildHandleDomainEventAsyncMethod(domainEventWrapper, cancellationToken);
+        if (handler == null)
         {
             this._logger.EventDomainHandlerNotRegistered(domainEventWrapper.DomainEventName);
             return;
         }
 
-        var domainEvent = domainEventWrapper.Unwrap(domainEventType);
-
-        var domainEventHandlerMethod = GenericDomainEventHandlerMethodCache.GetOrAdd(domainEventHandlerType, type =>
-        {
-            const string handleDomainEventAsyncMethodName = "HandleDomainEventAsync";
-            return type.GetMethod(handleDomainEventAsyncMethodName, BindingFlags.Public | BindingFlags.Instance) ??
-                throw new InvalidOperationException($"Public method {type.FullName}.{handleDomainEventAsyncMethodName} not found");
-        });
-
-        await ((Task)domainEventHandlerMethod.Invoke(domainEventHandler, new[] { domainEvent, cancellationToken })!).ConfigureAwait(false);
+        await handler().ConfigureAwait(false);
     }
 }
