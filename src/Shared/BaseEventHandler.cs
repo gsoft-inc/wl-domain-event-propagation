@@ -53,7 +53,6 @@ internal abstract class BaseEventHandler
 
         var domainEventHandlerMethod = GenericDomainEventHandlerMethodCache.GetOrAdd(domainEventHandlerType, type =>
         {
-
             return type.GetMethod(HandleDomainEventAsyncMethodName, BindingFlags.Public | BindingFlags.Instance) ??
                    throw new InvalidOperationException($"Public method {type.FullName}.{HandleDomainEventAsyncMethodName} not found");
         });
