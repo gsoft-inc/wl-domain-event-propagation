@@ -43,6 +43,7 @@
 
   <ItemGroup>
     <Compile Include="..\Shared\DomainEventWrapper.cs" Link="Shared\DomainEventWrapper.cs" />
+    <Compile Include="..\Shared\BaseEventHandler.cs" Link="Shared\BaseEventHandler.cs" />
   </ItemGroup>
 
 </Project>
