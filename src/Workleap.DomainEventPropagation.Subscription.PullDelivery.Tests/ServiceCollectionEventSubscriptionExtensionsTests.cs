@@ -1,3 +1,4 @@
+using System.Reflection;
 using Azure.Messaging.EventGrid.Namespaces;
 using FakeItEasy;
 using FluentAssertions;
@@ -9,6 +10,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
+using Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests.Events;
 
 namespace Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests;
 
@@ -27,7 +29,8 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         GivenConfigurations(services, EventPropagationSubscriptionOptions.DefaultSectionName);
 
         // When
-        services.AddPullDeliverySubscription().AddTopicSubscription();
+        services.AddPullDeliverySubscription()
+            .AddTopicSubscription();
         var serviceProvider = services.BuildServiceProvider();
         var options = serviceProvider.GetRequiredService<IOptionsMonitor<EventPropagationSubscriptionOptions>>().Get(EventPropagationSubscriptionOptions.DefaultSectionName);
 
@@ -142,6 +145,80 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         // Then
         A.CallTo(() => fakeClientFactory.CreateClient(sectionName1)).MustHaveHappenedOnceExactly();
         A.CallTo(() => fakeClientFactory.CreateClient(sectionName2)).MustHaveHappenedOnceExactly();
+    }
+
+    [Fact]
+    public void GivenNoSubscriber_WhenRegisterHandlerIndividually_ThenExceptionIsThrown()
+    {
+        // Given
+        var services = new ServiceCollection();
+
+        // When
+        var act = () => services.AddPullDeliverySubscription()
+            .AddDomainEventHandler<SampleEvent, TestHandler>();
+
+        // Then
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void GivenNoSubscriber_WhenRegisterHandlerFromAssembly_ThenExceptionIsThrown()
+    {
+        // Given
+        var services = new ServiceCollection();
+
+        // When
+        var act = () => services.AddPullDeliverySubscription()
+            .AddDomainEventHandlers(Assembly.GetAssembly(typeof(ServiceCollectionEventSubscriptionExtensionsTests))!);
+
+        // Then
+        act.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void GivenMultipleHandlersForSameEvent_WhenRegistersThemIndividually_ThenExceptionIsThrown()
+    {
+        // Given
+        var services = new ServiceCollection();
+
+        // When
+        var fct = () => services.AddPullDeliverySubscription()
+            .AddTopicSubscription()
+            .AddDomainEventHandler<MisconfiguredTestAssembly.SampleEvent, MisconfiguredTestAssembly.TestHandler>()
+            .AddDomainEventHandler<MisconfiguredTestAssembly.SampleEvent, MisconfiguredTestAssembly.AnotherTestHandler>();
+
+        // Then
+        fct.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void GivenMultipleHandlersForSameEvent_WhenRegistersThemIndividuallyAndFromAssembly_ThenExceptionIsThrown()
+    {
+        // Given
+        var services = new ServiceCollection();
+
+        // When
+        var fct = () => services.AddPullDeliverySubscription()
+            .AddTopicSubscription()
+            .AddDomainEventHandler<SampleEvent, TestHandler>()
+            .AddDomainEventHandlers(Assembly.GetAssembly(typeof(ServiceCollectionEventSubscriptionExtensionsTests))!);
+
+        // Then
+        fct.Should().Throw<InvalidOperationException>();
+    }
+
+    [Fact]
+    public void GivenMultipleHandlersForSameEventInAssembly_WhenRegisterHandlers_ThenExceptionIsThrown()
+    {
+        // Given
+        var services = new ServiceCollection();
+
+        // When
+        var act = () => services.AddPullDeliverySubscription()
+            .AddDomainEventHandlers(Assembly.GetAssembly(typeof(MisconfiguredTestAssembly.SampleEvent))!);
+
+        // Then
+        act.Should().Throw<InvalidOperationException>();
     }
 
     private static void GivenConfigurations(IServiceCollection services, params string[] sections)
