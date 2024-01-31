@@ -29,29 +29,29 @@ internal class EventPuller : BackgroundService
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        return Task.WhenAll(this._eventGridTopicSubscriptions.Select(channel => Task.Run(() => this.StartReceivingEventsAsync(channel, this._logger, stoppingToken), stoppingToken)));
+        return Task.WhenAll(this._eventGridTopicSubscriptions.Select(sub => Task.Run(() => this.StartReceivingEventsAsync(sub, this._logger, stoppingToken), stoppingToken)));
     }
 
-    private async Task StartReceivingEventsAsync(EventGridTopicSubscription topicSub, ILogger<EventPuller> logger, CancellationToken stoppingToken)
+    private async Task StartReceivingEventsAsync(EventGridTopicSubscription eventGridTopicSubscription, ILogger<EventPuller> logger, CancellationToken stoppingToken)
     {
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
-                var bundles = await topicSub.Client.ReceiveCloudEventsAsync(topicSub.TopicName, topicSub.SubscriptionName, cancellationToken: stoppingToken).ConfigureAwait(false);
+                var bundles = await eventGridTopicSubscription.Client.ReceiveCloudEventsAsync(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, cancellationToken: stoppingToken).ConfigureAwait(false);
                 foreach (var (cloudEvent, lockToken) in bundles)
                 {
                     var status = await this._cloudEventHandler.HandleCloudEventAsync(cloudEvent, stoppingToken).ConfigureAwait(false);
                     switch (status)
                     {
                         case EventProcessingStatus.Handled:
-                            await AcknowledgeEvent(topicSub, lockToken, stoppingToken).ConfigureAwait(false);
+                            await AcknowledgeEvent(eventGridTopicSubscription, lockToken, stoppingToken).ConfigureAwait(false);
                             break;
                         case EventProcessingStatus.Released:
-                            await ReleaseEvent(topicSub, lockToken, stoppingToken).ConfigureAwait(false);
+                            await ReleaseEvent(eventGridTopicSubscription, lockToken, stoppingToken).ConfigureAwait(false);
                             break;
                         case EventProcessingStatus.Rejected:
-                            await RejectEvent(topicSub, lockToken, stoppingToken).ConfigureAwait(false);
+                            await RejectEvent(eventGridTopicSubscription, lockToken, stoppingToken).ConfigureAwait(false);
                             break;
                         default:
                             throw new NotSupportedException($"{status} is not a supported {nameof(EventProcessingStatus)}");
@@ -60,24 +60,24 @@ internal class EventPuller : BackgroundService
             }
             catch (Exception e)
             {
-                logger.CloudEventCannotBeReceived(topicSub.TopicName, topicSub.SubscriptionName, e.Message);
+                logger.CloudEventCannotBeReceived(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, e.Message);
             }
         }
     }
 
-    private static Task AcknowledgeEvent(EventGridTopicSubscription topicSub, string lockToken, CancellationToken stoppingToken)
+    private static Task AcknowledgeEvent(EventGridTopicSubscription eventGridTopicSubscription, string lockToken, CancellationToken stoppingToken)
     {
-        return topicSub.Client.AcknowledgeCloudEventAsync(topicSub.TopicName, topicSub.SubscriptionName, lockToken, stoppingToken);
+        return eventGridTopicSubscription.Client.AcknowledgeCloudEventAsync(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, lockToken, stoppingToken);
     }
 
-    private static Task ReleaseEvent(EventGridTopicSubscription topicSub, string lockToken, CancellationToken stoppingToken)
+    private static Task ReleaseEvent(EventGridTopicSubscription eventGridTopicSubscription, string lockToken, CancellationToken stoppingToken)
     {
-        return topicSub.Client.ReleaseCloudEventAsync(topicSub.TopicName, topicSub.SubscriptionName, lockToken, stoppingToken);
+        return eventGridTopicSubscription.Client.ReleaseCloudEventAsync(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, lockToken, stoppingToken);
     }
 
-    private static Task RejectEvent(EventGridTopicSubscription topicSub, string lockToken, CancellationToken stoppingToken)
+    private static Task RejectEvent(EventGridTopicSubscription eventGridTopicSubscription, string lockToken, CancellationToken stoppingToken)
     {
-        return topicSub.Client.RejectCloudEventAsync(topicSub.TopicName, topicSub.SubscriptionName, lockToken, stoppingToken);
+        return eventGridTopicSubscription.Client.RejectCloudEventAsync(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, lockToken, stoppingToken);
     }
 
     private record EventGridTopicSubscription(string TopicName, string SubscriptionName, IEventGridClientAdapter Client);

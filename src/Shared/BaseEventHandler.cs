@@ -5,6 +5,8 @@ namespace Workleap.DomainEventPropagation;
 
 internal abstract class BaseEventHandler
 {
+    private const string HandleDomainEventAsyncMethodName = "HandleDomainEventAsync";
+
     private readonly IServiceProvider _serviceProvider;
     private readonly IDomainEventTypeRegistry _domainEventTypeRegistry;
 
@@ -34,7 +36,12 @@ internal abstract class BaseEventHandler
     protected Func<Task>? BuildHandleDomainEventAsyncMethod(DomainEventWrapper domainEventWrapper, CancellationToken cancellationToken)
     {
         var domainEventType = this.GetDomainEventType(domainEventWrapper.DomainEventName);
-        var domainEventHandlerType = this.GetDomainEventHandlerType(domainEventWrapper.DomainEventName)!;
+        var domainEventHandlerType = this.GetDomainEventHandlerType(domainEventWrapper.DomainEventName);
+
+        if (domainEventType == null || domainEventHandlerType == null)
+        {
+            return null;
+        }
 
         var domainEventHandler = this.ResolveDomainEventHandler(domainEventHandlerType);
         if (domainEventHandler == null)
@@ -42,13 +49,13 @@ internal abstract class BaseEventHandler
             return null;
         }
 
-        var domainEvent = domainEventWrapper.Unwrap(domainEventType!);
+        var domainEvent = domainEventWrapper.Unwrap(domainEventType);
 
         var domainEventHandlerMethod = GenericDomainEventHandlerMethodCache.GetOrAdd(domainEventHandlerType, type =>
         {
-            const string handleDomainEventAsyncMethodName = "HandleDomainEventAsync";
-            return type.GetMethod(handleDomainEventAsyncMethodName, BindingFlags.Public | BindingFlags.Instance) ??
-                   throw new InvalidOperationException($"Public method {type.FullName}.{handleDomainEventAsyncMethodName} not found");
+
+            return type.GetMethod(HandleDomainEventAsyncMethodName, BindingFlags.Public | BindingFlags.Instance) ??
+                   throw new InvalidOperationException($"Public method {type.FullName}.{HandleDomainEventAsyncMethodName} not found");
         });
 
         return () => (Task)domainEventHandlerMethod.Invoke(domainEventHandler, new[] { domainEvent, cancellationToken })!;
