@@ -1,6 +1,6 @@
-﻿using AutoBogus;
-using Azure.Messaging;
+﻿using Azure.Messaging;
 using FluentAssertions;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests;
@@ -14,8 +14,7 @@ public class CloudEventHandlerUnitTests
     {
         // Given
         var cloudEvent = GivenCloudEvent();
-        var domainEventTypeRegistry = new DomainEventTypeRegistry();
-        var handler = new CloudEventHandler(domainEventTypeRegistry, Enumerable.Empty<IDomainEventBehavior>(), new NullLogger<CloudEventHandler>());
+        var handler = GivenCloudEventHandler();
 
         // When
         var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
@@ -31,7 +30,7 @@ public class CloudEventHandlerUnitTests
         var cloudEvent = GivenCloudEvent();
         var domainEventTypeRegistry = new DomainEventTypeRegistry();
         domainEventTypeRegistry.RegisterDomainEvent(typeof(SampleEvent));
-        var handler = new CloudEventHandler(domainEventTypeRegistry, Enumerable.Empty<IDomainEventBehavior>(), new NullLogger<CloudEventHandler>());
+        var handler = GivenCloudEventHandler(domainEventTypeRegistry);
 
         // When
         var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
@@ -48,6 +47,16 @@ public class CloudEventHandlerUnitTests
             source: "http://source.com",
             jsonSerializableData: wrapper.Data);
         return cloudEvent;
+    }
+
+    private static ICloudEventHandler GivenCloudEventHandler(DomainEventTypeRegistry? registry = null)
+    {
+        var services = new ServiceCollection();
+        return new CloudEventHandler(
+            services.BuildServiceProvider(),
+            registry ?? new DomainEventTypeRegistry(),
+            Enumerable.Empty<IDomainEventBehavior>(),
+            new NullLogger<ICloudEventHandler>());
     }
 
     [DomainEvent(SampleCloudEventTypeName, EventSchema.CloudEvent)]
