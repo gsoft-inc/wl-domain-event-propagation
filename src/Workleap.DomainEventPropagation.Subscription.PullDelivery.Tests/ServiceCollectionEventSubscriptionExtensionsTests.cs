@@ -27,7 +27,7 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         GivenConfigurations(services, EventPropagationSubscriptionOptions.DefaultSectionName);
 
         // When
-        services.AddPullDeliverySubscription().AddSubscriber();
+        services.AddPullDeliverySubscription().AddTopicSubscription();
         var serviceProvider = services.BuildServiceProvider();
         var options = serviceProvider.GetRequiredService<IOptionsMonitor<EventPropagationSubscriptionOptions>>().Get(EventPropagationSubscriptionOptions.DefaultSectionName);
 
@@ -36,25 +36,6 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         Assert.Equal(TopicEndPoint, options.TopicEndpoint);
         Assert.Equal(TopicName, options.TopicName);
         Assert.Equal(SubscriptionName, options.SubscriptionName);
-    }
-
-    [Fact]
-    public void GivenUnnamedConfiguration_WhenAddSubscriber_CanOverrideConfiguration()
-    {
-        // Given
-        var services = new ServiceCollection();
-        GivenConfigurations(services, EventPropagationSubscriptionOptions.DefaultSectionName);
-
-        // When
-        services.AddPullDeliverySubscription().AddSubscriber(options => { options.TopicEndpoint = "http://ovewrite.io"; });
-        var serviceProvider = services.BuildServiceProvider();
-        var options = serviceProvider.GetRequiredService<IOptionsMonitor<EventPropagationSubscriptionOptions>>().Get(EventPropagationSubscriptionOptions.DefaultSectionName);
-
-        // Then
-        Assert.Equal("http://ovewrite.io", options.TopicEndpoint);
-        Assert.Equal(AccessKey, options.TopicAccessKey);
-        Assert.Equal(SubscriptionName, options.SubscriptionName);
-        Assert.Equal(TopicName, options.TopicName);
     }
 
     [Fact]
@@ -68,8 +49,8 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
 
         // When
         services.AddPullDeliverySubscription()
-            .AddSubscriber(sectionName1)
-            .AddSubscriber(sectionName2);
+            .AddTopicSubscription(sectionName1)
+            .AddTopicSubscription(sectionName2);
         var serviceProvider = services.BuildServiceProvider();
         var monitor = serviceProvider.GetRequiredService<IOptionsMonitor<EventPropagationSubscriptionOptions>>();
         var options1 = monitor.Get(sectionName1);
@@ -98,8 +79,8 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
 
         // When
         services.AddPullDeliverySubscription()
-            .AddSubscriber(options => { options.TopicEndpoint = "http://ovewrite1.io"; }, sectionName1)
-            .AddSubscriber(options => { options.TopicEndpoint = "http://ovewrite2.io"; }, sectionName2);
+            .AddTopicSubscription(sectionName1, options => { options.TopicEndpoint = "http://ovewrite1.io"; })
+            .AddTopicSubscription(sectionName2, options => { options.TopicEndpoint = "http://ovewrite2.io"; });
         var serviceProvider = services.BuildServiceProvider();
         var monitor = serviceProvider.GetRequiredService<IOptionsMonitor<EventPropagationSubscriptionOptions>>();
         var options1 = monitor.Get(sectionName1);
@@ -128,8 +109,8 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
 
         // When
         services.AddPullDeliverySubscription()
-            .AddSubscriber(sectionName1)
-            .AddSubscriber(sectionName2);
+            .AddTopicSubscription(sectionName1)
+            .AddTopicSubscription(sectionName2);
         var serviceProvider = services.BuildServiceProvider();
         var clientDescriptors = serviceProvider.GetRequiredService<IEnumerable<EventGridClientDescriptor>>().ToArray();
 
@@ -153,8 +134,8 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
 
         // When
         services.AddPullDeliverySubscription()
-            .AddSubscriber(sectionName1)
-            .AddSubscriber(sectionName2);
+            .AddTopicSubscription(sectionName1)
+            .AddTopicSubscription(sectionName2);
         var serviceProvider = services.BuildServiceProvider();
         _ = serviceProvider.GetRequiredService<IEnumerable<IHostedService>>();
 
