@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <AssemblyOriginatorKeyFile>../Workleap.DomainEventPropagation.snk</AssemblyOriginatorKeyFile>
+    <SignAssembly>true</SignAssembly>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Workleap.DomainEventPropagation.Abstractions\Workleap.DomainEventPropagation.Abstractions.csproj" />
+  </ItemGroup>
+
+</Project>
