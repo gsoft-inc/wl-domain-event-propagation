@@ -19,6 +19,11 @@ internal sealed class DomainEventGridWebhookHandler : BaseEventHandler, IDomainE
         this._pipeline = subscriptionDomainEventBehaviors.Reverse().Aggregate((DomainEventHandlerDelegate)this.HandleDomainEventAsync, BuildPipeline);
     }
 
+    private static DomainEventHandlerDelegate BuildPipeline(DomainEventHandlerDelegate next, ISubscriptionDomainEventBehavior pipeline)
+    {
+        return (events, cancellationToken) => pipeline.HandleAsync(events, next, cancellationToken);
+    }
+
     public async Task HandleEventGridWebhookEventAsync(EventGridEvent eventGridEvent, CancellationToken cancellationToken)
     {
         var domainEventWrapper = new DomainEventWrapper(eventGridEvent);
@@ -30,11 +35,6 @@ internal sealed class DomainEventGridWebhookHandler : BaseEventHandler, IDomainE
         }
 
         await this._pipeline(domainEventWrapper, cancellationToken).ConfigureAwait(false);
-    }
-
-    private static DomainEventHandlerDelegate BuildPipeline(DomainEventHandlerDelegate next, ISubscriptionDomainEventBehavior pipeline)
-    {
-        return (events, cancellationToken) => pipeline.HandleAsync(events, next, cancellationToken);
     }
 
     private async Task HandleDomainEventAsync(DomainEventWrapper domainEventWrapper, CancellationToken cancellationToken)
