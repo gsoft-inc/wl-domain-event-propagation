@@ -1,7 +1,11 @@
-﻿using Azure.Messaging;
+﻿using System.Reflection;
+using Azure.Messaging;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests.Events;
 
 namespace Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests;
 
@@ -10,11 +14,21 @@ public class CloudEventHandlerUnitTests
     private const string SampleCloudEventTypeName = "sample-cloud-event";
 
     [Fact]
-    public async Task Given_EventTypeNotRegistered_When_HandleCloudEventAsync_Then_ReturnRejected()
+    public async Task Given_IllFormedEvent_When_HandleCloudEventAsync_Then_ReturnsRejected()
     {
         // Given
-        var cloudEvent = GivenCloudEvent();
-        var handler = GivenCloudEventHandler();
+        var cloudEvent = new CloudEvent(
+            type: SampleCloudEventTypeName,
+            source: "http://source.com",
+            data: BinaryData.FromString("not a json"),
+            dataContentType: typeof(SampleEvent).FullName);
+
+        var services = new ServiceCollection();
+        services
+            .AddPullDeliverySubscription()
+            .AddTopicSubscription()
+            .AddDomainEventHandler<SampleEvent, SampleEventTestHandler>();
+        var handler = GivenCloudEventHandler(services);
 
         // When
         var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
@@ -24,24 +38,108 @@ public class CloudEventHandlerUnitTests
     }
 
     [Fact]
-    public async Task Given_TypeWasRegistered_When_HandleCloudEventAsync_Then_ReturnHandled()
+    public async Task Given_EventTypeNotRegistered_When_HandleCloudEventAsync_Then_ReturnsRejected()
     {
         // Given
-        var cloudEvent = GivenCloudEvent();
-        var domainEventTypeRegistry = new DomainEventTypeRegistry();
-        domainEventTypeRegistry.RegisterDomainEvent(typeof(SampleEvent));
-        var handler = GivenCloudEventHandler(domainEventTypeRegistry);
+        var cloudEvent = GivenSampleEvent();
+        var services = new ServiceCollection();
+        services.AddPullDeliverySubscription();
+        var handler = GivenCloudEventHandler(services);
 
         // When
         var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
 
         // Then
+        result.Should().Be(EventProcessingStatus.Rejected);
+    }
+
+    [Fact]
+    public async Task Given_TypeWasRegisteredButNoHandler_When_HandleCloudEventAsync_Then_ReturnsRejected()
+    {
+        // Given
+        var cloudEvent = GivenSampleEvent();
+        var services = new ServiceCollection();
+        services.AddPullDeliverySubscription();
+        var domainEventTypeRegistry = new DomainEventTypeRegistry();
+        domainEventTypeRegistry.RegisterDomainEvent(typeof(SampleEvent));
+        services.Replace(new ServiceDescriptor(typeof(IDomainEventTypeRegistry), domainEventTypeRegistry));
+        var handler = new CloudEventHandler(new ServiceCollection().BuildServiceProvider(), domainEventTypeRegistry, Enumerable.Empty<IDomainEventBehavior>(), new NullLogger<CloudEventHandler>());
+
+        // When
+        var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
+
+        // Then
+        result.Should().Be(EventProcessingStatus.Rejected);
+    }
+
+    [Fact]
+    public async Task Given_FailingEventHandler_When_HandleCloudEventAsync_Then_ReturnsReleased()
+    {
+        // Given
+        var wrapper = DomainEventWrapper.Wrap(new SampleThatCausesExceptionDomainEvent() { Message = "A message" });
+        var cloudEvent = new CloudEvent(
+            type: wrapper.DomainEventName,
+            source: "http://source.com",
+            jsonSerializableData: wrapper.Data);
+        var services = new ServiceCollection();
+        services
+            .AddPullDeliverySubscription()
+            .AddTopicSubscription()
+            .AddDomainEventHandler<SampleThatCausesExceptionDomainEvent, SampleThatCausesExceptionDomainEventHandler>();
+        var handler = GivenCloudEventHandler(services);
+
+        // When
+        var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
+
+        // Then
+        result.Should().Be(EventProcessingStatus.Released);
+    }
+
+    [Fact]
+    public async Task Given_EventHandler_When_HandleCloudEventAsync_Then_ReturnsHandledAndEventWasTreated()
+    {
+        // Given
+        const string eventMessage = "A super important message!";
+        var cloudEvent = GivenSampleEvent(eventMessage);
+        var services = new ServiceCollection();
+        services
+            .AddPullDeliverySubscription()
+            .AddTopicSubscription()
+            .AddDomainEventHandler<SampleEvent, SampleEventTestHandler>();
+        var handler = GivenCloudEventHandler(services);
+
+        // When
+        var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
+
+        // Then
+        SampleEventTestHandler.ReceivedEvents.Should().Contain(e => e.Message == eventMessage);
         result.Should().Be(EventProcessingStatus.Handled);
     }
 
-    private static CloudEvent GivenCloudEvent()
+    [Fact]
+    public async Task Given_EventHandlersFromAssembly_When_HandleCloudEventAsync_Then_ReturnsHandledAndEventWasTreated()
     {
-        var wrapper = DomainEventWrapper.Wrap(new SampleEvent());
+        // Given
+        const string eventMessage = "Another super important message!";
+        var cloudEvent = GivenSampleEvent(eventMessage);
+        var services = new ServiceCollection();
+        services
+            .AddPullDeliverySubscription()
+            .AddTopicSubscription()
+            .AddDomainEventHandlers(Assembly.GetAssembly(typeof(CloudEventHandlerUnitTests))!);
+        var handler = GivenCloudEventHandler(services);
+
+        // When
+        var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
+
+        // Then
+        SampleEventTestHandler.ReceivedEvents.Should().Contain(e => e.Message == eventMessage);
+        result.Should().Be(EventProcessingStatus.Handled);
+    }
+
+    private static CloudEvent GivenSampleEvent(string message = "Hello World!")
+    {
+        var wrapper = DomainEventWrapper.Wrap(new SampleEvent() { Message = message });
         var cloudEvent = new CloudEvent(
             type: wrapper.DomainEventName,
             source: "http://source.com",
@@ -49,19 +147,10 @@ public class CloudEventHandlerUnitTests
         return cloudEvent;
     }
 
-    private static ICloudEventHandler GivenCloudEventHandler(DomainEventTypeRegistry? registry = null)
+    private static ICloudEventHandler GivenCloudEventHandler(IServiceCollection services)
     {
-        var services = new ServiceCollection();
-        return new CloudEventHandler(
-            services.BuildServiceProvider(),
-            registry ?? new DomainEventTypeRegistry(),
-            Enumerable.Empty<IDomainEventBehavior>(),
-            new NullLogger<ICloudEventHandler>());
-    }
-
-    [DomainEvent(SampleCloudEventTypeName, EventSchema.CloudEvent)]
-    private class SampleEvent : IDomainEvent
-    {
-        public string? Message { get; set; }
+        services.AddSingleton<ILogger<ICloudEventHandler>, NullLogger<ICloudEventHandler>>();
+        var sp = services.BuildServiceProvider();
+        return sp.GetRequiredService<ICloudEventHandler>();
     }
 }
