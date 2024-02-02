@@ -7,8 +7,6 @@ namespace Workleap.DomainEventPropagation;
 
 internal sealed class DomainEventWrapper
 {
-    private static readonly JsonSerializerOptions DomainEventWrapperSerializerOptions = new(JsonSerializerDefaults.Web);
-
     public DomainEventWrapper(EventGridEvent eventGridEvent)
     {
         this.Data = eventGridEvent.Data.ToObjectFromJson<JsonObject>();
@@ -67,7 +65,7 @@ internal sealed class DomainEventWrapper
 
     public object Unwrap(Type returnType)
     {
-        return this.Data.Deserialize(returnType, DomainEventWrapperSerializerOptions) ?? throw new ArgumentException("The event cannot be deserialized from JSON");
+        return this.Data.Deserialize(returnType, JsonSerializerConstants.DomainEventSerializerOptions) ?? throw new ArgumentException("The event cannot be deserialized from JSON");
     }
 
     public static DomainEventWrapper Wrap<T>(T domainEvent)
@@ -75,7 +73,7 @@ internal sealed class DomainEventWrapper
     {
         var domainEventName = DomainEventNameCache.GetName<T>();
         var domainEventSchema = DomainEventSchemaCache.GetEventSchema<T>();
-        var serializedEvent = (JsonObject?)JsonSerializer.SerializeToNode(domainEvent, domainEvent.GetType(), DomainEventWrapperSerializerOptions)
+        var serializedEvent = (JsonObject?)JsonSerializer.SerializeToNode(domainEvent, domainEvent.GetType(), JsonSerializerConstants.DomainEventSerializerOptions)
                               ?? throw new ArgumentException("The event cannot be serialized to JSON");
 
         return new DomainEventWrapper(serializedEvent, domainEventName, domainEventSchema);

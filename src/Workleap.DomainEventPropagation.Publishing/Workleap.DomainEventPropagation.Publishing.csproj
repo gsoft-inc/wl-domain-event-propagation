@@ -20,7 +20,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
     <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
-    <PackageReference Include="OpenTelemetry.Api" Version="1.6.0" />
+    <PackageReference Include="OpenTelemetry.Api" Version="1.7.0" />
     <PackageReference Include="System.Text.Json" Version="6.0.0" />
   </ItemGroup>
 
@@ -42,6 +42,7 @@
   <ItemGroup>
     <Compile Include="..\Shared\DomainEventWrapper.cs" Link="Shared\DomainEventWrapper.cs" />
     <Compile Include="..\Shared\DomainEventWrapperCollection.cs" Link="Shared\DomainEventWrapperCollection.cs" />
+    <Compile Include="..\Shared\JsonSerializerConstants.cs" Link="Shared\JsonSerializerConstants.cs" />
     <Compile Include="..\Shared\TracingHelper.cs" Link="Shared\TracingHelper.cs" />
   </ItemGroup>
 </Project>

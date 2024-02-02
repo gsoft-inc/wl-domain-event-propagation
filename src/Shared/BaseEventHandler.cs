@@ -10,7 +10,7 @@ internal abstract class BaseEventHandler
     private readonly IServiceProvider _serviceProvider;
     private readonly IDomainEventTypeRegistry _domainEventTypeRegistry;
 
-    private static readonly ConcurrentDictionary<Type, MethodInfo> GenericDomainEventHandlerMethodCache = new();
+    protected static readonly ConcurrentDictionary<Type, MethodInfo> GenericDomainEventHandlerMethodCache = new();
 
     protected BaseEventHandler(IServiceProvider serviceProvider, IDomainEventTypeRegistry domainEventTypeRegistry)
     {
