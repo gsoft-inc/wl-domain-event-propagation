@@ -183,8 +183,8 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         // When
         var fct = () => services.AddPullDeliverySubscription()
             .AddTopicSubscription()
-            .AddDomainEventHandler<MisconfiguredTestAssembly.SampleEvent, MisconfiguredTestAssembly.TestHandler>()
-            .AddDomainEventHandler<MisconfiguredTestAssembly.SampleEvent, MisconfiguredTestAssembly.AnotherTestHandler>();
+            .AddDomainEventHandler<MisconfiguredTestAssembly.SampleEvent, MisconfiguredTestAssembly.SampleEventTestHandler>()
+            .AddDomainEventHandler<MisconfiguredTestAssembly.SampleEvent, MisconfiguredTestAssembly.AnotherSampleEventTestHandler>();
 
         // Then
         fct.Should().Throw<InvalidOperationException>();
