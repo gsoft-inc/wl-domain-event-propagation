@@ -20,13 +20,12 @@ It is meant to be used in a multi-services architecture where each service is re
 ### Limitations
 
 For now, librairies has the following limitations :
-- There is no support to reveive Cloud Events using push delivery
-- Using Event grid events is not possible with Namespace Topics (Microsoft limitation)
-- Publishing events (either cloud or event grid) to more than one Topic is not supported
-- When publishing a Cloud event there is no support for
-  - AppInsight
-  - Tracing
-- No IPublishingDomainEventBehavior have been implemented for pull delivery
+- Receiving Cloud Events using push delivery
+- Using Event Grid events with Namespace Topics (Microsoft limitation)
+- Publishing either Cloud or Event Grid events to multiple topics
+- Application Insights telemetry for Cloud Event publishing
+- Tracing for Cloud Event publishing
+- `IPublishingDomainEventBehavior` behaviors for pull delivery
 
 ### Publish domain events
 
@@ -240,22 +239,6 @@ services.AddPullDeliverySubscription()
     // ...
   });
 
-services.AddEventPropagationPublisher(options =>
-{
-    options.TopicEndpoint = "<azure_topic_uri>";
-
-    // Using an access key        
-    options.TopicAccessKey = "<secret_value>";
-    
-    // Using Azure Identity (RBAC)
-    options.TokenCredential = new DefaultAzureCredential();
-
-    // Topic type, Custom by default
-    options.TopicType = TopicType.Custom;
-
-    // Namespace topic name, mandatory if topic type = namespace
-    options.TopicName = "<azure_namespacetopic_name>";
-});
 ```
 
 Then you can define your domain event handlers by implementing the `IDomainEventHandler<>` interface and register them using
