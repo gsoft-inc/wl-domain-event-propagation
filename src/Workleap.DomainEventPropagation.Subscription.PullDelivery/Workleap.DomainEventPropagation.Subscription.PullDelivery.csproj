@@ -45,6 +45,9 @@
     <Compile Include="..\Shared\DomainEventWrapper.cs" Link="Shared\DomainEventWrapper.cs" />
     <Compile Include="..\Shared\BaseEventHandler.cs" Link="Shared\BaseEventHandler.cs" />
     <Compile Include="..\Shared\AssemblyHelper.cs" Link="Shared\AssemblyHelper.cs" />
+    <Compile Include="..\Shared\JsonSerializerConstants.cs">
+      <Link>Shared\JsonSerializerConstants.cs</Link>
+    </Compile>
   </ItemGroup>
 
 </Project>
