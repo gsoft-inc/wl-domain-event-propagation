@@ -7,16 +7,29 @@
 | Workleap.DomainEventPropagation.Abstractions                     | [![nuget](https://img.shields.io/nuget/v/Workleap.DomainEventPropagation.Abstractions.svg?logo=nuget)](https://www.nuget.org/packages/Workleap.DomainEventPropagation.Abstractions)                                         | Contains abstractions that are used for publishing and receiving events                     |
 | Workleap.DomainEventPropagation.Publishing                       | [![nuget](https://img.shields.io/nuget/v/Workleap.DomainEventPropagation.Publishing.svg?logo=nuget)](https://www.nuget.org/packages/Workleap.DomainEventPropagation.Publishing)                                             | Contains types used to publish events from any kind of .NET application                     |
 | Workleap.DomainEventPropagation.Publishing.ApplicationInsights   | [![nuget](https://img.shields.io/nuget/v/Workleap.DomainEventPropagation.Publishing.ApplicationInsights.svg?logo=nuget)](https://www.nuget.org/packages/Workleap.DomainEventPropagation.Publishing.ApplicationInsights)     | Adds Application Insights distributed tracing when publishing events                        |
-| Workleap.DomainEventPropagation.Subscription                     | [![nuget](https://img.shields.io/nuget/v/Workleap.DomainEventPropagation.Subscription.svg?logo=nuget)](https://www.nuget.org/packages/Workleap.DomainEventPropagation.Subscription)                                         | Contains types for an ASP.NET Core app to subscribe to Event Grid topics and receive events |
+| Workleap.DomainEventPropagation.Subscription                     | [![nuget](https://img.shields.io/nuget/v/Workleap.DomainEventPropagation.Subscription.svg?logo=nuget)](https://www.nuget.org/packages/Workleap.DomainEventPropagation.Subscription)                                         | Contains types for an ASP.NET Core app to subscribe to Event Grid topics and receive events using push delivery |
+| Workleap.DomainEventPropagation.Subscription.PullDelivery | | Contains types for an ASP.NET Core app to subscribe to Event Grid topics and receive events using pull delivery |
 | Workleap.DomainEventPropagation.Subscription.ApplicationInsights | [![nuget](https://img.shields.io/nuget/v/Workleap.DomainEventPropagation.Subscription.ApplicationInsights.svg?logo=nuget)](https://www.nuget.org/packages/Workleap.DomainEventPropagation.Subscription.ApplicationInsights) | Adds Application Insights distributed tracing when receiving events                         |
 
 These libraries must be used in conjunction with [Azure Event Grid](https://learn.microsoft.com/en-us/azure/event-grid/) in order to publish and receive domain events.
-It is meant to be used in a multi-services architecture where each service is responsible for its own data and publishes events to notify other services of changes.
+It is meant to be used in a multi-services architecture where each service is responsible for its own data and publishes events to notify other services of changes. Read more about this in the [architecture center](https://gsoftdev.atlassian.net/wiki/spaces/TEC/pages/3914039609/How+should+two+services+use+Event+Grid+to+communicate)
 
 
 ## Getting started
 
+### Limitations
+
+For now, librairies has the following limitations :
+- Receiving Cloud Events using push delivery
+- Using Event Grid events with Namespace Topics (Microsoft limitation)
+- Publishing either Cloud or Event Grid events to multiple topics
+- Application Insights telemetry for Cloud Event publishing
+- Tracing for Cloud Event publishing
+- `IPublishingDomainEventBehavior` behaviors for pull delivery
+
 ### Publish domain events
+
+*Note that in order to use pull-delivery with Event Grid, you will need to leverage namespace Topic. It's important to know that those topics only support CloudEvent v1.0 schema. More information on namespace topics can be [found here](https://learn.microsoft.com/en-us/azure/event-grid/publish-events-using-namespace-topics)*
 
 Install the package [Workleap.DomainEventPropagation.Publishing](https://www.nuget.org/packages/Workleap.DomainEventPropagation.Publishing) in your .NET project that wants to send events to an Event Grid topic.
 Then, you can use one of the following methods to register the required services.
@@ -30,7 +43,9 @@ services.AddEventPropagationPublisher();
   "EventPropagation": {
     "Publisher": {
       "TopicEndpoint": "<azure_topic_uri>",
-      "TopicAccessKey": "<secret_value>"
+      "TopicAccessKey": "<secret_value>",
+      "TopicType": "<custom/namespace>", // Custom if unset
+      "TopicName": "<azure_namespacetopic_name>" // Mandatory only if topic type = namespace
     }
   }
 }
@@ -45,7 +60,9 @@ services.AddEventPropagationPublisher(options =>
 {
   "EventPropagation": {
     "Publisher": {
-      "TopicEndpoint": "<azure_topic_uri>"
+      "TopicEndpoint": "<azure_topic_uri>",
+      "TopicType": "<custom/namespace>", // Custom if unset
+      "TopicName": "<azure_namespacetopic_name>" // Mandatory only if topic type = namespace
     }
   }
 }
@@ -60,6 +77,12 @@ services.AddEventPropagationPublisher(options =>
     
     // Using Azure Identity (RBAC)
     options.TokenCredential = new DefaultAzureCredential();
+
+    // Topic type, Custom by default
+    options.TopicType = TopicType.Custom;
+
+    // Namespace topic name, mandatory if topic type = namespace
+    options.TopicName = "<azure_namespacetopic_name>";
 });
 ```
 
@@ -70,6 +93,13 @@ Decorate the domain event with the `[DomainEvent]` attribute, specifying a uniqu
 
 ```csharp
 [DomainEvent("example")]
+public class ExampleDomainEvent : IDomainEvent
+{
+    public string Id { get; set; }
+}
+
+// Or if you want to use specify what schema should be used
+[DomainEvent("example", EventSchema.CloudEvent)]
 public class ExampleDomainEvent : IDomainEvent
 {
     public string Id { get; set; }
@@ -88,7 +118,7 @@ await this._eventPropagationClient.PublishDomainEventAsync(domainEvent, Cancella
 ```
 
 
-### Subscribe to domain events
+### Subscribe to domain events with push delivery
 
 Install the package [Workleap.DomainEventPropagation.Subscription](https://www.nuget.org/packages/Workleap.DomainEventPropagation.Subscription) in your ASP.NET Core project that wants to receive events from Event Grid topics.
 
@@ -140,6 +170,99 @@ app.MapEventPropagationEndpoint().RequireAuthorization();
 
 Now, follow this [Microsoft documentation](https://learn.microsoft.com/en-us/azure/event-grid/secure-webhook-delivery#deliver-events-to-a-webhook-in-the-same-azure-ad-tenant) to continue the configuration.  
 
+
+### Subscribe to domain events with pull delivery
+
+Install the package [Workleap.DomainEventPropagation.Subscription.PullDelivery](fixme) in your ASP.NET Core project that wants to receive events from Event Grid topics.
+First, you can need to use one of the following methods to register the required services.
+
+```csharp
+// Method 1: Register to pull delivery and bind the subscription options to the well-known configuration section named EventPropagation:Subscription
+services.AddPullDeliverySubscription()
+  .AddTopicSubscription();
+
+// appsetting.json (or any other configuration source)
+{
+  "EventPropagation": {
+    "Subscription": {
+      "TopicEndpoint": "<azure_topic_uri>",
+      "TopicName": "<namespace_topic_to_listen_to>"
+      "SubscriptionName": "<subscription_name_under_specified_topic>",
+      "TopicAccessKey": "<secret_value>", // Can be omitted to use Azure Identity (RBAC)
+    }
+  }
+}
+
+// Method 2: Register to pull delivery and bind to multiple subscriptions
+services.AddPullDeliverySubscription()
+  .AddTopicSubscription("EventPropagation:TopicSub1")
+  .AddTopicSubscription("EventPropagation:TopicSub2");
+
+// appsetting.json (or any other configuration source)
+{
+  "EventPropagation": {
+    "TopicSub1": {
+      "TopicEndpoint": "<azure_topic_uri>",
+      "TopicName": "<namespace_topic_to_listen_to>"
+      "SubscriptionName": "<subscription_name_under_specified_topic>",
+      "TopicAccessKey": "<secret_value>", // Can be omitted to use Azure Identity (RBAC)
+    },
+    "TopicSub2": {
+      "TopicEndpoint": "<azure_topic_uri>",
+      "TopicName": "<namespace_topic_to_listen_to>"
+      "SubscriptionName": "<subscription_name_under_specified_topic>",
+      "TopicAccessKey": "<secret_value>", // Can be omitted to use Azure Identity (RBAC)
+    }
+  }
+}
+
+// Method 3: Set options values directly in C#
+services.AddPullDeliverySubscription()
+  .AddTopicSubscription("EventPropagation:TopicSub1", options => 
+  {
+    options.TopicEndpoint = "<azure_topic_uri>";
+
+    // Namespace topic name
+    options.TopicName = "<topic_name>";
+
+    // Namespace topic subscription name
+    options.SubscriptionName = "<subscription_name>";
+
+    // Using an access key        
+    options.TopicAccessKey = "<secret_value>";
+    
+    // Using Azure Identity (RBAC)
+    options.TokenCredential = new DefaultAzureCredential();
+  })
+  .AddTopicSubscription("EventPropagation:TopicSub2", options => 
+  {
+    // ...
+  });
+
+```
+
+Then you can define your domain event handlers by implementing the `IDomainEventHandler<>` interface and register them using
+
+```csharp
+// Method 1: Register only selected domain event handlers
+services.AddPullDeliverySubscription()
+    .AddDomainEventHandler<ExampleDomainEvent, ExampleDomainEventHandler>()
+    .AddDomainEventHandler<OtherDomainEvent, OtherDomainEventHandler>();
+
+// Method 2: Register all domain event handlers from a given assembly
+services.AddPullDeliverySubscription()
+    .AddDomainEventHandlers(Assembly.GetExecutingAssembly());
+
+// Handler sample
+public class ExampleDomainEventHandler : IDomainEventHandler<ExampleDomainEvent>
+{
+    public Task HandleDomainEventAsync(ExampleDomainEvent domainEvent, CancellationToken cancellationToken)
+    {
+        // Do something with the domain event
+        return Task.CompletedTask;
+    }
+}
+```
 
 ## Additional notes
 
