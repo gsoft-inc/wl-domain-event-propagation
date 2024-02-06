@@ -24,7 +24,7 @@ internal sealed class TracingPublishingDomainEventBehavior : IPublishingDomainEv
         }
         else
         {
-            await HandleWithTracing(domainEventWrappers, next, activity, cancellationToken);
+            await HandleWithTracing(domainEventWrappers, next, activity, cancellationToken).ConfigureAwait(false);
         }
     }
 
