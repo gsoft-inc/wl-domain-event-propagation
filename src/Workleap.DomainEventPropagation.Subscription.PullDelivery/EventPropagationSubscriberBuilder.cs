@@ -19,6 +19,8 @@ internal sealed class EventPropagationSubscriberBuilder : IEventPropagationSubsc
     {
         this.Services = services;
 
+        this.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<EventPropagationSubscriptionOptions>, EventPropagationSubscriptionOptionsValidator>());
+
         this._domainEventTypeRegistry = services.Where(x => x.ServiceType == typeof(IDomainEventTypeRegistry))
             .Select(x => x.ImplementationInstance)
             .OfType<DomainEventTypeRegistry>()
@@ -49,15 +51,16 @@ internal sealed class EventPropagationSubscriberBuilder : IEventPropagationSubsc
 
         this.Services.AddOptions<EventPropagationSubscriptionOptions>(optionsSectionName)
             .Configure<IConfiguration>((opt, cfg) => BindFromWellKnownConfigurationSection(opt, cfg, optionsSectionName))
-            .Configure(configureOptions);
+            .Configure(configureOptions)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
         this.Services.AddTransient<EventGridClientDescriptor>(sp => new EventGridClientDescriptor(optionsSectionName));
-        this.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<EventPropagationSubscriptionOptions>, EventPropagationSubscriptionOptionsValidator>());
 
         this.Services.AddAzureClients(builder =>
         {
             builder.AddClient<EventGridClient, EventGridClientOptions>((opts, sp) => EventGridClientFactory(opts, sp, optionsSectionName))
-                .WithName(optionsSectionName);
+              .WithName(optionsSectionName);
         });
 
         return this;

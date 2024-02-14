@@ -22,13 +22,16 @@ internal sealed class EventPropagationPublisherBuilder : IEventPropagationPublis
 
     private void AddRegistrations(Action<EventPropagationPublisherOptions> configure)
     {
+        this.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<EventPropagationPublisherOptions>, EventPropagationPublisherOptionsValidator>());
+
         this.Services
             .AddOptions<EventPropagationPublisherOptions>()
             .Configure<IConfiguration>(BindFromWellKnownConfigurationSection)
-            .Configure(configure);
+            .Configure(configure)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
         this.Services.TryAddSingleton<IEventPropagationClient, EventPropagationClient>();
-        this.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<EventPropagationPublisherOptions>, EventPropagationPublisherOptionsValidator>());
         this.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IPublishingDomainEventBehavior, TracingPublishingDomainEventBehavior>());
 
         this.Services.AddAzureClients(ConfigureEventPublisher);
