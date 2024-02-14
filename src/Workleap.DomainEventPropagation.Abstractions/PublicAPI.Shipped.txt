@@ -1,7 +1,8 @@
 #nullable enable
 Workleap.DomainEventPropagation.DomainEventAttribute
-Workleap.DomainEventPropagation.DomainEventAttribute.DomainEventAttribute(string! name) -> void
+Workleap.DomainEventPropagation.DomainEventAttribute.DomainEventAttribute(string! name, Workleap.DomainEventPropagation.EventSchema eventSchema = Workleap.DomainEventPropagation.EventSchema.EventGridEvent) -> void
 Workleap.DomainEventPropagation.DomainEventAttribute.Name.get -> string!
+Workleap.DomainEventPropagation.DomainEventAttribute.Schema.get -> Workleap.DomainEventPropagation.EventSchema
 Workleap.DomainEventPropagation.IDomainEvent
 Workleap.DomainEventPropagation.IDomainEventHandler<TDomainEvent>
 Workleap.DomainEventPropagation.IDomainEventHandler<TDomainEvent>.HandleDomainEventAsync(TDomainEvent domainEvent, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
