@@ -4,3 +4,4 @@ Workleap.DomainEventPropagation.DomainEventAttribute.Schema.get -> Workleap.Doma
 Workleap.DomainEventPropagation.EventSchema
 Workleap.DomainEventPropagation.EventSchema.CloudEvent = 2 -> Workleap.DomainEventPropagation.EventSchema
 Workleap.DomainEventPropagation.EventSchema.EventGridEvent = 1 -> Workleap.DomainEventPropagation.EventSchema
+Workleap.DomainEventPropagation.EventSchema.None = 0 -> Workleap.DomainEventPropagation.EventSchema
