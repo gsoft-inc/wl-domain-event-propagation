@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Workleap.DomainEventPropagation.EventGridClientAdapter;
@@ -7,19 +8,19 @@ namespace Workleap.DomainEventPropagation;
 
 internal class EventPuller : BackgroundService
 {
-    private readonly ICloudEventHandler _cloudEventHandler;
+    private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly ILogger<EventPuller> _logger;
     private readonly EventGridTopicSubscription[] _eventGridTopicSubscriptions;
 
     public EventPuller(
+        IServiceScopeFactory serviceScopeFactory,
         IEnumerable<EventGridClientDescriptor> clientDescriptors,
         IEventGridClientWrapperFactory eventGridClientWrapperFactory,
-        ICloudEventHandler cloudEventHandler,
         IOptionsMonitor<EventPropagationSubscriptionOptions> optionsMonitor,
         ILogger<EventPuller> logger)
     {
+        this._serviceScopeFactory = serviceScopeFactory;
         this._logger = logger;
-        this._cloudEventHandler = cloudEventHandler;
         this._eventGridTopicSubscriptions = clientDescriptors.Select(descriptor =>
             new EventGridTopicSubscription(
                 optionsMonitor.Get(descriptor.Name).TopicName,
@@ -34,6 +35,9 @@ internal class EventPuller : BackgroundService
 
     private async Task StartReceivingEventsAsync(EventGridTopicSubscription eventGridTopicSubscription, ILogger<EventPuller> logger, CancellationToken stoppingToken)
     {
+        using var scope = this._serviceScopeFactory.CreateScope();
+        var cloudEventHandler = scope.ServiceProvider.GetRequiredService<ICloudEventHandler>();
+
         while (!stoppingToken.IsCancellationRequested)
         {
             try
@@ -41,7 +45,7 @@ internal class EventPuller : BackgroundService
                 var bundles = await eventGridTopicSubscription.Client.ReceiveCloudEventsAsync(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, cancellationToken: stoppingToken).ConfigureAwait(false);
                 foreach (var (cloudEvent, lockToken) in bundles)
                 {
-                    var status = await this._cloudEventHandler.HandleCloudEventAsync(cloudEvent, stoppingToken).ConfigureAwait(false);
+                    var status = await cloudEventHandler.HandleCloudEventAsync(cloudEvent, stoppingToken).ConfigureAwait(false);
                     switch (status)
                     {
                         case EventProcessingStatus.Handled:
