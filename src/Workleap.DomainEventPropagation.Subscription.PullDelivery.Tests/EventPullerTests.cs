@@ -1,8 +1,7 @@
 ﻿using AutoBogus;
 using Azure.Messaging;
-using Azure.Messaging.EventGrid.Namespaces;
 using FakeItEasy;
-using FakeItEasy.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -20,6 +19,17 @@ public class EventPullerTests
         var fakeClient = A.Fake<IEventGridClientAdapter>();
         A.CallTo(() => clientWrapperFactory.CreateClient(subName)).Returns(fakeClient);
         return fakeClient;
+    }
+
+    private static IServiceScopeFactory GivenScopeFactory(ICloudEventHandler handler)
+    {
+        var scopeFactory = A.Fake<IServiceScopeFactory>();
+        var scope = A.Fake<IServiceScope>();
+        var serviceCollection = new ServiceCollection();
+        serviceCollection.AddScoped<ICloudEventHandler>(_ => handler);
+        A.CallTo(() => scopeFactory.CreateScope()).Returns(scope);
+        A.CallTo(() => scope.ServiceProvider).Returns(serviceCollection.BuildServiceProvider());
+        return scopeFactory;
     }
 
     private static EventPropagationSubscriptionOptions GivenEventPropagationSubscriptionOptions(IOptionsMonitor<EventPropagationSubscriptionOptions> optionMonitor, string clientName)
@@ -55,6 +65,7 @@ public class EventPullerTests
             // Given
             var clientName1 = AutoFaker.Generate<string>();
             var clientName2 = AutoFaker.Generate<string>();
+            var scopeFactory = GivenScopeFactory(A.Fake<ICloudEventHandler>());
             var eventGridClientDescriptors = new EventGridClientDescriptor[] { new(clientName1), new(clientName2) };
 
             var clientFactory = A.Fake<IEventGridClientWrapperFactory>();
@@ -66,7 +77,7 @@ public class EventPullerTests
             var options2 = GivenEventPropagationSubscriptionOptions(optionMonitor, clientName2);
 
             // When
-            using var puller = new EventPuller(eventGridClientDescriptors, clientFactory, A.Fake<ICloudEventHandler>(), optionMonitor, new NullLogger<EventPuller>());
+            using var puller = new EventPuller(scopeFactory, eventGridClientDescriptors, clientFactory, optionMonitor, new NullLogger<EventPuller>());
             await StartWaitAndStop(puller);
 
             // Then
@@ -82,6 +93,7 @@ public class EventPullerTests
                         options2.SubscriptionName,
                         A<CancellationToken>._))
                 .MustHaveHappenedOnceOrMore();
+            A.CallTo(() => scopeFactory.CreateScope()).MustHaveHappenedTwiceOrMore();
         }
 
         [Fact]
@@ -90,6 +102,7 @@ public class EventPullerTests
             // Given
             var clientName1 = AutoFaker.Generate<string>();
             var clientName2 = AutoFaker.Generate<string>();
+            var eventHandler = A.Fake<ICloudEventHandler>();
             var eventGridClientDescriptors = new EventGridClientDescriptor[] { new(clientName1), new(clientName2) };
 
             var clientFactory = A.Fake<IEventGridClientWrapperFactory>();
@@ -106,10 +119,9 @@ public class EventPullerTests
 
             var eventBundle = AutoFaker.Generate<EventGridClientAdapter.EventGridClientAdapter.EventBundle>();
             RegisterCloudEventsInClient(functionalClient, options2, eventBundle);
-            var eventHandler = A.Fake<ICloudEventHandler>();
 
             // When
-            using var puller = new EventPuller(eventGridClientDescriptors, clientFactory, eventHandler, optionMonitor, new NullLogger<EventPuller>());
+            using var puller = new EventPuller(GivenScopeFactory(eventHandler), eventGridClientDescriptors, clientFactory, optionMonitor, new NullLogger<EventPuller>());
             await StartWaitAndStop(puller);
 
             // Then
@@ -149,7 +161,7 @@ public class EventPullerTests
 
             this._eventHandler = A.Fake<ICloudEventHandler>(opt => opt.Strict());
 
-            this._puller = new EventPuller(eventGridClientDescriptors, clientFactory, this._eventHandler, optionMonitor, new NullLogger<EventPuller>());
+            this._puller = new EventPuller(GivenScopeFactory(this._eventHandler), eventGridClientDescriptors, clientFactory, optionMonitor, new NullLogger<EventPuller>());
         }
 
         public void Dispose()
