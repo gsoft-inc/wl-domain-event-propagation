@@ -30,9 +30,9 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
     
     internal static readonly DiagnosticDescriptor FollowNamingConventionAttribute = new DiagnosticDescriptor(
         id: RuleIdentifiers.FollowNamingConventionAttributeValue,
-        title: "Follow naming convention in attribute",
-        messageFormat: "Follow naming convention in attribute: {0}",
-        description: "Follow naming convention in attribute, the DomainEvent should follow the reverse dns format com.{Product}.{DomainService}.{Action} or com.{Product}.{DomainService}.{Entity}.{Action} all in lowercase.",
+        title: "Follow naming convention in DomainEvent attribute",
+        messageFormat: "Follow naming convention in DomainEvent attribute: {0}",
+        description: "Follow naming convention in attribute, the DomainEvent must be all in lowercase and follow the reverse dns format com.{Product}.{DomainService}.{Action} or com.{Product}.{DomainService}.{Entity}.{Action}",
         category: RuleCategories.Usage,
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
@@ -111,8 +111,7 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
 
         private static void ValidateEventNameConvention(SymbolAnalysisContext context, string attributeArgumentString, AttributeData domainEventAttribute, INamedTypeSymbol classTypeSymbol)
         {
-            var invalidNameReason = string.Empty;
-            if (IsEventNameFollowingConvention(attributeArgumentString, out invalidNameReason))
+            if (IsEventNameFollowingConvention(attributeArgumentString, out var invalidNameReason))
             {
                 return;
             }
@@ -169,7 +168,7 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
                 return false;
             }
 
-            invalidNameReason = "";
+            invalidNameReason = string.Empty;
             return true;
         }
 

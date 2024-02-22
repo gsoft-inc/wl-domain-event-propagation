@@ -4,8 +4,6 @@ namespace Workleap.DomainEventPropagation.Analyzers.Tests;
 
 public class EventDomainAttributeUsageAnalyzerTests : BaseAnalyzerTest<EventDomainAttributeUsageAnalyzer>
 {
-    private const string TestClassName = "SampleDomainEvent";
-
     [Fact]
     public async Task Given_NoAttribute_When_Analyze_Then_Diagnostics()
     {

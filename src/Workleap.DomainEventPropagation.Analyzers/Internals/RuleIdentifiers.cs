@@ -11,5 +11,4 @@ internal static class RuleIdentifiers
     public const string UseUniqueNameForAttributeValue = "WLDEP02";
     
     public const string FollowNamingConventionAttributeValue = "WLDEP03";
-
 }
