@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Workleap.DomainEventPropagation.Analyzers.Internals;
 
@@ -26,9 +27,19 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: RuleIdentifiers.HelpUri);
+    
+    internal static readonly DiagnosticDescriptor FollowNamingConventionAttribute = new DiagnosticDescriptor(
+        id: RuleIdentifiers.FollowNamingConventionAttributeValue,
+        title: "Follow naming convention in attribute",
+        messageFormat: "Follow naming convention in attribute: {0}",
+        description: "Follow naming convention in attribute, the DomainEvent should follow the reverse dns format com.{Product}.{DomainService}.{Action} or com.{Product}.{DomainService}.{Entity}.{Action} all in lowercase.",
+        category: RuleCategories.Usage,
+        defaultSeverity: DiagnosticSeverity.Warning,
+        isEnabledByDefault: true,
+        helpLinkUri: RuleIdentifiers.HelpUri);
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
-        UseDomainEventAttribute, UseUniqueNameAttribute);
+        UseDomainEventAttribute, UseUniqueNameAttribute, FollowNamingConventionAttribute);
 
     public override void Initialize(AnalysisContext context)
     {
@@ -48,6 +59,7 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
 
     private sealed class AnalyzerImplementation
     {
+        private static readonly HashSet<string> AllowedProductNames = ["workleap", "officevice", "lms", "skills", "onboarding", "sharegate"];
         private readonly INamedTypeSymbol? _domainEventInterfaceType;
         private readonly INamedTypeSymbol? _domainEventAttributeType;
         private readonly ConcurrentDictionary<string, bool> _existingAttributes = new ConcurrentDictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
@@ -89,10 +101,76 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
                             {
                                 context.ReportDiagnostic(UseUniqueNameAttribute, classTypeSymbol);
                             }
+
+                            ValidateEventNameConvention(context, attributeArgumentString, domainEventAttribute, classTypeSymbol);
                         }
                     }
                 }
             }
+        }
+
+        private static void ValidateEventNameConvention(SymbolAnalysisContext context, string attributeArgumentString, AttributeData domainEventAttribute, INamedTypeSymbol classTypeSymbol)
+        {
+            var invalidNameReason = string.Empty;
+            if (IsEventNameFollowingConvention(attributeArgumentString, out invalidNameReason))
+            {
+                return;
+            }
+            
+            // Report on the string literal of the DomainEvent attribute name instead of class name.
+            var domainEventSyntax = domainEventAttribute.ApplicationSyntaxReference?.GetSyntax(context.CancellationToken);
+            if (domainEventSyntax is AttributeSyntax attributeSyntax)
+            {
+                if (attributeSyntax.ArgumentList is { Arguments.Count: > 0 })
+                {
+                    var attributeArgumentSyntax = attributeSyntax.ArgumentList.Arguments[0];
+                    context.ReportDiagnostic(
+                        Diagnostic.Create(
+                            FollowNamingConventionAttribute,
+                            attributeArgumentSyntax.Expression.GetLocation(),
+                            invalidNameReason));
+                    return;
+                }
+            }
+
+            context.ReportDiagnostic(FollowNamingConventionAttribute, classTypeSymbol);    
+        }
+
+        private static bool IsEventNameFollowingConvention(string eventName, out string invalidNameReason)
+        {
+            if (!eventName.StartsWith("com.", StringComparison.Ordinal))
+            {
+                invalidNameReason = "The domain event name should start with com.";
+                return false;
+            }
+
+            var listOfUrlComponents = eventName.Split('.');
+            if (listOfUrlComponents.Length is not (4 or 5))
+            {
+                invalidNameReason = "The domain event name format should follow com.{Product}.{DomainService}.{Action} or com.{Product}.{DomainService}.{Entity}.{Action}";
+                return false;
+            }
+
+            if (listOfUrlComponents.Any(s => s.Length == 0))
+            {
+                invalidNameReason = "The domain event name should not have empty segments.";
+                return false;
+            }
+            
+            if (!AllowedProductNames.Contains(listOfUrlComponents[1]))
+            {
+                invalidNameReason = "The domain event name product field should be part of the product list.";
+                return false;
+            }
+
+            if (!eventName.All(c => c is >= 'a' and <= 'z' or '.'))
+            {
+                invalidNameReason = "The domain event name should be lowercase";
+                return false;
+            }
+
+            invalidNameReason = "";
+            return true;
         }
 
         private bool ImplementsBaseDomainEventInterface(ITypeSymbol type)

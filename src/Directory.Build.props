@@ -6,7 +6,7 @@
     <PackageProjectUrl>https://github.com/gsoft-inc/wl-domain-event-propagation</PackageProjectUrl>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
-    <LangVersion>10</LangVersion>
+    <LangVersion>latest</LangVersion>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <AnalysisLevel>latest-All</AnalysisLevel>
@@ -15,10 +15,6 @@
 
   <PropertyGroup Condition=" '$(Configuration)' == 'Release' ">
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-  </PropertyGroup>
-
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard2.0' ">
-    <AnalysisLevel>6.0-All</AnalysisLevel>
   </PropertyGroup>
 
   <ItemGroup>

@@ -9,4 +9,7 @@ internal static class RuleIdentifiers
     public const string UseDomainEventAttribute = "WLDEP01";
 
     public const string UseUniqueNameForAttributeValue = "WLDEP02";
+    
+    public const string FollowNamingConventionAttributeValue = "WLDEP03";
+
 }
