@@ -116,7 +116,7 @@ public class DomainEventGridWebhookHandlerTests
         A.CallTo(() => this._domainEventHandler.HandleDomainEventAsync(A<OfficevibeEvent>._, A<CancellationToken>._)).MustHaveHappenedOnceExactly();
     }
 
-    private class FakeDomainEventHandler
+    private sealed class FakeDomainEventHandler
     {
     }
 }

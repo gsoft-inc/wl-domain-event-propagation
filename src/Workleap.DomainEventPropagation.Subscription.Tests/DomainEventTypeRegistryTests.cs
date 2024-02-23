@@ -67,7 +67,7 @@ public class DomainEventTypeRegistryTests
     }
 
     [DomainEvent("sample-event")]
-    private class SampleDomainEventCopy : IDomainEvent
+    private sealed class SampleDomainEventCopy : IDomainEvent
     {
     }
 }

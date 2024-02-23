@@ -60,7 +60,7 @@ public class DomainEventWrapperTests
     }
 
     [DomainEvent(DomainEventName)]
-    private class SampleDomainEvent : IDomainEvent
+    private sealed class SampleDomainEvent : IDomainEvent
     {
         public string? Message { get; set; }
     }

@@ -157,14 +157,14 @@ public class DomainEventGridWebhookHandlerTests
     }
 
     [DomainEvent("test")]
-    public class TestDomainEvent : IDomainEvent
+    public sealed class TestDomainEvent : IDomainEvent
     {
         public string Text { get; set; } = string.Empty;
 
         public int Number { get; set; }
     }
 
-    private class FakeDomainEventHandler
+    private sealed class FakeDomainEventHandler
     {
     }
 }
