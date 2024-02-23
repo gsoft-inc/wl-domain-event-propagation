@@ -164,7 +164,7 @@ public class DomainEventGridWebhookHandlerTests
         public int Number { get; set; }
     }
 
-    private class FakeDomainEventHandler
+    private sealed class FakeDomainEventHandler
     {
     }
 }
