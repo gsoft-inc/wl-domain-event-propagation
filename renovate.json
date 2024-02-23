@@ -30,6 +30,12 @@
       "enabled": false
     },
     {
+      "matchManagers": ["nuget"],
+      "excludePackageNames": ["xunit"],
+      "description": "We want to avoid updates to xunit versions given that the current version is highest non-breaking version for this project.",
+      "enabled": false
+    },
+    {
       "matchPackageNames": ["dotnet-sdk"],
       "groupName": "Dotnet SDK",
       "description": "Only update patch and minor for the dotnet SDK version within the global.json",

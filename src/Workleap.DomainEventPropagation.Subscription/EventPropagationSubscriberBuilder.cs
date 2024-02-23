@@ -30,6 +30,8 @@ internal sealed class EventPropagationSubscriberBuilder : IEventPropagationSubsc
 
     public IEventPropagationSubscriberBuilder AddDomainEventHandlers(Assembly assembly)
     {
+        ArgumentNullException.ThrowIfNull(assembly);
+
         this.Services.AddDomainEventHandlers(this._domainEventTypeRegistry, AssemblyHelper.GetConcreteHandlerTypes(assembly));
         return this;
     }

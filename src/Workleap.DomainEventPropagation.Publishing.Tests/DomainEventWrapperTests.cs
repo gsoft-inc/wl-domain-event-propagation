@@ -108,7 +108,7 @@ public class DomainEventWrapperTests
     }
 
     [DomainEvent(EventGridDomainEventName)]
-    private class SampleDomainEvent : IDomainEvent
+    private sealed class SampleDomainEvent : IDomainEvent
     {
         public string? Message { get; set; }
     }
