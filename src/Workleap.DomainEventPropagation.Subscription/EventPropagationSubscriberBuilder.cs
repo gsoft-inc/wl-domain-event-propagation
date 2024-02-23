@@ -30,10 +30,7 @@ internal sealed class EventPropagationSubscriberBuilder : IEventPropagationSubsc
 
     public IEventPropagationSubscriberBuilder AddDomainEventHandlers(Assembly assembly)
     {
-        if (assembly == null)
-        {
-            throw new ArgumentNullException(nameof(assembly));
-        }
+        ArgumentNullException.ThrowIfNull(assembly);
 
         var concreteHandlerTypes = assembly.GetTypes().Where(IsConcreteDomainEventHandlerType);
 
