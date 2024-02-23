@@ -52,7 +52,7 @@ internal static class ResultExtensions
         {
             return (default, status);
         }
-        
+
         return (JsonSerializer.Deserialize<T>(body, JsonOptions), status);
     }
 }
