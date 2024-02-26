@@ -158,7 +158,7 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
             
             if (!AllowedProductNames.Contains(listOfUrlComponents[1]))
             {
-                invalidNameReason = "The domain event name product field should be part of the product list.";
+                invalidNameReason = $"The domain event name product field should be part of the product list: [{string.Join(", ", AllowedProductNames)}]";
                 return false;
             }
 
