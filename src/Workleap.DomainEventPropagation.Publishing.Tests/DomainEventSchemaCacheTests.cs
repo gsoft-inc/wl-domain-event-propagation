@@ -26,13 +26,13 @@ public class DomainEventSchemaCacheTests
     }
 
     [DomainEvent("sample-eg-event")]
-    private class EventGridSampleDomainEvent : IDomainEvent
+    private sealed class EventGridSampleDomainEvent : IDomainEvent
     {
         public string? Message { get; set; }
     }
 
     [DomainEvent("sample-cloud-event", EventSchema.CloudEvent)]
-    private class CloudEventSampleDomainEvent : IDomainEvent
+    private sealed class CloudEventSampleDomainEvent : IDomainEvent
     {
         public string? Message { get; set; }
     }
