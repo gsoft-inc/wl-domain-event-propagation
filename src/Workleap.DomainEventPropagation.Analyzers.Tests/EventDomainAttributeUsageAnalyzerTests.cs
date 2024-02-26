@@ -135,6 +135,7 @@ public class SampleDomainEvent2 : IDomainEvent
     [Theory]
     [InlineData("com.workleap.domainservice.created")]
     [InlineData("com.workleap.domainservice.entity.created")]
+    [InlineData("com.workleap.domainservice.entity.level.sublevel.created")]
     public async Task Given_DomainEventAttribute_With_Value_In_Reverse_Dns_Convention_Analyze_Then_No_Diagnostic(string eventName)
     {
         var source = $$"""
@@ -153,7 +154,6 @@ public class SampleDomainEvent : IDomainEvent
     [InlineData("com.invalidProduct.domainservice.created")] // invalid product name
     [InlineData("com.workleap.DOMAINservice.created")] // capital letters in event name
     [InlineData("com.workleap.created")] // missing segments
-    [InlineData("com.workleap.domainservice.entity.extra.created")] // extra segment
     [InlineData("com.workleap.domainservice..created")] // double period in event name
     [InlineData("net.workleap.domainservice.entity.created")] // not starting with com
     public async Task Given_DomainEventAttribute_With_Value_In_Reverse_Dns_Convention_Analyze_Then_Diagnostic(string eventName)

@@ -144,9 +144,9 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
             }
 
             var listOfUrlComponents = eventName.Split('.');
-            if (listOfUrlComponents.Length is not (4 or 5))
+            if (listOfUrlComponents.Length < 4)
             {
-                invalidNameReason = "The domain event name format should follow com.{Product}.{DomainService}.{Action} or com.{Product}.{DomainService}.{Entity}.{Action}";
+                invalidNameReason = "The domain event name format should follow the formats: com.{Product}.{DomainService}.{Action} or com.{Product}.{DomainService}.{Entity}.{Action}";
                 return false;
             }
 
