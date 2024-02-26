@@ -164,7 +164,7 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
 
             if (!eventName.All(c => c is >= 'a' and <= 'z' or '.'))
             {
-                invalidNameReason = "The domain event name should be lowercase";
+                invalidNameReason = "The domain event name should only consist of lowercase alphabetic characters and periods.";
                 return false;
             }
 
