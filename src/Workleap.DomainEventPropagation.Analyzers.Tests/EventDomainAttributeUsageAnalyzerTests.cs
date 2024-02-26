@@ -21,7 +21,7 @@ public class {|WLDEP01:SampleDomainEvent|} : IDomainEvent
     public async Task Given_DomainEventAttribute_When_Analyze_Then_No_Diagnostic()
     {
         const string source = """
-[DomainEvent("SampleDomainEvent")]
+[DomainEvent("com.workleap.domainservice.created")]
 public class SampleDomainEvent : IDomainEvent
 {    
 }
@@ -35,7 +35,7 @@ public class SampleDomainEvent : IDomainEvent
     public async Task Given_Struct_With_DomainEventAttribute_When_Analyze_Then_No_Diagnostic()
     {
         const string source = """
-[DomainEvent("SampleDomainEvent")]
+[DomainEvent("com.workleap.domainservice.created")]
 public record SampleDomainEvent : IDomainEvent
 {    
 }
@@ -63,7 +63,7 @@ public class {|WLDEP01:SampleDomainEvent|} : IDomainEvent
     public async Task Given_DomainEventAttribute_With_No_Interface_When_Analyze_Then_No_Diagnostic()
     {
         const string source = """
-[DomainEvent("Sample")]
+[DomainEvent("com.workleap.domainservice.created")]
 public class SampleDomainEvent
 {    
 }
@@ -77,7 +77,7 @@ public class SampleDomainEvent
     public async Task Given_DomainEventAttribute_With_Multiple_Attributes_When_Analyze_Then_No_Diagnostic()
     {
         const string source = """
-[DomainEvent("SampleDomainEvent")]
+[DomainEvent("com.workleap.domainservice.created")]
 [Serializable]
 public class SampleDomainEvent : IDomainEvent
 {    
@@ -92,11 +92,11 @@ public class SampleDomainEvent : IDomainEvent
     public async Task Given_DomainEventAttribute_With_Non_Unique_Value_When_Analyze_Then_Diagnostic()
     {
         const string source = """
-[DomainEvent("SampleDomainEvent")]
+[DomainEvent("com.workleap.domainservice.created")]
 public class SampleDomainEvent : IDomainEvent
 {    
 }
-[DomainEvent("SampleDomainEvent")]
+[DomainEvent("com.workleap.domainservice.created")]
 public class {|WLDEP02:SampleDomainEvent2|} : IDomainEvent
 {    
 }
@@ -118,13 +118,50 @@ public class {|WLDEP02:SampleDomainEvent2|} : IDomainEvent
     public async Task Given_DomainEventAttribute_With_Unique_Value_When_Analyze_Then_No_Diagnostic()
     {
         const string source = """
-[DomainEvent("SampleDomainEvent")]
+[DomainEvent("com.workleap.domainservice.created")]
 public class SampleDomainEvent : IDomainEvent
 {    
 }
-[DomainEvent("SampleDomainEvent2")]
+[DomainEvent("com.workleap.domainservice.updated")]
 public class SampleDomainEvent2 : IDomainEvent
 {    
+}
+""";
+
+        await this.WithSourceCode(source)
+            .RunAsync();
+    }
+
+    [Theory]
+    [InlineData("com.workleap.domainservice.created")]
+    [InlineData("com.workleap.domainservice.entity.created")]
+    [InlineData("com.workleap.domainservice.entity.level.sublevel.created")]
+    public async Task Given_DomainEventAttribute_With_Value_In_Reverse_Dns_Convention_Analyze_Then_No_Diagnostic(string eventName)
+    {
+        var source = $$"""
+[DomainEvent("{{eventName}}")]
+public class SampleDomainEvent : IDomainEvent
+{    
+}
+""";
+
+        await this.WithSourceCode(source)
+            .RunAsync();
+    }
+    
+    [Theory]
+    [InlineData("comsampledomainserviceevent")] // no periods in event name
+    [InlineData("com.invalidProduct.domainservice.created")] // invalid product name
+    [InlineData("com.workleap.DOMAINservice.created")] // capital letters in event name
+    [InlineData("com.workleap.created")] // missing segments
+    [InlineData("com.workleap.domainservice..created")] // double period in event name
+    [InlineData("net.workleap.domainservice.entity.created")] // not starting with com
+    public async Task Given_DomainEventAttribute_With_Value_In_Reverse_Dns_Convention_Analyze_Then_Diagnostic(string eventName)
+    {
+        var source = $$"""
+[DomainEvent(name: {|WLDEP03:"{{eventName}}"|})]
+public class SampleDomainEvent : IDomainEvent
+{
 }
 """;
 

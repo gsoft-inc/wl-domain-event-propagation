@@ -8,7 +8,7 @@ namespace Workleap.DomainEventPropagation.Subscription.Tests;
 internal static class ResultExtensions
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-    
+
     /// <remarks>
     /// <para>
     /// This utility method is convenient for .NET 6 applications that would unit test
