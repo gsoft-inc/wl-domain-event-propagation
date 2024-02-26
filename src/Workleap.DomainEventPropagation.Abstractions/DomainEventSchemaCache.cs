@@ -25,7 +25,7 @@ internal static class DomainEventSchemaCache
         {
             if (type.GetCustomAttribute<DomainEventAttribute>() is { } attribute)
             {
-                return attribute.Schema;
+                return attribute.EventSchema;
             }
 
             throw new ArgumentException($"{type} must be decorated with {nameof(DomainEventAttribute)}");
