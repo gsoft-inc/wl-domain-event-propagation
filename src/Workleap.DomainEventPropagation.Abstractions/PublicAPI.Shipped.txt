@@ -1,6 +1,5 @@
 #nullable enable
 Workleap.DomainEventPropagation.DomainEventAttribute
-Workleap.DomainEventPropagation.DomainEventAttribute.DomainEventAttribute(string! name) -> void
 Workleap.DomainEventPropagation.DomainEventAttribute.Name.get -> string!
 Workleap.DomainEventPropagation.IDomainEvent
 Workleap.DomainEventPropagation.IDomainEventHandler<TDomainEvent>
