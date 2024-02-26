@@ -283,7 +283,8 @@ When you are ready to **officially release** a stable NuGet package by following
 | Rule ID | Category | Severity | Description                                                        |
 |---------|----------|----------|--------------------------------------------------------------------|
 | WLDEP01 | Usage    | Warning  | Use DomainEvent attribute on event                                 |
-| WLDEP02 | Usage    | Warning  | Use unique event name in attribute                                 | 
+| WLDEP02 | Usage    | Warning  | Use unique event name in attribute                                 |
+| WLDEP03 | Usage    | Warning  | Ensure event name follows the naming convention                    |
 
 To modify the severity of one of these diagnostic rules, you can use a `.editorconfig` file. For example:
 
@@ -292,6 +293,7 @@ To modify the severity of one of these diagnostic rules, you can use a `.editorc
 [**Tests*/**.cs]
 dotnet_diagnostic.WLDEP01.severity = none
 dotnet_diagnostic.WLDEP02.severity = none
+dotnet_diagnostic.WLDEP03.severity = none
 ```
 
 To learn more about configuring or suppressing code analysis warnings, refer to [this documentation](https://learn.microsoft.com/en-us/dotnet/fundamentals/code-analysis/suppress-warnings).
