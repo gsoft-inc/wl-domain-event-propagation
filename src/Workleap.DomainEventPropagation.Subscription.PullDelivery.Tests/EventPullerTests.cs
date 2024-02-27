@@ -10,10 +10,7 @@ using Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests.TestExtens
 
 namespace Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests;
 
-// Test class cannot be made static
-#pragma warning disable CA1052
-public class EventPullerTests
-#pragma warning restore CA1052
+public abstract class EventPullerTests
 {
     private static IEventGridClientAdapter GivenFakeClient(IEventGridClientWrapperFactory clientWrapperFactory, string subName)
     {
