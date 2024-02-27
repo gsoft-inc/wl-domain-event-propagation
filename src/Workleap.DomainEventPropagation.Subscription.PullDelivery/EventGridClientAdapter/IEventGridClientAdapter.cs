@@ -1,6 +1,4 @@
-﻿using Azure.Messaging.EventGrid.Namespaces;
-
-namespace Workleap.DomainEventPropagation.EventGridClientAdapter;
+﻿namespace Workleap.DomainEventPropagation.EventGridClientAdapter;
 
 internal interface IEventGridClientAdapter
 {
