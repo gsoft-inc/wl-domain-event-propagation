@@ -20,7 +20,7 @@ internal sealed class EventPropagationClient : IEventPropagationClient
 
     /// <summary>
     /// To support Namespace topic, we need to use the following EventGridClient https://github.com/Azure/azure-sdk-for-net/blob/Azure.Messaging.EventGrid_4.17.0-beta.1/sdk/eventgrid/Azure.Messaging.EventGridV2/src/Generated/EventGridClient.cs
-    /// Note that even if this client as the same name, it is different from the deprecated one found here https://learn.microsoft.com/en-us/dotnet/api/microsoft.azure.eventgrid.eventgridclient?view=azure-dotnet-legacy
+    /// Note that even if this client has the same name, it is different from the deprecated one found here https://learn.microsoft.com/en-us/dotnet/api/microsoft.azure.eventgrid.eventgridclient?view=azure-dotnet-legacy
     /// </summary>
     public EventPropagationClient(
         IAzureClientFactory<EventGridPublisherClient> eventGridPublisherClientFactory,
