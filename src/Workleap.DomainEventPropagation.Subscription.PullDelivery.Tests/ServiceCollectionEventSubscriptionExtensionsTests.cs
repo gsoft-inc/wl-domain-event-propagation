@@ -1,7 +1,6 @@
 using System.Reflection;
 using Azure.Messaging.EventGrid.Namespaces;
 using FakeItEasy;
-using FluentAssertions;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -117,8 +116,9 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         var clientDescriptors = serviceProvider.GetRequiredService<IEnumerable<EventGridClientDescriptor>>().ToArray();
 
         // Then
-        clientDescriptors.Should().HaveCount(2);
-        clientDescriptors.Select(d => d.Name).Should().BeEquivalentTo(sectionName1, sectionName2);
+        Assert.Equal(2, clientDescriptors.Length);
+        
+        Assert.True(clientDescriptors.Select(d => d.Name).SequenceEqual([sectionName1, sectionName2]));
     }
 
     [Fact]
@@ -157,7 +157,7 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
             .AddDomainEventHandler<SampleEvent, SampleEventTestHandler>();
 
         // Then
-        act.Should().Throw<InvalidOperationException>();
+        Assert.Throws<InvalidOperationException>(act);
     }
 
     [Fact]
@@ -171,7 +171,7 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
             .AddDomainEventHandlers(Assembly.GetAssembly(typeof(ServiceCollectionEventSubscriptionExtensionsTests))!);
 
         // Then
-        act.Should().Throw<InvalidOperationException>();
+        Assert.Throws<InvalidOperationException>(act);
     }
 
     [Fact]
@@ -181,13 +181,13 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         var services = new ServiceCollection();
 
         // When
-        var fct = () => services.AddPullDeliverySubscription()
+        var act = () => services.AddPullDeliverySubscription()
             .AddTopicSubscription()
             .AddDomainEventHandler<MisconfiguredTestAssembly.SampleEvent, MisconfiguredTestAssembly.SampleEventTestHandler>()
             .AddDomainEventHandler<MisconfiguredTestAssembly.SampleEvent, MisconfiguredTestAssembly.AnotherSampleEventTestHandler>();
 
         // Then
-        fct.Should().Throw<InvalidOperationException>();
+        Assert.Throws<InvalidOperationException>(act);
     }
 
     [Fact]
@@ -197,13 +197,13 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         var services = new ServiceCollection();
 
         // When
-        var fct = () => services.AddPullDeliverySubscription()
+        var act = () => services.AddPullDeliverySubscription()
             .AddTopicSubscription()
             .AddDomainEventHandler<SampleEvent, SampleEventTestHandler>()
             .AddDomainEventHandlers(Assembly.GetAssembly(typeof(ServiceCollectionEventSubscriptionExtensionsTests))!);
 
         // Then
-        fct.Should().Throw<InvalidOperationException>();
+        Assert.Throws<InvalidOperationException>(act);
     }
 
     [Fact]
@@ -217,7 +217,7 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
             .AddDomainEventHandlers(Assembly.GetAssembly(typeof(MisconfiguredTestAssembly.SampleEvent))!);
 
         // Then
-        act.Should().Throw<InvalidOperationException>();
+        Assert.Throws<InvalidOperationException>(act);
     }
 
     private static void GivenConfigurations(IServiceCollection services, params string[] sections)
