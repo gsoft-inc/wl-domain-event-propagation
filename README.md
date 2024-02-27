@@ -98,7 +98,7 @@ public class ExampleDomainEvent : IDomainEvent
     public string Id { get; set; }
 }
 
-// Or if you want to use specify what schema should be used
+// Or if you want to specify what schema should be used
 [DomainEvent("example", EventSchema.CloudEvent)]
 public class ExampleDomainEvent : IDomainEvent
 {
@@ -174,7 +174,7 @@ Now, follow this [Microsoft documentation](https://learn.microsoft.com/en-us/azu
 ### Subscribe to domain events with pull delivery
 
 Install the package [Workleap.DomainEventPropagation.Subscription.PullDelivery](fixme) in your ASP.NET Core project that wants to receive events from Event Grid topics.
-First, you can need to use one of the following methods to register the required services.
+First, you will need to use one of the following methods to register the required services.
 
 ```csharp
 // Method 1: Register to pull delivery and bind the subscription options to the well-known configuration section named EventPropagation:Subscription
