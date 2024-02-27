@@ -1,7 +1,4 @@
-﻿using Azure.Messaging;
-using Azure.Messaging.EventGrid;
-
-namespace Workleap.DomainEventPropagation.Publishing.Tests;
+﻿namespace Workleap.DomainEventPropagation.Publishing.Tests;
 
 public class DomainEventSchemaCacheTests
 {
@@ -26,14 +23,8 @@ public class DomainEventSchemaCacheTests
     }
 
     [DomainEvent("sample-eg-event")]
-    private sealed class EventGridSampleDomainEvent : IDomainEvent
-    {
-        public string? Message { get; set; }
-    }
+    private sealed class EventGridSampleDomainEvent : IDomainEvent;
 
     [DomainEvent("sample-cloud-event", EventSchema.CloudEvent)]
-    private sealed class CloudEventSampleDomainEvent : IDomainEvent
-    {
-        public string? Message { get; set; }
-    }
+    private sealed class CloudEventSampleDomainEvent : IDomainEvent;
 }

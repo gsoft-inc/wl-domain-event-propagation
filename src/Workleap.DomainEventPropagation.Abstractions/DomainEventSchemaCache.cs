@@ -6,7 +6,7 @@ namespace Workleap.DomainEventPropagation;
 internal static class DomainEventSchemaCache
 {
     // This class lives in the abstractions assembly in order to prevent having multiple instances of this same cache in different assemblies at runtime
-    private static readonly ConcurrentDictionary<Type, EventSchema> DomainEventSchemaTypeMappings = new ConcurrentDictionary<Type, EventSchema>();
+    private static readonly ConcurrentDictionary<Type, EventSchema> DomainEventSchemaTypeMappings = new();
 
     public static EventSchema GetEventSchema<T>()
         where T : IDomainEvent, new()
@@ -14,7 +14,7 @@ internal static class DomainEventSchemaCache
         return GetEventSchema(typeof(T));
     }
 
-    public static EventSchema GetEventSchema(Type domainEventType)
+    private static EventSchema GetEventSchema(Type domainEventType)
     {
         if (!IsConcreteDomainEvent(domainEventType))
         {
@@ -32,5 +32,5 @@ internal static class DomainEventSchemaCache
         });
     }
 
-    public static bool IsConcreteDomainEvent(Type type) => !type.IsAbstract && typeof(IDomainEvent).IsAssignableFrom(type);
+    private static bool IsConcreteDomainEvent(Type type) => !type.IsAbstract && typeof(IDomainEvent).IsAssignableFrom(type);
 }
