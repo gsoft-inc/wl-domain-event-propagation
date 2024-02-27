@@ -31,7 +31,7 @@ internal sealed class EventPropagationPublisherBuilder : IEventPropagationPublis
         this.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<EventPropagationPublisherOptions>, EventPropagationPublisherOptionsValidator>());
         this.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IPublishingDomainEventBehavior, TracingPublishingDomainEventBehavior>());
 
-        this.Services.AddAzureClients(ConfigureEventPublisher);
+        this.Services.AddAzureClients(ConfigureEventPublisherClients);
     }
 
     private static void BindFromWellKnownConfigurationSection(EventPropagationPublisherOptions options, IConfiguration configuration)
@@ -39,7 +39,7 @@ internal sealed class EventPropagationPublisherBuilder : IEventPropagationPublis
         configuration.GetSection(EventPropagationPublisherOptions.SectionName).Bind(options);
     }
 
-    private static void ConfigureEventPublisher(AzureClientFactoryBuilder builder)
+    private static void ConfigureEventPublisherClients(AzureClientFactoryBuilder builder)
     {
         builder.AddClient<EventGridPublisherClient, EventGridPublisherClientOptions>(EventGridPublisherClientFactory)
             .WithName(EventPropagationPublisherOptions.CustomTopicClientName)

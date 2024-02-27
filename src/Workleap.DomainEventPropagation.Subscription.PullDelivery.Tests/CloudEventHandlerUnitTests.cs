@@ -1,6 +1,5 @@
 ﻿using System.Reflection;
 using Azure.Messaging;
-using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Logging;
@@ -34,7 +33,7 @@ public class CloudEventHandlerUnitTests
         var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
 
         // Then
-        result.Should().Be(EventProcessingStatus.Rejected);
+        Assert.Equal(EventProcessingStatus.Rejected, result);
     }
 
     [Fact]
@@ -50,7 +49,7 @@ public class CloudEventHandlerUnitTests
         var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
 
         // Then
-        result.Should().Be(EventProcessingStatus.Rejected);
+        Assert.Equal(EventProcessingStatus.Rejected, result);
     }
 
     [Fact]
@@ -69,7 +68,7 @@ public class CloudEventHandlerUnitTests
         var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
 
         // Then
-        result.Should().Be(EventProcessingStatus.Rejected);
+        Assert.Equal(EventProcessingStatus.Rejected, result);
     }
 
     [Fact]
@@ -92,7 +91,7 @@ public class CloudEventHandlerUnitTests
         var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
 
         // Then
-        result.Should().Be(EventProcessingStatus.Released);
+        Assert.Equal(EventProcessingStatus.Released, result);
     }
 
     [Fact]
@@ -112,8 +111,9 @@ public class CloudEventHandlerUnitTests
         var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
 
         // Then
-        SampleEventTestHandler.ReceivedEvents.Should().Contain(e => e.Message == eventMessage);
-        result.Should().Be(EventProcessingStatus.Handled);
+        Assert.Single(SampleEventTestHandler.ReceivedEvents, e => e.Message == eventMessage);
+        
+        Assert.Equal(EventProcessingStatus.Handled, result);
     }
 
     [Fact]
@@ -133,8 +133,9 @@ public class CloudEventHandlerUnitTests
         var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
 
         // Then
-        SampleEventTestHandler.ReceivedEvents.Should().Contain(e => e.Message == eventMessage);
-        result.Should().Be(EventProcessingStatus.Handled);
+        Assert.Single(SampleEventTestHandler.ReceivedEvents, e => e.Message == eventMessage);
+        
+        Assert.Equal(EventProcessingStatus.Handled, result);
     }
 
     private static CloudEvent GivenSampleEvent(string message = "Hello World!")

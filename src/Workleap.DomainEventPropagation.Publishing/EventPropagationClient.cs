@@ -16,7 +16,7 @@ internal sealed class EventPropagationClient : IEventPropagationClient
     private readonly EventPropagationPublisherOptions _eventPropagationPublisherOptions;
     private readonly DomainEventsHandlerDelegate _pipeline;
     private readonly EventGridPublisherClient _eventGridPublisherClient;
-    private readonly EventGridClient _eventGridClient;
+    private readonly EventGridClient _eventGridNamespaceClient;
 
     /// <summary>
     /// To support Namespace topic, we need to use the following EventGridClient https://github.com/Azure/azure-sdk-for-net/blob/Azure.Messaging.EventGrid_4.17.0-beta.1/sdk/eventgrid/Azure.Messaging.EventGridV2/src/Generated/EventGridClient.cs
@@ -31,7 +31,7 @@ internal sealed class EventPropagationClient : IEventPropagationClient
         this._eventPropagationPublisherOptions = eventPropagationPublisherOptions.Value;
         this._pipeline = publishingDomainEventBehaviors.Reverse().Aggregate((DomainEventsHandlerDelegate)this.SendDomainEventsAsync, BuildPipeline);
         this._eventGridPublisherClient = eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.CustomTopicClientName);
-        this._eventGridClient = eventGridClientFactory.CreateClient(EventPropagationPublisherOptions.NamespaceTopicClientName);
+        this._eventGridNamespaceClient = eventGridClientFactory.CreateClient(EventPropagationPublisherOptions.NamespaceTopicClientName);
     }
 
     private static DomainEventsHandlerDelegate BuildPipeline(DomainEventsHandlerDelegate accumulator, IPublishingDomainEventBehavior next)
@@ -110,7 +110,7 @@ internal sealed class EventPropagationClient : IEventPropagationClient
         return topicType switch
         {
             TopicType.Custom => this._eventGridPublisherClient.SendEventsAsync(cloudEvents, cancellationToken),
-            TopicType.Namespace => this._eventGridClient.PublishCloudEventsAsync(topicName, cloudEvents, cancellationToken),
+            TopicType.Namespace => this._eventGridNamespaceClient.PublishCloudEventsAsync(topicName, cloudEvents, cancellationToken),
             _ => throw new NotSupportedException($"Topic type {topicType} is not supported"),
         };
     }
