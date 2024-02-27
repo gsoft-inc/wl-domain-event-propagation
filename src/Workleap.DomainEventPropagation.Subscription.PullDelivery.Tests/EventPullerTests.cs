@@ -1,4 +1,4 @@
-﻿using AutoBogus;
+using AutoBogus;
 using Azure.Messaging;
 using FakeItEasy;
 using Microsoft.Extensions.DependencyInjection;
@@ -6,6 +6,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Workleap.DomainEventPropagation.EventGridClientAdapter;
+using Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests.TestExtensions;
 
 namespace Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests;
 
@@ -49,11 +50,9 @@ public class EventPullerTests
 
     private static async Task StartWaitAndStop(IHostedService puller)
     {
-// We need this to start on the thread pool otherwise it will just block the test
-#pragma warning disable CS4014
-        Task.Run(() => puller.StartAsync(CancellationToken.None));
+        // We need this to start on the thread pool otherwise it will just block the test
+        Task.Run(() => puller.StartAsync(CancellationToken.None)).Forget();
         await Task.Delay(50);
-#pragma warning restore CS4014
         await puller.StopAsync(CancellationToken.None);
     }
 
