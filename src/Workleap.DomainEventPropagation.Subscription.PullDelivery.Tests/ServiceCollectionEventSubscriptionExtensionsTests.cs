@@ -131,7 +131,7 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         GivenConfigurations(services, sectionName1, sectionName2);
         var fakeClientFactory = A.Fake<IAzureClientFactory<EventGridClient>>();
         services.Replace(new ServiceDescriptor(typeof(IAzureClientFactory<EventGridClient>), fakeClientFactory));
-        services.AddTransient<ILogger<EventPuller>, NullLogger<EventPuller>>();
+        services.AddTransient<ILogger<EventPullerService>, NullLogger<EventPullerService>>();
         services.AddTransient<ILogger<ICloudEventHandler>, NullLogger<ICloudEventHandler>>();
 
         // When

@@ -27,7 +27,7 @@ internal sealed class EventPropagationSubscriberBuilder : IEventPropagationSubsc
 
         this.Services.AddTransient<IEventGridClientWrapperFactory, EventGridClientAdapterFactory>();
         this.Services.AddTransient<ICloudEventHandler, CloudEventHandler>();
-        this.Services.AddHostedService<EventPuller>();
+        this.Services.AddHostedService<EventPullerService>();
     }
 
     public IServiceCollection Services { get; }

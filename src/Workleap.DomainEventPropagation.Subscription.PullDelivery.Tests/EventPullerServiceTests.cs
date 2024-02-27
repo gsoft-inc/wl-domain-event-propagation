@@ -10,7 +10,7 @@ using Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests.TestExtens
 
 namespace Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests;
 
-public abstract class EventPullerTests
+public abstract class EventPullerServiceTests
 {
     private static IEventGridClientAdapter GivenFakeClient(IEventGridClientWrapperFactory clientWrapperFactory, string subName)
     {
@@ -45,15 +45,15 @@ public abstract class EventPullerTests
             A<CancellationToken>._)).Returns(events);
     }
 
-    private static async Task StartWaitAndStop(IHostedService puller)
+    private static async Task StartWaitAndStop(IHostedService pullerService)
     {
         // We need this to start on the thread pool otherwise it will just block the test
-        Task.Run(() => puller.StartAsync(CancellationToken.None)).Forget();
+        Task.Run(() => pullerService.StartAsync(CancellationToken.None)).Forget();
         await Task.Delay(50);
-        await puller.StopAsync(CancellationToken.None);
+        await pullerService.StopAsync(CancellationToken.None);
     }
 
-    public class TwoSubscribers : EventPullerTests
+    public class TwoSubscribers : EventPullerServiceTests
     {
         [Fact]
         public async Task GivenPuller_WhenStarted_ThenEveryRegisteredClientWasCalled()
@@ -73,8 +73,8 @@ public abstract class EventPullerTests
             var options2 = GivenEventPropagationSubscriptionOptions(optionMonitor, clientName2);
 
             // When
-            using var puller = new EventPuller(scopeFactory, eventGridClientDescriptors, clientFactory, optionMonitor, new NullLogger<EventPuller>());
-            await StartWaitAndStop(puller);
+            using var pullerService = new EventPullerService(scopeFactory, eventGridClientDescriptors, clientFactory, optionMonitor, new NullLogger<EventPullerService>());
+            await StartWaitAndStop(pullerService);
 
             // Then
             A.CallTo(() => fakeClient1
@@ -117,8 +117,8 @@ public abstract class EventPullerTests
             RegisterCloudEventsInClient(functionalClient, options2, eventBundle);
 
             // When
-            using var puller = new EventPuller(GivenScopeFactory(eventHandler), eventGridClientDescriptors, clientFactory, optionMonitor, new NullLogger<EventPuller>());
-            await StartWaitAndStop(puller);
+            using var pullerService = new EventPullerService(GivenScopeFactory(eventHandler), eventGridClientDescriptors, clientFactory, optionMonitor, new NullLogger<EventPullerService>());
+            await StartWaitAndStop(pullerService);
 
             // Then
             A.CallTo(() => failingClient
@@ -131,9 +131,9 @@ public abstract class EventPullerTests
         }
     }
 
-    public class OneSubscriber : EventPullerTests, IDisposable
+    public class OneSubscriber : EventPullerServiceTests, IDisposable
     {
-        private readonly EventPuller _puller;
+        private readonly EventPullerService _pullerService;
         private readonly IEventGridClientAdapter _client;
         private readonly EventPropagationSubscriptionOptions _option;
         private readonly ICloudEventHandler _eventHandler;
@@ -157,7 +157,7 @@ public abstract class EventPullerTests
 
             this._eventHandler = A.Fake<ICloudEventHandler>(opt => opt.Strict());
 
-            this._puller = new EventPuller(GivenScopeFactory(this._eventHandler), eventGridClientDescriptors, clientFactory, optionMonitor, new NullLogger<EventPuller>());
+            this._pullerService = new EventPullerService(GivenScopeFactory(this._eventHandler), eventGridClientDescriptors, clientFactory, optionMonitor, new NullLogger<EventPullerService>());
         }
 
         public void Dispose()
@@ -170,7 +170,7 @@ public abstract class EventPullerTests
         {
             if (disposing)
             {
-                this._puller.Dispose();
+                this._pullerService.Dispose();
             }
         }
 
@@ -184,7 +184,7 @@ public abstract class EventPullerTests
             call2.Returns(EventProcessingStatus.Handled);
 
             // When
-            await StartWaitAndStop(this._puller);
+            await StartWaitAndStop(this._pullerService);
 
             // Then
             call1.MustHaveHappenedOnceOrMore();
@@ -199,7 +199,7 @@ public abstract class EventPullerTests
                 .Returns(EventProcessingStatus.Handled);
 
             // When
-            await StartWaitAndStop(this._puller);
+            await StartWaitAndStop(this._pullerService);
 
             // Then
             A.CallTo(() => this._client.AcknowledgeCloudEventAsync(
@@ -223,7 +223,7 @@ public abstract class EventPullerTests
                 .Returns(EventProcessingStatus.Released);
 
             // When
-            await StartWaitAndStop(this._puller);
+            await StartWaitAndStop(this._pullerService);
 
             // Then
             A.CallTo(() => this._client.ReleaseCloudEventAsync(
@@ -247,7 +247,7 @@ public abstract class EventPullerTests
                 .Returns(EventProcessingStatus.Rejected);
 
             // When
-            await StartWaitAndStop(this._puller);
+            await StartWaitAndStop(this._pullerService);
 
             // Then
             A.CallTo(() => this._client.RejectCloudEventAsync(

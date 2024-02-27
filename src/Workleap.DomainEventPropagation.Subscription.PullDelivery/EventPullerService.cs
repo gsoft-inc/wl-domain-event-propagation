@@ -6,18 +6,18 @@ using Workleap.DomainEventPropagation.EventGridClientAdapter;
 
 namespace Workleap.DomainEventPropagation;
 
-internal class EventPuller : BackgroundService
+internal class EventPullerService : BackgroundService
 {
     private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly ILogger<EventPuller> _logger;
+    private readonly ILogger<EventPullerService> _logger;
     private readonly EventGridTopicSubscription[] _eventGridTopicSubscriptions;
 
-    public EventPuller(
+    public EventPullerService(
         IServiceScopeFactory serviceScopeFactory,
         IEnumerable<EventGridClientDescriptor> clientDescriptors,
         IEventGridClientWrapperFactory eventGridClientWrapperFactory,
         IOptionsMonitor<EventPropagationSubscriptionOptions> optionsMonitor,
-        ILogger<EventPuller> logger)
+        ILogger<EventPullerService> logger)
     {
         this._serviceScopeFactory = serviceScopeFactory;
         this._logger = logger;
@@ -33,7 +33,7 @@ internal class EventPuller : BackgroundService
         return Task.WhenAll(this._eventGridTopicSubscriptions.Select(sub => Task.Run(() => this.StartReceivingEventsAsync(sub, this._logger, stoppingToken), stoppingToken)));
     }
 
-    private async Task StartReceivingEventsAsync(EventGridTopicSubscription eventGridTopicSubscription, ILogger<EventPuller> logger, CancellationToken stoppingToken)
+    private async Task StartReceivingEventsAsync(EventGridTopicSubscription eventGridTopicSubscription, ILogger<EventPullerService> logger, CancellationToken stoppingToken)
     {
         using var scope = this._serviceScopeFactory.CreateScope();
         var cloudEventHandler = scope.ServiceProvider.GetRequiredService<ICloudEventHandler>();
