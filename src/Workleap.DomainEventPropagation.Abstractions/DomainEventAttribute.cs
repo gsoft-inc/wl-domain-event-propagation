@@ -3,11 +3,12 @@
 [AttributeUsage(AttributeTargets.Class, Inherited = false)]
 public sealed class DomainEventAttribute : Attribute
 {
+    // ReSharper disable once IntroduceOptionalParameters.Global
     public DomainEventAttribute(string name) : this(name, EventSchema.EventGridEvent)
     {
     }
 
-    public DomainEventAttribute(string name, EventSchema eventSchema = EventSchema.EventGridEvent)
+    public DomainEventAttribute(string name, EventSchema eventSchema)
     {
         if (name == null)
         {
@@ -20,10 +21,10 @@ public sealed class DomainEventAttribute : Attribute
         }
 
         this.Name = name;
-        this.Schema = eventSchema;
+        this.EventSchema = eventSchema;
     }
 
     public string Name { get; }
 
-    public EventSchema Schema { get; }
+    public EventSchema EventSchema { get; }
 }

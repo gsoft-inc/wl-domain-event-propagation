@@ -114,7 +114,7 @@ public class DomainEventWrapperTests
     }
 
     [DomainEvent(CloudEventDomainEventName, EventSchema.CloudEvent)]
-    private class CloudEventSampleDomainEvent : IDomainEvent
+    private sealed class CloudEventSampleDomainEvent : IDomainEvent
     {
         public string? Message { get; set; }
     }

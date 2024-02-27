@@ -131,17 +131,19 @@ internal sealed class EventPropagationSubscriberBuilder : IEventPropagationSubsc
             .Where(x => x.Count() > 1)
             .ToArray();
 
-        if (groupsWithDuplicates.Any())
+        if (groupsWithDuplicates is { Length: 0 })
         {
-            var sb = new StringBuilder();
-            sb.AppendLine("Found duplicates handlers in assembly :");
-            foreach (var group in groupsWithDuplicates)
-            {
-                sb.AppendLine($"- {group.Key.Value} is implemented by {string.Join(", ", group.Select(x => x.Implementation.Value))}");
-            }
-
-            throw new InvalidOperationException(sb.ToString());
+            return;
         }
+        
+        var sb = new StringBuilder();
+        sb.AppendLine("Found duplicates handlers in assembly :");
+        foreach (var group in groupsWithDuplicates)
+        {
+            sb.AppendLine($"- {group.Key.Value} is implemented by {string.Join(", ", group.Select(x => x.Implementation.Value))}");
+        }
+
+        throw new InvalidOperationException(sb.ToString());
     }
 
     private void EnsureHandlerInterfaceNotAlreadyRegistered(InterfaceType interfaceType, ImplementationType implementationType)
