@@ -43,11 +43,11 @@ internal sealed class EventPropagationPublisherBuilder : IEventPropagationPublis
     {
         builder.AddClient<EventGridPublisherClient, EventGridPublisherClientOptions>(EventGridPublisherClientFactory)
             .WithName(EventPropagationPublisherOptions.CustomTopicClientName)
-            .ConfigureOptions(ConfigureEventGridPublisherClientOptions);
+            .ConfigureOptions(ConfigureClientOptions);
 
         builder.AddClient<EventGridClient, EventGridClientOptions>(EventGridClientFactory)
             .WithName(EventPropagationPublisherOptions.NamespaceTopicClientName)
-            .ConfigureOptions(ConfigureEventGridClientOptions);
+            .ConfigureOptions(ConfigureClientOptions);
     }
 
     private static EventGridPublisherClient EventGridPublisherClientFactory(EventGridPublisherClientOptions clientOptions, IServiceProvider serviceProvider)
@@ -59,14 +59,7 @@ internal sealed class EventPropagationPublisherBuilder : IEventPropagationPublis
             ? new EventGridPublisherClient(topicEndpointUri, publisherOptions.TokenCredential, clientOptions)
             : new EventGridPublisherClient(topicEndpointUri, new AzureKeyCredential(publisherOptions.TopicAccessKey), clientOptions);
     }
-
-    private static void ConfigureEventGridPublisherClientOptions(EventGridPublisherClientOptions options)
-    {
-        options.Retry.Mode = RetryMode.Fixed;
-        options.Retry.MaxRetries = 1;
-        options.Retry.NetworkTimeout = TimeSpan.FromSeconds(4);
-    }
-
+    
     private static EventGridClient EventGridClientFactory(EventGridClientOptions clientOptions, IServiceProvider serviceProvider)
     {
         var publisherOptions = serviceProvider.GetRequiredService<IOptions<EventPropagationPublisherOptions>>().Value;
@@ -77,7 +70,7 @@ internal sealed class EventPropagationPublisherBuilder : IEventPropagationPublis
             : new EventGridClient(topicEndpointUri, new AzureKeyCredential(publisherOptions.TopicAccessKey), clientOptions);
     }
 
-    private static void ConfigureEventGridClientOptions(EventGridClientOptions options)
+    private static void ConfigureClientOptions(ClientOptions options)
     {
         options.Retry.Mode = RetryMode.Fixed;
         options.Retry.MaxRetries = 1;
