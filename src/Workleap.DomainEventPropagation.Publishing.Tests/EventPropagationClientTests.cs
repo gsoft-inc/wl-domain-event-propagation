@@ -65,7 +65,7 @@ public abstract class EventPropagationClientTests
     public async Task GivenAdditionalBehavior_WhenPublishEventGridEvent_ThenPipelineHandle()
     {
         // Given
-        var domainEvent = new TestEventGridEvent() { Text = "Hello world", Number = 1 };
+        var domainEvent = new TestEventGridEvent { Text = "Hello world", Number = 1 };
         var publisherBehavior = A.Fake<IPublishingDomainEventBehavior>();
 
         var propagationClient = new EventPropagationClient(
@@ -85,7 +85,7 @@ public abstract class EventPropagationClientTests
     public async Task GivenAdditionalBehavior_WhenPublishCloudEvent_ThenPipelineHandle()
     {
         // Given
-        var domainEvent = new TestCloudEvent() { Text = "Hello world", Number = 2 };
+        var domainEvent = new TestCloudEvent { Text = "Hello world", Number = 2 };
         var publisherBehavior = A.Fake<IPublishingDomainEventBehavior>();
 
         var propagationClient = new EventPropagationClient(
@@ -137,24 +137,20 @@ public abstract class EventPropagationClientTests
     }
 }
 
-public class EventPropagationClientForCustomTopicTests : EventPropagationClientTests
+public class EventPropagationClientForCustomTopicTests() : EventPropagationClientTests(PublisherOptions)
 {
-    private static readonly IOptions<EventPropagationPublisherOptions> PublisherOptions = Options.Create(new EventPropagationPublisherOptions()
+    private static readonly IOptions<EventPropagationPublisherOptions> PublisherOptions = Options.Create(new EventPropagationPublisherOptions
     {
         TopicType = TopicType.Custom,
         TopicEndpoint = TopicEndpoint,
         TopicAccessKey = "topicAccessKey",
     });
 
-    public EventPropagationClientForCustomTopicTests() : base(PublisherOptions)
-    {
-    }
-
     [Fact]
     public async Task GivenEventGridEvent_WhenPublishEvent_ThenCallsPropagationClient()
     {
         // Given
-        var domainEvent = new TestEventGridEvent() { Text = "Hello world", Number = 1 };
+        var domainEvent = new TestEventGridEvent { Text = "Hello world", Number = 1 };
 
         // When
         await this.EventPropagationClient.PublishDomainEventAsync(domainEvent, CancellationToken.None);
@@ -167,26 +163,10 @@ public class EventPropagationClientForCustomTopicTests : EventPropagationClientT
     }
 
     [Fact]
-    public async Task GivenCloudEvent_WhenPublishEvent_ThenCallsPropagationClient()
-    {
-        // Given
-        var domainEvent = new TestCloudEvent() { Text = "Hello world", Number = 1 };
-
-        // When
-        await this.EventPropagationClient.PublishDomainEventAsync(domainEvent, CancellationToken.None);
-
-        // Then
-        A.CallTo(() => this.EventGridPublisherClient.SendEventsAsync(
-                A<IEnumerable<CloudEvent>>.That.Matches(events => IsSingleCloudEvent(events)),
-                A<CancellationToken>._))
-            .MustHaveHappened();
-    }
-
-    [Fact]
     public async Task GivenEventGridEvent_WhenErrorDuringPublishEvent_ThenThrowsException()
     {
         // Given
-        var domainEvent = new TestEventGridEvent() { Text = "Hello world", Number = 1 };
+        var domainEvent = new TestEventGridEvent { Text = "Hello world", Number = 1 };
         A.CallTo(() => this.EventGridPublisherClient.SendEventsAsync(A<IEnumerable<EventGridEvent>>._, A<CancellationToken>._)).Throws<Exception>();
 
         // When
@@ -197,11 +177,10 @@ public class EventPropagationClientForCustomTopicTests : EventPropagationClientT
     }
 
     [Fact]
-    public async Task GivenCloudEvent_WhenErrorDuringPublishEvent_ThenThrowsException()
+    public async Task GivenCloudEvent_WhenPublishDomainEvent_ThenThrowsException()
     {
         // Given
-        var domainEvent = new TestCloudEvent() { Text = "Hello world", Number = 2 };
-        A.CallTo(() => this.EventGridPublisherClient.SendEventsAsync(A<IEnumerable<CloudEvent>>._, A<CancellationToken>._)).Throws<Exception>();
+        var domainEvent = new TestCloudEvent { Text = "Hello world", Number = 2 };
 
         // When
         var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(async () => await this.EventPropagationClient.PublishDomainEventAsync(domainEvent, CancellationToken.None));
@@ -211,11 +190,11 @@ public class EventPropagationClientForCustomTopicTests : EventPropagationClientT
     }
 }
 
-public class EventPropagationClientForNamespaceTopicTests : EventPropagationClientTests
+public class EventPropagationClientForNamespaceTopicTests() : EventPropagationClientTests(PublisherOptions)
 {
     private const string TopicName = "topicName";
 
-    private static readonly IOptions<EventPropagationPublisherOptions> PublisherOptions = Options.Create(new EventPropagationPublisherOptions()
+    private static readonly IOptions<EventPropagationPublisherOptions> PublisherOptions = Options.Create(new EventPropagationPublisherOptions
     {
         TopicType = TopicType.Namespace,
         TopicName = TopicName,
@@ -223,15 +202,11 @@ public class EventPropagationClientForNamespaceTopicTests : EventPropagationClie
         TopicAccessKey = "topicAccessKey",
     });
 
-    public EventPropagationClientForNamespaceTopicTests() : base(PublisherOptions)
-    {
-    }
-
     [Fact]
     public async Task GivenEventGridEvent_WhenPublishDomainEvent_ThenThrowsException()
     {
         // Given
-        var domainEvent = new TestEventGridEvent() { Text = "Hello world", Number = 1 };
+        var domainEvent = new TestEventGridEvent { Text = "Hello world", Number = 1 };
 
         // When
         var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(async () => await this.EventPropagationClient.PublishDomainEventAsync(domainEvent, CancellationToken.None));
@@ -244,7 +219,7 @@ public class EventPropagationClientForNamespaceTopicTests : EventPropagationClie
     public async Task GivenCloudEvent_WhenPublishEvent_ThenCallsPropagationClient()
     {
         // Given
-        var domainEvent = new TestCloudEvent() { Text = "Hello world", Number = 1 };
+        var domainEvent = new TestCloudEvent { Text = "Hello world", Number = 1 };
 
         // When
         await this.EventPropagationClient.PublishDomainEventAsync(domainEvent, CancellationToken.None);
@@ -261,7 +236,7 @@ public class EventPropagationClientForNamespaceTopicTests : EventPropagationClie
     public async Task GivenCloudEvent_WhenErrorDuringPublishEvent_ThenThrowsException()
     {
         // Given
-        var domainEvent = new TestCloudEvent() { Text = "Hello world", Number = 2 };
+        var domainEvent = new TestCloudEvent { Text = "Hello world", Number = 2 };
         A.CallTo(() => this.EventGridClient.PublishCloudEventsAsync(PublisherOptions.Value.TopicName, A<IEnumerable<CloudEvent>>._, A<CancellationToken>._)).Throws<Exception>();
 
         // When

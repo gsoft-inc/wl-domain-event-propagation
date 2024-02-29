@@ -100,18 +100,17 @@ internal sealed class EventPropagationClient : IEventPropagationClient
         DomainEventWrapperCollection domainEventWrappers,
         CancellationToken cancellationToken)
     {
-        var topicType = this._eventPropagationPublisherOptions.TopicType;
+        if (this._eventPropagationPublisherOptions.TopicType is not TopicType.Namespace)
+        {
+            throw new NotSupportedException("Cannot send CloudEvents events to non-namespace topics");
+        }
+
         var topicName = this._eventPropagationPublisherOptions.TopicName;
         var cloudEvents = domainEventWrappers.Select(wrapper => new CloudEvent(
             type: wrapper.DomainEventName,
             source: this._eventPropagationPublisherOptions.TopicEndpoint,
             jsonSerializableData: wrapper.Data));
 
-        return topicType switch
-        {
-            TopicType.Custom => this._eventGridPublisherClient.SendEventsAsync(cloudEvents, cancellationToken),
-            TopicType.Namespace => this._eventGridNamespaceClient.PublishCloudEventsAsync(topicName, cloudEvents, cancellationToken),
-            _ => throw new NotSupportedException($"Topic type {topicType} is not supported"),
-        };
+        return this._eventGridNamespaceClient.PublishCloudEventsAsync(topicName, cloudEvents, cancellationToken);
     }
 }
