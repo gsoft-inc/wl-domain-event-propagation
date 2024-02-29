@@ -1,7 +1,5 @@
 using System.Net;
 using System.Net.Http.Json;
-using System.Net.Mime;
-using System.Text;
 using System.Text.Json;
 using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
@@ -12,9 +10,11 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Workleap.DomainEventPropagation.Tests;
 
 namespace Workleap.DomainEventPropagation.Subscription.Tests.Apis;
 
+[Collection(XunitCollectionConstants.StaticActivitySensitive)]
 public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTestsFixture>
 {
     private readonly HttpClient _httpClient;

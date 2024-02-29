@@ -3,10 +3,12 @@ using FakeItEasy;
 using GSoft.Extensions.Xunit;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using Workleap.DomainEventPropagation.Publishing.Tests;
 using Workleap.DomainEventPropagation.Tests;
 
 namespace Workleap.DomainEventPropagation.Subscription.Tests;
 
+[Collection(XunitCollectionConstants.StaticActivitySensitive)]
 public sealed class TracingBehaviorTests : BaseUnitTest<TracingBehaviorFixture>
 {
     private readonly InMemoryActivityTracker _activities;

@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Workleap.DomainEventPropagation.Publishing.Tests\Workleap.DomainEventPropagation.Publishing.Tests.csproj" />
     <ProjectReference Include="..\Workleap.DomainEventPropagation.Subscription.ApplicationInsights\Workleap.DomainEventPropagation.Subscription.ApplicationInsights.csproj" />
     <ProjectReference Include="..\Workleap.DomainEventPropagation.Subscription\Workleap.DomainEventPropagation.Subscription.csproj" />
   </ItemGroup>
@@ -31,5 +32,8 @@
 
   <ItemGroup>
     <Compile Include="..\Shared\InMemoryActivityTracker.cs" Link="Shared\InMemoryActivityTracker.cs" />
+    <Compile Include="..\Shared\XunitCollectionConstants.cs">
+      <Link>Shared\XunitCollectionConstants.cs</Link>
+    </Compile>
   </ItemGroup>
 </Project>

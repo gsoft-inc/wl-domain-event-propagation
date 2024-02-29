@@ -4,6 +4,7 @@ using Workleap.DomainEventPropagation.Tests;
 
 namespace Workleap.DomainEventPropagation.Publishing.Tests;
 
+[Collection(XunitCollectionConstants.StaticActivitySensitive)]
 public sealed class TracingBehaviorTests : BaseUnitTest<TracingBehaviorFixture>
 {
     private readonly InMemoryActivityTracker _activities;

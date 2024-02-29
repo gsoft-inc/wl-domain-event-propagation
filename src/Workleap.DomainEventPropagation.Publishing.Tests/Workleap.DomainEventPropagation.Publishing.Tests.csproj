@@ -31,5 +31,8 @@
 
   <ItemGroup>
     <Compile Include="..\Shared\InMemoryActivityTracker.cs" Link="Shared\InMemoryActivityTracker.cs" />
+    <Compile Include="..\Shared\XunitCollectionConstants.cs">
+      <Link>Shared\XunitCollectionConstants.cs</Link>
+    </Compile>
   </ItemGroup>
 </Project>
