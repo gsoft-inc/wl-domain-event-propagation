@@ -1,7 +1,1 @@
 #nullable enable
-Workleap.DomainEventPropagation.DomainEventAttribute.DomainEventAttribute(string! name, Workleap.DomainEventPropagation.EventSchema eventSchema) -> void
-Workleap.DomainEventPropagation.DomainEventAttribute.EventSchema.get -> Workleap.DomainEventPropagation.EventSchema
-Workleap.DomainEventPropagation.EventSchema
-Workleap.DomainEventPropagation.EventSchema.CloudEvent = 2 -> Workleap.DomainEventPropagation.EventSchema
-Workleap.DomainEventPropagation.EventSchema.EventGridEvent = 1 -> Workleap.DomainEventPropagation.EventSchema
-Workleap.DomainEventPropagation.EventSchema.None = 0 -> Workleap.DomainEventPropagation.EventSchema
