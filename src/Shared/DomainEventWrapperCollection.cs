@@ -6,7 +6,7 @@ internal sealed class DomainEventWrapperCollection : IReadOnlyCollection<DomainE
 {
     private readonly DomainEventWrapper[] _domainEventWrappers;
 
-    public DomainEventWrapperCollection(IEnumerable<DomainEventWrapper> domainEventWrappers, string domainEventName, EventSchema schema)
+    private DomainEventWrapperCollection(IEnumerable<DomainEventWrapper> domainEventWrappers, string domainEventName, EventSchema schema)
     {
         this._domainEventWrappers = domainEventWrappers.ToArray();
         this.DomainEventName = domainEventName;
@@ -23,11 +23,7 @@ internal sealed class DomainEventWrapperCollection : IReadOnlyCollection<DomainE
         where T : IDomainEvent, new()
     {
         var domainEventWrappers = domainEvents.Select(DomainEventWrapper.Wrap).ToArray();
-        if (domainEventWrappers.Select(x => x.DomainEventName).Distinct().Count() > 1)
-        {
-            throw new ArgumentException("All events must be of the same type");
-        }
-
+        
         return new DomainEventWrapperCollection(domainEventWrappers, DomainEventNameCache.GetName<T>(), DomainEventSchemaCache.GetEventSchema<T>());
     }
 
