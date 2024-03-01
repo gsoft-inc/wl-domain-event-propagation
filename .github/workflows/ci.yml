@@ -2,7 +2,7 @@ name: CI
 
 on:
   pull_request:
-    branches: ["main", "master", "feature/Add_support_for_pullmode"]
+    branches: ["main", "master"]
     paths-ignore: ["*.md"]
 
 jobs:

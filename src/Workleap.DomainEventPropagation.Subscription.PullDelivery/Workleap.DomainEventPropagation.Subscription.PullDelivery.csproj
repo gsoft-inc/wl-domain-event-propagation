@@ -48,6 +48,8 @@
     <Compile Include="..\Shared\JsonSerializerConstants.cs">
       <Link>Shared\JsonSerializerConstants.cs</Link>
     </Compile>
+    <Compile Include="..\Shared\ServiceCollectionExtensions.cs" Link="Shared\ServiceCollectionExtensions.cs" />
+    <Compile Include="..\Shared\LoggingExtensions.cs" Link="Shared\LoggingExtensions.cs" />
   </ItemGroup>
 
 </Project>
