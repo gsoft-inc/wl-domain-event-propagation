@@ -301,3 +301,4 @@ To learn more about configuring or suppressing code analysis warnings, refer to 
 ## License
 
 Copyright © 2023, Workleap This code is licensed under the Apache License, Version 2.0. You may obtain a copy of this license at https://github.com/gsoft-inc/gsoft-license/blob/master/LICENSE.
+
