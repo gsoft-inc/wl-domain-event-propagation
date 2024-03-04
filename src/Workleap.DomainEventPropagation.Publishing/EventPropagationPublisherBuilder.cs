@@ -1,6 +1,7 @@
 ﻿using Azure;
 using Azure.Core;
 using Azure.Messaging.EventGrid;
+using Azure.Messaging.EventGrid.Namespaces;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -30,7 +31,7 @@ internal sealed class EventPropagationPublisherBuilder : IEventPropagationPublis
         this.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<EventPropagationPublisherOptions>, EventPropagationPublisherOptionsValidator>());
         this.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IPublishingDomainEventBehavior, TracingPublishingDomainEventBehavior>());
 
-        this.Services.AddAzureClients(ConfigureEventGridPublisherClient);
+        this.Services.AddAzureClients(ConfigureEventPublisherClients);
     }
 
     private static void BindFromWellKnownConfigurationSection(EventPropagationPublisherOptions options, IConfiguration configuration)
@@ -38,11 +39,15 @@ internal sealed class EventPropagationPublisherBuilder : IEventPropagationPublis
         configuration.GetSection(EventPropagationPublisherOptions.SectionName).Bind(options);
     }
 
-    private static void ConfigureEventGridPublisherClient(AzureClientFactoryBuilder builder)
+    private static void ConfigureEventPublisherClients(AzureClientFactoryBuilder builder)
     {
         builder.AddClient<EventGridPublisherClient, EventGridPublisherClientOptions>(EventGridPublisherClientFactory)
-            .WithName(EventPropagationPublisherOptions.ClientName)
-            .ConfigureOptions(ConfigureEventGridClientOptions);
+            .WithName(EventPropagationPublisherOptions.CustomTopicClientName)
+            .ConfigureOptions(ConfigureClientOptions);
+
+        builder.AddClient<EventGridClient, EventGridClientOptions>(EventGridClientFactory)
+            .WithName(EventPropagationPublisherOptions.NamespaceTopicClientName)
+            .ConfigureOptions(ConfigureClientOptions);
     }
 
     private static EventGridPublisherClient EventGridPublisherClientFactory(EventGridPublisherClientOptions clientOptions, IServiceProvider serviceProvider)
@@ -54,8 +59,18 @@ internal sealed class EventPropagationPublisherBuilder : IEventPropagationPublis
             ? new EventGridPublisherClient(topicEndpointUri, publisherOptions.TokenCredential, clientOptions)
             : new EventGridPublisherClient(topicEndpointUri, new AzureKeyCredential(publisherOptions.TopicAccessKey), clientOptions);
     }
+    
+    private static EventGridClient EventGridClientFactory(EventGridClientOptions clientOptions, IServiceProvider serviceProvider)
+    {
+        var publisherOptions = serviceProvider.GetRequiredService<IOptions<EventPropagationPublisherOptions>>().Value;
+        var topicEndpointUri = new Uri(publisherOptions.TopicEndpoint);
 
-    private static void ConfigureEventGridClientOptions(EventGridPublisherClientOptions options)
+        return publisherOptions.TokenCredential is not null
+            ? new EventGridClient(topicEndpointUri, publisherOptions.TokenCredential, clientOptions)
+            : new EventGridClient(topicEndpointUri, new AzureKeyCredential(publisherOptions.TopicAccessKey), clientOptions);
+    }
+
+    private static void ConfigureClientOptions(ClientOptions options)
     {
         options.Retry.Mode = RetryMode.Fixed;
         options.Retry.MaxRetries = 1;
