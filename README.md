@@ -19,7 +19,7 @@ It is meant to be used in a multi-services architecture where each service is re
 
 ### Limitations
 
-For now, librairies has the following limitations :
+For now, libraries has the following limitations :
 - Receiving Cloud Events using push delivery
 - Using Event Grid events with Namespace Topics (Microsoft limitation)
 - Publishing either Cloud or Event Grid events to multiple topics
