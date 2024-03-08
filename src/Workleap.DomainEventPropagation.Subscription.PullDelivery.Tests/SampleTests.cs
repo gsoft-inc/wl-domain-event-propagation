@@ -19,6 +19,7 @@ public class SampleTests
         }));
         
         using var activityTracker = new InMemoryActivityTracker();
+        
         // TODO uncomment
         // var path = Path.GetTempFileName();
         // await File.WriteAllTextAsync(path, /*lang=json,strict*/ """
@@ -39,7 +40,9 @@ public class SampleTests
         //        .Build();
         // await container.StartAsync();
 
-        //var url = $"http://localhost:{container.GetMappedPublicPort(6500)}/";
+        // var url = $"http://localhost:{container.GetMappedPublicPort(6500)}/";
+        
+        // TODO remove
         var url = "http://localhost:6500/";
 
         var builder = Host.CreateDefaultBuilder();
