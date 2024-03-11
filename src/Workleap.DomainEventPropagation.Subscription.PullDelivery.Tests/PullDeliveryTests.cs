@@ -100,7 +100,7 @@ public sealed class PullDeliveryTests
             await File.WriteAllTextAsync(path, configuration);
 
             var container = new ContainerBuilder()
-                .WithImage("workleap/eventgridemulator")
+                .WithImage("workleap/eventgridemulator:0.2.0")
                 .WithPortBinding(6500, assignRandomHostPort: true)
                 .WithBindMount(path, "/app/appsettings.json", AccessMode.ReadOnly)
                 .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(6500))
