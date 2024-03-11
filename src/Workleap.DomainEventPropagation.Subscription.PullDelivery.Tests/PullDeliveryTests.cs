@@ -94,7 +94,7 @@ public sealed class PullDeliveryTests
     {
         public string Url { get; } = $"http://localhost:{container.GetMappedPublicPort(6500)}/";
 
-        public static async Task<EmulatorContext> StartAsync(string configuration)
+        public static async Task<EmulatorContext> StartAsync(ITestOutputHelper testOutputHelper, string configuration)
         {
             var path = Path.GetTempFileName();
             await File.WriteAllTextAsync(path, configuration);
@@ -105,8 +105,27 @@ public sealed class PullDeliveryTests
                 .WithBindMount(path, "/app/appsettings.json", AccessMode.ReadOnly)
                 .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(6500))
                 .Build();
-            await container.StartAsync();
-            
+
+            try
+            {
+                await container.StartAsync();
+            }
+            catch
+            {
+                try
+                {
+                    var logs = await container.GetLogsAsync();
+                    testOutputHelper.WriteLine(logs.Stdout);
+                    testOutputHelper.WriteLine(logs.Stderr);
+                }
+                catch
+                {
+                    // do not hide the original exception
+                }
+
+                throw;
+            }
+
             return new EmulatorContext(container);
         }
 
