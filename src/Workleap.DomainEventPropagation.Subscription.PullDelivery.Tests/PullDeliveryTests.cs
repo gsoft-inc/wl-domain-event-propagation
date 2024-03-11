@@ -34,9 +34,8 @@ public sealed class PullDeliveryTests
                }
                """);
 
-        // var serviceUrl = emulator.Url;
-        var serviceUrl = "http://localhost:6500/"; // TODO remove
-
+        var serviceUrl = emulator.Url;
+        
         // Configure the publisher and the subscriptions, and start the service
         var builder = Host.CreateDefaultBuilder();
         builder.ConfigureServices(services =>
