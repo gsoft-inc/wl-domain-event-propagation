@@ -38,7 +38,7 @@ internal sealed class TracingDomainEventBehavior : IDomainEventBehavior
         {
             var result = await next(domainEventWrapper, cancellationToken).ConfigureAwait(false);
 
-            // TODO explain why Successful
+            // The message has been processed successfully. Even if the result is Rejected, we consider the processing as a success.
             TracingHelper.MarkAsSuccessful(activity);
             return result;
         }

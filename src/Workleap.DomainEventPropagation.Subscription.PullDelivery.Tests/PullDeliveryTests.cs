@@ -12,7 +12,7 @@ namespace Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests;
 public sealed class PullDeliveryTests
 {
     [Fact]
-    public async Task Test()
+    public async Task OpenTelemetryActivityLinkIsPopulated()
     {
         var topicName = "Topic1";
         var subscriberName = "subscriber1";
