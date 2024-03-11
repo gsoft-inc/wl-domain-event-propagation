@@ -22,8 +22,9 @@ public sealed class TracingBehaviorTests : BaseUnitTest<TracingBehaviorFixture>
     public async Task GivenActivityListener_WhenHandleEventGridEvent_ThenHandleWithTracing()
     {
         var wrapperEvent = DomainEventWrapper.Wrap(new SampleDomainEvent { Message = "Hello world" });
+        wrapperEvent.SetMetadata("traceparent", "00-0af7651916cd43dd8448eb211c80319c-00f067aa0ba902b7-01");
 
-        var eventGridEvent = new EventGridEvent("subject", wrapperEvent.DomainEventName, "version", BinaryData.FromObjectAsJson(wrapperEvent));
+        var eventGridEvent = new EventGridEvent("subject", wrapperEvent.DomainEventName, "version", wrapperEvent.ToBinaryData());
 
         var behaviors = this.Services.GetServices<ISubscriptionDomainEventBehavior>();
         var domainEventGridWebhookHandler = new DomainEventGridWebhookHandler(this.Services, A.Fake<IDomainEventTypeRegistry>(), NullLogger<DomainEventGridWebhookHandler>.Instance, behaviors);

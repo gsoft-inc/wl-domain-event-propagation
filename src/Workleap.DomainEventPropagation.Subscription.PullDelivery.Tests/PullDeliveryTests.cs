@@ -20,8 +20,7 @@ public sealed class PullDeliveryTests
         // Add a timeout for the test to not block indefinitely
         using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
 
-        // Enable context propagation and track activities
-        EnableContextPropagation();
+        // Enable activity tracking
         using var activityTracker = new InMemoryActivityTracker();
 
         await using var emulator = await EmulatorContext.StartAsync(/*lang=json,strict*/ $$"""
@@ -75,15 +74,6 @@ public sealed class PullDeliveryTests
         // terminate the service
         host.Services.GetRequiredService<IHostApplicationLifetime>().StopApplication();
         await runTask;
-    }
-
-    private static void EnableContextPropagation()
-    {
-        OpenTelemetry.Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(new TextMapPropagator[]
-        {
-            new TraceContextPropagator(),
-            new BaggagePropagator(),
-        }));
     }
 
     [DomainEvent("com.workleap.sample.testEvent", EventSchema.CloudEvent)]
