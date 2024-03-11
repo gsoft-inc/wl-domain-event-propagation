@@ -3,7 +3,7 @@ using OpenTelemetry.Context.Propagation;
 
 namespace Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests;
 
-public class ModuleInitializer
+internal static class ModuleInitializer
 {
     [ModuleInitializer]
     public static void InitializeTelemetry()
