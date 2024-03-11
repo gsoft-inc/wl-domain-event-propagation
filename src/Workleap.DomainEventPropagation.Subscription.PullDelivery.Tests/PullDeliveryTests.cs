@@ -4,12 +4,11 @@ using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using OpenTelemetry.Context.Propagation;
 using Workleap.DomainEventPropagation.Tests;
 
 namespace Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests;
 
-public sealed class PullDeliveryTests
+public sealed class PullDeliveryTests(ITestOutputHelper testOutputHelper)
 {
     [Fact]
     public async Task OpenTelemetryActivityLinkIsPopulated()
@@ -23,7 +22,7 @@ public sealed class PullDeliveryTests
         // Enable activity tracking
         using var activityTracker = new InMemoryActivityTracker();
 
-        await using var emulator = await EmulatorContext.StartAsync(/*lang=json,strict*/ $$"""
+        await using var emulator = await EmulatorContext.StartAsync(testOutputHelper, /*lang=json,strict*/ $$"""
                {
                  "Topics": {
                    "{{topicName}}": [
