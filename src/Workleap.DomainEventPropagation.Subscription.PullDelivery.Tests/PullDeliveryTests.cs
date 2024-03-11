@@ -9,7 +9,7 @@ using Workleap.DomainEventPropagation.Tests;
 
 namespace Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests;
 
-public class PullDeliveryTests
+public sealed class PullDeliveryTests
 {
     [Fact]
     public async Task Test()
