@@ -101,7 +101,7 @@ public sealed class PullDeliveryTests(ITestOutputHelper testOutputHelper)
             var container = new ContainerBuilder()
                 .WithImage("workleap/eventgridemulator:0.2.0")
                 .WithPortBinding(6500, assignRandomHostPort: true)
-                .WithBindMount(path, "/app/appsettings.json", AccessMode.ReadOnly)
+                .WithBindMount(path, "/app/appsettings.json", AccessMode.ReadWrite) // TODO should be readonly
                 .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(6500))
                 .Build();
 
