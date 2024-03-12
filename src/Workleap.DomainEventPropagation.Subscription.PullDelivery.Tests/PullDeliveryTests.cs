@@ -63,12 +63,13 @@ public sealed class PullDeliveryTests(ITestOutputHelper testOutputHelper)
         // Send an event
         var client = host.Services.GetRequiredService<IEventPropagationClient>();
         await client.PublishDomainEventsAsync([new TestEvent { Id = 1 }], cts.Token);
+        activityTracker.AssertPublishSuccessful("CloudEvents create com.workleap.sample.testEvent");
 
         // Read the event. The background service should call TestDomainEventHandler, so the channel should have 1 item
         var channel = host.Services.GetRequiredService<Channel<TestEvent>>();
         var processedEvent = await channel.Reader.ReadAsync(cts.Token);
         Assert.Equal(1, processedEvent.Id);
-        activityTracker.AssertSubscribeSuccessful("EventGridEvents process com.workleap.sample.testEvent");
+        activityTracker.AssertSubscribeSuccessful("CloudEvents process com.workleap.sample.testEvent");
 
         // terminate the service
         host.Services.GetRequiredService<IHostApplicationLifetime>().StopApplication();

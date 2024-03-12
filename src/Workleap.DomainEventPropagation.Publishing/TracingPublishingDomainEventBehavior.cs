@@ -8,7 +8,7 @@ internal sealed class TracingPublishingDomainEventBehavior : IPublishingDomainEv
 {
     public async Task HandleAsync(DomainEventWrapperCollection domainEventWrappers, DomainEventsHandlerDelegate next, CancellationToken cancellationToken)
     {
-        var activityName = TracingHelper.GetEventGridEventsPublisherActivityName(domainEventWrappers.DomainEventName);
+        var activityName = GetPublishingActivityName(domainEventWrappers);
 
         using var activity = TracingHelper.StartProducerActivity(activityName);
 
@@ -76,4 +76,11 @@ internal sealed class TracingPublishingDomainEventBehavior : IPublishingDomainEv
     {
         activityProperties[key] = value;
     }
+
+    private static string GetPublishingActivityName(DomainEventWrapperCollection domainEventWrappers) => domainEventWrappers.DomainSchema switch
+    {
+        EventSchema.EventGridEvent => TracingHelper.GetEventGridEventsPublisherActivityName(domainEventWrappers.DomainEventName),
+        EventSchema.CloudEvent => TracingHelper.GetCloudEventsPublisherActivityName(domainEventWrappers.DomainEventName),
+        _ => TracingHelper.GetEventGridEventsPublisherActivityName(domainEventWrappers.DomainEventName),
+    };
 }
