@@ -97,7 +97,11 @@ public sealed class PullDeliveryTests(ITestOutputHelper testOutputHelper)
         {
             var path = Path.GetTempFileName();
             await File.WriteAllTextAsync(path, configuration);
-            
+            if (!OperatingSystem.IsWindows())
+            {
+                await CliWrap.Cli.Wrap("chmod").WithArguments(["0444", path]).ExecuteAsync();
+            }
+
             // For debug purposes only
             testOutputHelper.WriteLine("Write configuration file at: " + path);
             testOutputHelper.WriteLine("Write configuration content: " + await File.ReadAllTextAsync(path));
