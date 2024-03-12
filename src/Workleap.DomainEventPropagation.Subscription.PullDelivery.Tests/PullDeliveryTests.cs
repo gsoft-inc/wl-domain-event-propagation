@@ -101,10 +101,10 @@ public sealed class PullDeliveryTests(ITestOutputHelper testOutputHelper)
                 .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(6500))
                 .Build();
             
-            await container.CopyAsync(Encoding.UTF8.GetBytes(configuration), "/app/appsettings.json");
             try
             {
                 await container.StartAsync();
+                await container.CopyAsync(Encoding.UTF8.GetBytes(configuration), "/app/appsettings.json");
             }
             catch
             {
