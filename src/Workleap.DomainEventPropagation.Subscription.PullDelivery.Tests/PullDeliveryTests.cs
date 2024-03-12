@@ -1,6 +1,6 @@
+using System.Text;
 using System.Threading.Channels;
 using DotNet.Testcontainers.Builders;
-using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -95,20 +95,21 @@ public sealed class PullDeliveryTests(ITestOutputHelper testOutputHelper)
 
         public static async Task<EmulatorContext> StartAsync(ITestOutputHelper testOutputHelper, string configuration)
         {
-            var path = Path.GetTempFileName();
-            await File.WriteAllTextAsync(path, configuration);
+            //var path = Path.GetTempFileName();
+            //await File.WriteAllTextAsync(path, configuration);
             
             // For debug purposes only
-            testOutputHelper.WriteLine("Write configuration file at: " + path);
-            testOutputHelper.WriteLine("Write configuration content: " + await File.ReadAllTextAsync(path));
+            // testOutputHelper.WriteLine("Write configuration file at: " + path);
+            // testOutputHelper.WriteLine("Write configuration content: " + await File.ReadAllTextAsync(path));
 
             var container = new ContainerBuilder()
                 .WithImage("workleap/eventgridemulator:0.2.0")
                 .WithPortBinding(6500, assignRandomHostPort: true)
-                .WithBindMount(path, "/app/appsettings.json", AccessMode.ReadWrite) // TODO should be readonly
+                //.WithBindMount(path, "/app/appsettings.json", AccessMode.ReadWrite) // TODO should be readonly
                 .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(6500))
                 .Build();
-
+            
+            await container.CopyAsync(Encoding.UTF8.GetBytes(configuration), "/app/appsettings.json");
             try
             {
                 await container.StartAsync();
