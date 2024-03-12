@@ -97,6 +97,10 @@ public sealed class PullDeliveryTests(ITestOutputHelper testOutputHelper)
         {
             var path = Path.GetTempFileName();
             await File.WriteAllTextAsync(path, configuration);
+            
+            // For debug purposes only
+            testOutputHelper.WriteLine("Write configuration file at: " + path);
+            testOutputHelper.WriteLine("Write configuration content: " + await File.ReadAllTextAsync(path));
 
             var container = new ContainerBuilder()
                 .WithImage("workleap/eventgridemulator:0.2.0")
