@@ -28,6 +28,13 @@ internal class EventPullerService : BackgroundService
                 optionsMonitor.Get(descriptor.Name).SubscriptionName,
                 eventGridClientWrapperFactory.CreateClient(descriptor.Name))).ToArray();
     }
+    
+    private enum EventProcessingStatus
+    {
+        Handled = 0,
+        Released = 1,
+        Rejected = 2,
+    }
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -83,6 +90,7 @@ internal class EventPullerService : BackgroundService
             {
                 case EventDomainTypeNotRegisteredException:
                 case CloudEventSerializationException:
+                case EventDomainHandlerNotRegistered:
                     this._logger.EventWillBeRejected(cloudEvent.Id, ex);
                     return EventProcessingStatus.Rejected;
                 default:
@@ -106,13 +114,6 @@ internal class EventPullerService : BackgroundService
     {
         return eventGridTopicSubscription.Client.RejectCloudEventAsync(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, lockToken, stoppingToken);
     }
-
-    private enum EventProcessingStatus
-    {
-        Handled,
-        Released,
-        Rejected,
-    }
-
+    
     private record EventGridTopicSubscription(string TopicName, string SubscriptionName, IEventGridClientAdapter Client);
 }

@@ -175,92 +175,98 @@ public abstract class EventPullerServiceTests
         }
 
         [Fact]
-        public async Task GivenPuller_WhenMultipleEventsAreReceived_ThenEveryEventsAreHandled()
+        public async Task GivenTwoEventReceived_WhenHandleSuccessfully_ThenEveryEventsAreHandled()
         {
             // Given
             var call1 = A.CallTo(() => this._eventHandler.HandleCloudEventAsync(this._eventBundle1.Event, A<CancellationToken>._));
-            call1.Returns(EventProcessingStatus.Handled);
             var call2 = A.CallTo(() => this._eventHandler.HandleCloudEventAsync(this._eventBundle2.Event, A<CancellationToken>._));
-            call2.Returns(EventProcessingStatus.Handled);
-
+        
             // When
             await StartWaitAndStop(this._pullerService);
-
+        
             // Then
             call1.MustHaveHappenedOnceOrMore();
             call2.MustHaveHappenedOnceOrMore();
         }
-
+        
         [Fact]
-        public async Task GivenPuller_WhenHandlerReturnsHandledStatus_ThenEventAreAcknowledged()
+        public async Task GivenTwoEventsReceived_WhenHandleSuccessfully_ThenEventsAreAcknowledged()
         {
             // Given
             A.CallTo(() => this._eventHandler.HandleCloudEventAsync(A<CloudEvent>._, A<CancellationToken>._))
-                .Returns(EventProcessingStatus.Handled);
-
+                .Returns(Task.CompletedTask);
+            
             // When
             await StartWaitAndStop(this._pullerService);
-
+        
             // Then
             A.CallTo(() => this._client.AcknowledgeCloudEventAsync(
                 this._option.TopicName,
                 this._option.SubscriptionName,
                 this._eventBundle1.LockToken,
                 A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
-
+        
             A.CallTo(() => this._client.AcknowledgeCloudEventAsync(
                 this._option.TopicName,
                 this._option.SubscriptionName,
                 this._eventBundle2.LockToken,
                 A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
         }
-
+        
         [Fact]
-        public async Task GivenPullerWithOneSub_WhenHandlerReturnsReleaseStatus_ThenEventAreReleased()
+        public async Task GivenTwoEventsReceived_WhenHandleThrowUnhandleException_ThenEventsAreReleased()
         {
             // Given
             A.CallTo(() => this._eventHandler.HandleCloudEventAsync(A<CloudEvent>._, A<CancellationToken>._))
-                .Returns(EventProcessingStatus.Released);
-
+                .ThrowsAsync(new Exception("Unhandled exception"));
+        
             // When
             await StartWaitAndStop(this._pullerService);
-
+        
             // Then
             A.CallTo(() => this._client.ReleaseCloudEventAsync(
                 this._option.TopicName,
                 this._option.SubscriptionName,
                 this._eventBundle1.LockToken,
                 A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
-
+        
             A.CallTo(() => this._client.ReleaseCloudEventAsync(
                 this._option.TopicName,
                 this._option.SubscriptionName,
                 this._eventBundle2.LockToken,
                 A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
         }
-
-        [Fact]
-        public async Task GivenPullerWithOneSub_WhenHandlerReturnsRejectedStatus_ThenEventAreRejected()
+        
+        [Theory]
+        [MemberData(nameof(RejectingExceptions))]
+        public async Task GivenTwoEventsReceived_WhenHandleThrowRejectingException_ThenEventsAreRejected(Exception exception)
         {
             // Given
             A.CallTo(() => this._eventHandler.HandleCloudEventAsync(A<CloudEvent>._, A<CancellationToken>._))
-                .Returns(EventProcessingStatus.Rejected);
-
+                .Throws(exception);
+        
             // When
             await StartWaitAndStop(this._pullerService);
-
+        
             // Then
             A.CallTo(() => this._client.RejectCloudEventAsync(
                 this._option.TopicName,
                 this._option.SubscriptionName,
                 this._eventBundle1.LockToken,
                 A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
-
+        
             A.CallTo(() => this._client.RejectCloudEventAsync(
                 this._option.TopicName,
                 this._option.SubscriptionName,
                 this._eventBundle2.LockToken,
                 A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
+        }
+        
+        public static IEnumerable<object[]> RejectingExceptions()
+        {
+            yield return [new EventDomainTypeNotRegisteredException("event", "subject")];
+            yield return [new CloudEventSerializationException("subject", new Exception())];
+            yield return [new EventDomainHandlerNotRegistered("eventName")];
         }
     }
 }

@@ -13,7 +13,7 @@ public class CloudEventHandlerUnitTests
     private const string SampleCloudEventTypeName = "sample-cloud-event";
 
     [Fact]
-    public async Task Given_IllFormedEvent_When_HandleCloudEventAsync_Then_ReturnsRejected()
+    public async Task Given_IllFormedEvent_When_HandleCloudEventAsync_Then_ThrowCloudEventSerializationException()
     {
         // Given
         var cloudEvent = new CloudEvent(
@@ -30,14 +30,11 @@ public class CloudEventHandlerUnitTests
         var handler = GivenCloudEventHandler(services);
 
         // When
-        var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
-
-        // Then
-        Assert.Equal(EventProcessingStatus.Rejected, result);
+        await Assert.ThrowsAsync<CloudEventSerializationException>(() => handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None));
     }
 
     [Fact]
-    public async Task Given_EventTypeNotRegistered_When_HandleCloudEventAsync_Then_ReturnsRejected()
+    public async Task Given_EventTypeNotRegistered_When_HandleCloudEventAsync_Then_ThrowEventDomainTypeNotRegisteredException()
     {
         // Given
         var cloudEvent = GivenSampleEvent();
@@ -46,10 +43,7 @@ public class CloudEventHandlerUnitTests
         var handler = GivenCloudEventHandler(services);
 
         // When
-        var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
-
-        // Then
-        Assert.Equal(EventProcessingStatus.Rejected, result);
+        await Assert.ThrowsAsync<EventDomainTypeNotRegisteredException>(() => handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None));
     }
 
     [Fact]
@@ -62,17 +56,14 @@ public class CloudEventHandlerUnitTests
         var domainEventTypeRegistry = new DomainEventTypeRegistry();
         domainEventTypeRegistry.RegisterDomainEvent(typeof(SampleEvent));
         services.Replace(new ServiceDescriptor(typeof(IDomainEventTypeRegistry), domainEventTypeRegistry));
-        var handler = new CloudEventHandler(new ServiceCollection().BuildServiceProvider(), domainEventTypeRegistry, Enumerable.Empty<IDomainEventBehavior>(), new NullLogger<CloudEventHandler>());
+        var handler = new CloudEventHandler(new ServiceCollection().BuildServiceProvider(), domainEventTypeRegistry, Enumerable.Empty<ISubscriptionDomainEventBehavior>(), new NullLogger<CloudEventHandler>());
 
         // When
-        var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
-
-        // Then
-        Assert.Equal(EventProcessingStatus.Rejected, result);
+        await Assert.ThrowsAsync<EventDomainHandlerNotRegistered>(() => handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None));
     }
 
     [Fact]
-    public async Task Given_FailingEventHandler_When_HandleCloudEventAsync_Then_ReturnsReleased()
+    public async Task Given_FailingEventHandler_When_HandleCloudEventAsync_Then_ThrowException()
     {
         // Given
         var wrapper = DomainEventWrapper.Wrap(new SampleThatCausesExceptionDomainEvent() { Message = "A message" });
@@ -88,14 +79,11 @@ public class CloudEventHandlerUnitTests
         var handler = GivenCloudEventHandler(services);
 
         // When
-        var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
-
-        // Then
-        Assert.Equal(EventProcessingStatus.Released, result);
+        await Assert.ThrowsAnyAsync<Exception>(() => handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None));
     }
 
     [Fact]
-    public async Task Given_EventHandler_When_HandleCloudEventAsync_Then_ReturnsHandledAndEventWasTreated()
+    public async Task Given_EventHandler_When_HandleCloudEventAsync_Then_EventIsTreated()
     {
         // Given
         const string eventMessage = "A super important message!";
@@ -108,16 +96,14 @@ public class CloudEventHandlerUnitTests
         var handler = GivenCloudEventHandler(services);
 
         // When
-        var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
+        await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
 
         // Then
         Assert.Single(SampleEventTestHandler.ReceivedEvents, e => e.Message == eventMessage);
-        
-        Assert.Equal(EventProcessingStatus.Handled, result);
     }
 
     [Fact]
-    public async Task Given_EventHandlersFromAssembly_When_HandleCloudEventAsync_Then_ReturnsHandledAndEventWasTreated()
+    public async Task Given_EventHandlersFromAssembly_When_HandleCloudEventAsync_Then_EventIsTreated()
     {
         // Given
         const string eventMessage = "Another super important message!";
@@ -130,12 +116,10 @@ public class CloudEventHandlerUnitTests
         var handler = GivenCloudEventHandler(services);
 
         // When
-        var result = await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
+        await handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None);
 
         // Then
         Assert.Single(SampleEventTestHandler.ReceivedEvents, e => e.Message == eventMessage);
-        
-        Assert.Equal(EventProcessingStatus.Handled, result);
     }
 
     private static CloudEvent GivenSampleEvent(string message = "Hello World!")
