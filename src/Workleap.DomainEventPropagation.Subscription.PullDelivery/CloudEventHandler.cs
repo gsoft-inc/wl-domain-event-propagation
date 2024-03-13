@@ -11,7 +11,7 @@ internal sealed class CloudEventHandler : BaseEventHandler, ICloudEventHandler
     public CloudEventHandler(
         IServiceProvider serviceProvider,
         IDomainEventTypeRegistry domainEventTypeRegistry,
-        IEnumerable<IDomainEventBehavior> domainEventBehaviors,
+        IEnumerable<ISubscriptionDomainEventBehavior> domainEventBehaviors,
         ILogger<ICloudEventHandler> logger)
         : base(serviceProvider, domainEventTypeRegistry)
     {
@@ -19,51 +19,35 @@ internal sealed class CloudEventHandler : BaseEventHandler, ICloudEventHandler
         this._pipeline = domainEventBehaviors.Reverse().Aggregate((DomainEventHandlerDelegate)this.HandleDomainEventAsync, BuildPipeline);
     }
 
-    public async Task<EventProcessingStatus> HandleCloudEventAsync(CloudEvent cloudEvent, CancellationToken cancellationToken)
+    public async Task HandleCloudEventAsync(CloudEvent cloudEvent, CancellationToken cancellationToken)
+    {
+        var domainEventWrapper = WrapCloudEvent(cloudEvent);
+        if (this.GetDomainEventType(domainEventWrapper!.DomainEventName) == null)
+        {
+            throw new EventDomainTypeNotRegisteredException(domainEventWrapper.DomainEventName, cloudEvent.Subject ?? "Unknown");
+        }
+
+        await this._pipeline(domainEventWrapper, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static DomainEventWrapper WrapCloudEvent(CloudEvent cloudEvent)
     {
         try
         {
-            if (!TryWrapCloudEvent(cloudEvent, out var domainEventWrapper))
-            {
-                this._logger.IllFormedCloudEvent(cloudEvent.Id);
-                return EventProcessingStatus.Rejected;
-            }
-
-            if (this.GetDomainEventType(domainEventWrapper!.DomainEventName) == null)
-            {
-                this._logger.EventDomainTypeNotRegistered(domainEventWrapper.DomainEventName, cloudEvent.Subject ?? "Unknown");
-                return EventProcessingStatus.Rejected;
-            }
-
-            return await this._pipeline(domainEventWrapper, cancellationToken).ConfigureAwait(false);
+            return new DomainEventWrapper(cloudEvent);
         }
         catch (Exception e)
         {
-            this._logger.EventHandlingFailed(cloudEvent.Type, cloudEvent.Id, e.Message);
-            return EventProcessingStatus.Released;
+            throw new CloudEventSerializationException(cloudEvent.Subject ?? "Unknown", e);
         }
     }
 
-    private static bool TryWrapCloudEvent(CloudEvent cloudEvent, out DomainEventWrapper? domainEventWrapper)
-    {
-        domainEventWrapper = null;
-        try
-        {
-            domainEventWrapper = new DomainEventWrapper(cloudEvent);
-            return true;
-        }
-        catch (Exception)
-        {
-            return false;
-        }
-    }
-
-    private static DomainEventHandlerDelegate BuildPipeline(DomainEventHandlerDelegate next, IDomainEventBehavior behavior)
+    private static DomainEventHandlerDelegate BuildPipeline(DomainEventHandlerDelegate next, ISubscriptionDomainEventBehavior behavior)
     {
         return (@event, cancellationToken) => behavior.HandleAsync(@event, next, cancellationToken);
     }
 
-    private async Task<EventProcessingStatus> HandleDomainEventAsync(
+    private async Task HandleDomainEventAsync(
         DomainEventWrapper domainEventWrapper,
         CancellationToken cancellationToken)
     {
@@ -71,11 +55,11 @@ internal sealed class CloudEventHandler : BaseEventHandler, ICloudEventHandler
 
         if (handler == null)
         {
+            // TODO throw exception
             this._logger.EventDomainHandlerNotRegistered(domainEventWrapper.DomainEventName);
-            return EventProcessingStatus.Rejected;
+            return;
         }
 
         await handler().ConfigureAwait(false);
-        return EventProcessingStatus.Handled;
     }
 }

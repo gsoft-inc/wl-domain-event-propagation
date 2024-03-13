@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Azure.Messaging;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -45,7 +46,7 @@ internal class EventPullerService : BackgroundService
                 var bundles = await eventGridTopicSubscription.Client.ReceiveCloudEventsAsync(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, cancellationToken: stoppingToken).ConfigureAwait(false);
                 foreach (var (cloudEvent, lockToken) in bundles)
                 {
-                    var status = await cloudEventHandler.HandleCloudEventAsync(cloudEvent, stoppingToken).ConfigureAwait(false);
+                    var status = await this.HandleEventAsync(cloudEventHandler, cloudEvent, stoppingToken).ConfigureAwait(false);
                     switch (status)
                     {
                         case EventProcessingStatus.Handled:
@@ -69,6 +70,28 @@ internal class EventPullerService : BackgroundService
         }
     }
 
+    private async Task<EventProcessingStatus> HandleEventAsync(ICloudEventHandler cloudEventHandler, CloudEvent cloudEvent, CancellationToken stoppingToken)
+    {
+        try
+        {
+            await cloudEventHandler.HandleCloudEventAsync(cloudEvent, stoppingToken).ConfigureAwait(false);
+            return EventProcessingStatus.Handled;
+        }
+        catch (Exception ex)
+        {
+            switch (ex)
+            {
+                case EventDomainTypeNotRegisteredException:
+                case CloudEventSerializationException:
+                    this._logger.EventWillBeRejected(cloudEvent.Id, ex);
+                    return EventProcessingStatus.Rejected;
+                default:
+                    this._logger.EventWillBeReleased(cloudEvent.Id, ex);
+                    return EventProcessingStatus.Released;    
+            }
+        }
+    }
+
     private static Task AcknowledgeEvent(EventGridTopicSubscription eventGridTopicSubscription, string lockToken, CancellationToken stoppingToken)
     {
         return eventGridTopicSubscription.Client.AcknowledgeCloudEventAsync(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, lockToken, stoppingToken);
@@ -82,6 +105,13 @@ internal class EventPullerService : BackgroundService
     private static Task RejectEvent(EventGridTopicSubscription eventGridTopicSubscription, string lockToken, CancellationToken stoppingToken)
     {
         return eventGridTopicSubscription.Client.RejectCloudEventAsync(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, lockToken, stoppingToken);
+    }
+
+    private enum EventProcessingStatus
+    {
+        Handled,
+        Released,
+        Rejected,
     }
 
     private record EventGridTopicSubscription(string TopicName, string SubscriptionName, IEventGridClientAdapter Client);
