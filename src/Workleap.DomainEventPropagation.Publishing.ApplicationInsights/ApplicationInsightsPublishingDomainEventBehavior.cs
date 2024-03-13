@@ -18,7 +18,8 @@ internal sealed class ApplicationInsightsPublishingDomainEventBehavior : IPublis
             ? next(domainEventWrappers, cancellationToken)
             : this.HandleWithTelemetry(domainEventWrappers, next, cancellationToken);
     }
-
+    
+    // TODO: ensure that we are using the Cloudevent logs for Cloudevent
     private async Task HandleWithTelemetry(DomainEventWrapperCollection domainEventWrappers, DomainEventsHandlerDelegate next, CancellationToken cancellationToken)
     {
         var operation = this._telemetryClient!.StartActivityAwareDependencyOperation(

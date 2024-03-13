@@ -31,6 +31,7 @@
     <ProjectReference Include="..\Workleap.DomainEventPropagation.Publishing\Workleap.DomainEventPropagation.Publishing.csproj" />
     <ProjectReference Include="..\Workleap.DomainEventPropagation.Subscription.PullDelivery.MisconfiguredTestAssembly\Workleap.DomainEventPropagation.Subscription.PullDelivery.MisconfiguredTestAssembly.csproj" />
     <ProjectReference Include="..\Workleap.DomainEventPropagation.Subscription.PullDelivery\Workleap.DomainEventPropagation.Subscription.PullDelivery.csproj" />
+    <ProjectReference Include="..\Workleap.DomainEventPropagation.Subscription.PullDelivery.ApplicationInsights\Workleap.DomainEventPropagation.Subscription.PullDelivery.ApplicationInsights.csproj" />
   </ItemGroup>
   
   <ItemGroup>
