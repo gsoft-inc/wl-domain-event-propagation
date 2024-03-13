@@ -1,9 +1,11 @@
 ﻿using System.Reflection;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Workleap.DomainEventPropagation;
 
 public interface IEventPropagationSubscriberBuilder
 {
+    IServiceCollection Services { get; }
     IEventPropagationSubscriberBuilder AddTopicSubscription();
 
     IEventPropagationSubscriberBuilder AddTopicSubscription(string optionsSectionName);
