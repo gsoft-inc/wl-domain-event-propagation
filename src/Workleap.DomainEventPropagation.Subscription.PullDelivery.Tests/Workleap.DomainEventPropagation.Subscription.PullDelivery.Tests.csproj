@@ -9,11 +9,13 @@
 
   <ItemGroup>
     <PackageReference Include="AutoBogus" Version="2.13.1" />
+    <PackageReference Include="CliWrap" Version="3.6.6" />
     <PackageReference Include="FakeItEasy" Version="8.0.0" />
     <PackageReference Include="GSoft.Extensions.Xunit" Version="1.0.1" />
     <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="6.0.20" />
-    <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="OpenTelemetry" Version="1.7.0" />
+    <PackageReference Include="Testcontainers" Version="3.8.0-beta.8238206979" />
     <PackageReference Include="xunit" Version="2.6.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.4">
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -26,7 +28,17 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Workleap.DomainEventPropagation.Publishing\Workleap.DomainEventPropagation.Publishing.csproj" />
     <ProjectReference Include="..\Workleap.DomainEventPropagation.Subscription.PullDelivery.MisconfiguredTestAssembly\Workleap.DomainEventPropagation.Subscription.PullDelivery.MisconfiguredTestAssembly.csproj" />
     <ProjectReference Include="..\Workleap.DomainEventPropagation.Subscription.PullDelivery\Workleap.DomainEventPropagation.Subscription.PullDelivery.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\Shared\InMemoryActivityTracker.cs">
+      <Link>Shared\InMemoryActivityTracker.cs</Link>
+    </Compile>
+    <Compile Include="..\Shared\ModuleInitializer.cs">
+      <Link>Shared\ModuleInitializer.cs</Link>
+    </Compile>
   </ItemGroup>
 </Project>
