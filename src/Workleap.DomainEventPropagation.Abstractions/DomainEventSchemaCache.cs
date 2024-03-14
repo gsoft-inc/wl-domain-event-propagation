@@ -9,7 +9,7 @@ internal static class DomainEventSchemaCache
     private static readonly ConcurrentDictionary<Type, EventSchema> DomainEventSchemaTypeMappings = new();
 
     public static EventSchema GetEventSchema<T>()
-        where T : IDomainEvent, new()
+        where T : IDomainEvent
     {
         return GetEventSchema(typeof(T));
     }
