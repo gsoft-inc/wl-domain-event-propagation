@@ -233,7 +233,7 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         }
 
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(dictionnary)
+            .AddInMemoryCollection(dictionnary!)
             .Build();
         services.AddSingleton<IConfiguration>(configuration);
     }
