@@ -36,21 +36,11 @@ internal sealed class DomainEventWrapper
 
     public void SetMetadata(string key, string value)
     {
-        if (this.DomainEventSchema == EventSchema.CloudEvent)
-        {
-            throw new NotSupportedException();
-        }
-
         this.Data[GetMetadataKey(key)] = value;
     }
 
     public bool TryGetMetadata(string key, out string? value)
     {
-        if (this.DomainEventSchema == EventSchema.CloudEvent)
-        {
-            throw new NotSupportedException();
-        }
-
         if (this.Data.TryGetPropertyValue(GetMetadataKey(key), out var nodeValue) && nodeValue != null)
         {
             value = nodeValue.GetValue<string?>();

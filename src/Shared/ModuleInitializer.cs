@@ -5,13 +5,13 @@ namespace Workleap.DomainEventPropagation;
 
 internal static class ModuleInitializer
 {
-    // [ModuleInitializer]
-    // public static void InitializeTelemetry()
-    // {
-    //     OpenTelemetry.Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(new TextMapPropagator[]
-    //     {
-    //         new TraceContextPropagator(),
-    //         new BaggagePropagator(),
-    //     }));
-    // }
+    [ModuleInitializer]
+    public static void InitializeTelemetry()
+    {
+        OpenTelemetry.Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator(new TextMapPropagator[]
+        {
+            new TraceContextPropagator(),
+            new BaggagePropagator(),
+        }));
+    }
 }
