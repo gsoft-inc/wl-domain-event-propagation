@@ -57,9 +57,11 @@ internal sealed class DomainEventWrapper
     {
         return this.Data.Deserialize(returnType, JsonSerializerConstants.DomainEventSerializerOptions) ?? throw new ArgumentException("The event cannot be deserialized from JSON");
     }
+    
+    public BinaryData ToBinaryData() => BinaryData.FromObjectAsJson(this.Data);
 
     public static DomainEventWrapper Wrap<T>(T domainEvent)
-        where T : IDomainEvent, new()
+        where T : IDomainEvent
     {
         var domainEventName = DomainEventNameCache.GetName<T>();
         var domainEventSchema = DomainEventSchemaCache.GetEventSchema<T>();
