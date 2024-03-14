@@ -40,11 +40,11 @@ internal sealed class EventPropagationClient : IEventPropagationClient
     }
 
     public Task PublishDomainEventAsync<T>(T domainEvent, CancellationToken cancellationToken)
-        where T : IDomainEvent, new()
+        where T : IDomainEvent
         => this.PublishDomainEventsAsync(new[] { domainEvent }, cancellationToken);
 
     public async Task PublishDomainEventsAsync<T>(IEnumerable<T> domainEvents, CancellationToken cancellationToken)
-        where T : IDomainEvent, new()
+        where T : IDomainEvent
     {
         if (domainEvents == null)
         {
