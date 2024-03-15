@@ -25,7 +25,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="OpenTelemetry.Api" Version="1.7.0" />
+    <PackageReference Include="OpenTelemetry" Version="1.7.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -51,6 +51,9 @@
     </Compile>
     <Compile Include="..\Shared\JsonSerializerConstants.cs">
       <Link>Shared\JsonSerializerConstants.cs</Link>
+    </Compile>
+    <Compile Include="..\Shared\ModuleInitializer.cs">
+      <Link>Shared\ModuleInitializer.cs</Link>
     </Compile>
     <Compile Include="..\Shared\ServiceCollectionExtensions.cs" Link="Shared\ServiceCollectionExtensions.cs" />
     <Compile Include="..\Shared\LoggingExtensions.cs" Link="Shared\LoggingExtensions.cs" />
