@@ -36,7 +36,7 @@ internal static class TracingHelper
 
     public static Activity? StartConsumerActivity(string activityName, ActivityContext linkedActivityContext)
     {
-        var activityLinks = linkedActivityContext == default ? Enumerable.Empty<ActivityLink>() : [new ActivityLink(linkedActivityContext)];
+        var activityLinks = new[] { new ActivityLink(linkedActivityContext) };
         return ActivitySource.StartActivity(activityName, ActivityKind.Consumer, default(ActivityContext), links: activityLinks);
     }
 
