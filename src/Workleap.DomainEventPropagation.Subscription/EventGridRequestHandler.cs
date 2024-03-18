@@ -39,7 +39,7 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
         return new EventGridRequestResult(EventGridRequestType.Event);
     }
 
-    // Special event that we send when subscription. Need to respond to that only in Push Model. 
+    // Special event that an EventGrid custom topic sends upon creation of a push model subscription. 
     private EventGridRequestResult ProcessSubscriptionEvent(SubscriptionValidationEventData subscriptionValidationEventData)
     {
         var response = this._subscriptionEventGridWebhookHandler.HandleEventGridSubscriptionEvent(subscriptionValidationEventData);
