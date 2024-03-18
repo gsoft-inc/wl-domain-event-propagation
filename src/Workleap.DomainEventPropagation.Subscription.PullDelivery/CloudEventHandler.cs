@@ -55,7 +55,7 @@ internal sealed class CloudEventHandler : BaseEventHandler, ICloudEventHandler
 
         if (handler == null)
         {
-            throw new EventDomainHandlerNotRegistered(domainEventWrapper.DomainEventName);
+            throw new EventDomainHandlerNotRegisteredException(domainEventWrapper.DomainEventName);
         }
 
         await handler().ConfigureAwait(false);

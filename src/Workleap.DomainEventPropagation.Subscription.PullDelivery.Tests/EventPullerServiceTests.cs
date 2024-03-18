@@ -266,7 +266,7 @@ public abstract class EventPullerServiceTests
         {
             yield return [new EventDomainTypeNotRegisteredException("event", "subject")];
             yield return [new CloudEventSerializationException("subject", new Exception())];
-            yield return [new EventDomainHandlerNotRegistered("eventName")];
+            yield return [new EventDomainHandlerNotRegisteredException("eventName")];
         }
     }
 }
