@@ -8,7 +8,8 @@
   ],
   "enabledManagers": [
     "github-actions",
-    "nuget"
+    "nuget",
+    "custom.regex"
   ],
   "stabilityDays": 3,
   "prHourlyLimit": 0,
@@ -44,6 +45,19 @@
     {
       "matchManagers": ["github-actions"],
       "groupName": "Pipeline dependencies"
+    }
+  ],
+  "customManagers": [
+    {
+      "description": "Cs files manager for docker versions (not built-in in Renovate)",
+      "customType": "regex",
+      "fileMatch": ["\\.cs$"],
+      "matchStringsStrategy": "any",
+      "matchStrings": [
+        "WithImage(\"(?<imageName>.*?):(?<version>.*?)\")"
+      ],
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "docker"
     }
   ],
   "vulnerabilityAlerts": {
