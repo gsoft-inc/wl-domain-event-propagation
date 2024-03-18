@@ -72,7 +72,7 @@ internal class EventPullerService : BackgroundService
             }
             catch (Exception e)
             {
-                logger.CloudEventCannotBeReceived(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, e.Message);
+                this._logger.CloudEventCannotBeReceived(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, e.Message);
             }
         }
     }
