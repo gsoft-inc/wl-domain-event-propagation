@@ -34,11 +34,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\Shared\InMemoryActivityTracker.cs">
-      <Link>Shared\InMemoryActivityTracker.cs</Link>
-    </Compile>
-    <Compile Include="..\Shared\ModuleInitializer.cs">
-      <Link>Shared\ModuleInitializer.cs</Link>
-    </Compile>
+    <Compile Include="..\Shared\InMemoryActivityTracker.cs" Link="Shared\InMemoryActivityTracker.cs" />
+    <Compile Include="..\Shared\ModuleInitializer.cs" Link="Shared\ModuleInitializer.cs" />
   </ItemGroup>
 </Project>
