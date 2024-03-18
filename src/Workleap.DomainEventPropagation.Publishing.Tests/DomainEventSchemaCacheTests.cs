@@ -23,7 +23,7 @@ public class DomainEventSchemaCacheTests
     }
 
     [DomainEvent("sample-eg-event")]
-    private sealed class EventGridSampleDomainEvent: IDomainEvent;
+    private sealed class EventGridSampleDomainEvent : IDomainEvent;
 
     [DomainEvent("sample-cloud-event", EventSchema.CloudEvent)]
     private sealed record CloudEventSampleDomainEvent(string AttributeName) : IDomainEvent;
