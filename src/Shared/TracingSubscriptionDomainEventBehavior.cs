@@ -3,8 +3,6 @@ using OpenTelemetry.Context.Propagation;
 
 namespace Workleap.DomainEventPropagation;
 
-// register in the DI/ maybe we
-// --> 
 internal sealed class TracingSubscriptionDomainEventBehavior : ISubscriptionDomainEventBehavior
 {
     public async Task HandleAsync(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, CancellationToken cancellationToken)

@@ -89,7 +89,6 @@ public class PullDeliveryTests(ITestOutputHelper testOutputHelper)
 
     private sealed class EventGridEmulatorContext(IContainer container) : IAsyncDisposable
     {
-        // TODO: Get a random port?
         public string Url { get; } = $"http://localhost:{container.GetMappedPublicPort(6500)}/";
 
         public static async Task<EventGridEmulatorContext> StartAsync(ITestOutputHelper testOutputHelper)
