@@ -43,7 +43,7 @@ public class CloudEventHandlerUnitTests
         var handler = GivenCloudEventHandler(services);
 
         // When
-        await Assert.ThrowsAsync<EventDomainTypeNotRegisteredException>(() => handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None));
+        await Assert.ThrowsAsync<DomainEventTypeNotRegisteredException>(() => handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None));
     }
 
     [Fact]
@@ -59,7 +59,7 @@ public class CloudEventHandlerUnitTests
         var handler = new CloudEventHandler(new ServiceCollection().BuildServiceProvider(), domainEventTypeRegistry, Enumerable.Empty<ISubscriptionDomainEventBehavior>(), new NullLogger<CloudEventHandler>());
 
         // When
-        await Assert.ThrowsAsync<EventDomainHandlerNotRegisteredException>(() => handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None));
+        await Assert.ThrowsAsync<DomainEventHandlerNotRegisteredException>(() => handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None));
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public class CloudEventHandlerUnitTests
     }
 
     [Fact]
-    public async Task Given_EventHandler_When_HandleCloudEventAsync_Then_EventIsTreated()
+    public async Task Given_EventHandler_When_HandleCloudEventAsync_Then_EventIsHandled()
     {
         // Given
         const string eventMessage = "A super important message!";
@@ -103,7 +103,7 @@ public class CloudEventHandlerUnitTests
     }
 
     [Fact]
-    public async Task Given_EventHandlersFromAssembly_When_HandleCloudEventAsync_Then_EventIsTreated()
+    public async Task Given_EventHandlersFromAssembly_When_HandleCloudEventAsync_Then_EventIsHandled()
     {
         // Given
         const string eventMessage = "Another super important message!";

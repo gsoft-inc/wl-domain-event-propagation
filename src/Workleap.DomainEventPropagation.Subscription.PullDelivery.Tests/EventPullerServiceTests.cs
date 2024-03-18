@@ -264,9 +264,9 @@ public abstract class EventPullerServiceTests
 
         public static IEnumerable<object[]> RejectingExceptions()
         {
-            yield return [new EventDomainTypeNotRegisteredException("event", "subject")];
+            yield return [new DomainEventTypeNotRegisteredException("event", "subject")];
             yield return [new CloudEventSerializationException("subject", new Exception())];
-            yield return [new EventDomainHandlerNotRegisteredException("eventName")];
+            yield return [new DomainEventHandlerNotRegisteredException("eventName")];
         }
     }
 }

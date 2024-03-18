@@ -88,9 +88,9 @@ internal class EventPullerService : BackgroundService
         {
             switch (ex)
             {
-                case EventDomainTypeNotRegisteredException:
+                case DomainEventTypeNotRegisteredException:
                 case CloudEventSerializationException:
-                case EventDomainHandlerNotRegisteredException:
+                case DomainEventHandlerNotRegisteredException:
                     this._logger.EventWillBeRejected(cloudEvent.Id, ex);
                     return EventProcessingStatus.Rejected;
                 default:

@@ -24,7 +24,7 @@ internal sealed class CloudEventHandler : BaseEventHandler, ICloudEventHandler
         var domainEventWrapper = WrapCloudEvent(cloudEvent);
         if (this.GetDomainEventType(domainEventWrapper!.DomainEventName) == null)
         {
-            throw new EventDomainTypeNotRegisteredException(domainEventWrapper.DomainEventName, cloudEvent.Subject ?? "Unknown");
+            throw new DomainEventTypeNotRegisteredException(domainEventWrapper.DomainEventName, cloudEvent.Subject ?? "Unknown");
         }
 
         await this._pipeline(domainEventWrapper, cancellationToken).ConfigureAwait(false);
@@ -55,7 +55,7 @@ internal sealed class CloudEventHandler : BaseEventHandler, ICloudEventHandler
 
         if (handler == null)
         {
-            throw new EventDomainHandlerNotRegisteredException(domainEventWrapper.DomainEventName);
+            throw new DomainEventHandlerNotRegisteredException(domainEventWrapper.DomainEventName);
         }
 
         await handler().ConfigureAwait(false);

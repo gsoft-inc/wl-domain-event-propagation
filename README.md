@@ -251,7 +251,7 @@ services.AddPullDeliverySubscription()
 
 // Method 2: Register all domain event handlers from a given assembly
 services.AddPullDeliverySubscription()
-    .AddDomainEventHandlers(ApplicationAssemblyHandle.Assembly);
+    .AddDomainEventHandlers(Assembly.GetExecutingAssembly());
 
 // Handler sample
 public class ExampleDomainEventHandler : IDomainEventHandler<ExampleDomainEvent>
