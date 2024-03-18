@@ -22,7 +22,7 @@ internal sealed class CloudEventHandler : BaseEventHandler, ICloudEventHandler
     public async Task HandleCloudEventAsync(CloudEvent cloudEvent, CancellationToken cancellationToken)
     {
         var domainEventWrapper = WrapCloudEvent(cloudEvent);
-        if (this.GetDomainEventType(domainEventWrapper!.DomainEventName) == null)
+        if (this.GetDomainEventType(domainEventWrapper.DomainEventName) == null)
         {
             throw new DomainEventTypeNotRegisteredException(domainEventWrapper.DomainEventName, cloudEvent.Subject ?? "Unknown");
         }
