@@ -49,7 +49,7 @@
   ],
   "customManagers": [
     {
-      "description": "Cs files manager for docker versions (not built-in in Renovate)",
+      "description": "Cs files manager for docker image versions (not built-in in Renovate)",
       "customType": "regex",
       "fileMatch": ["\\.cs$"],
       "matchStringsStrategy": "any",
