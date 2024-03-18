@@ -21,7 +21,7 @@ public sealed class TracingBehaviorTests : BaseUnitTest<TracingBehaviorFixture>
     [Fact]
     public async Task GivenActivityListener_WhenHandleEventGridEvent_ThenHandleWithTracing()
     {
-        var wrapperEvent = DomainEventWrapper.Wrap(new SampleDomainEvent { Message = "Hello world" });
+        var wrapperEvent = DomainEventWrapper.Wrap(new SampleDomainEvent("Hello world"));
 
         var eventGridEvent = new EventGridEvent("subject", wrapperEvent.DomainEventName, "version", BinaryData.FromObjectAsJson(wrapperEvent));
 

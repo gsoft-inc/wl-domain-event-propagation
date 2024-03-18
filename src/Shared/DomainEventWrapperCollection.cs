@@ -20,7 +20,7 @@ internal sealed class DomainEventWrapperCollection : IReadOnlyCollection<DomainE
     public EventSchema DomainSchema { get; }
 
     public static DomainEventWrapperCollection Create<T>(IEnumerable<T> domainEvents)
-        where T : IDomainEvent, new()
+        where T : IDomainEvent
     {
         var domainEventWrappers = domainEvents.Select(DomainEventWrapper.Wrap).ToArray();
         
