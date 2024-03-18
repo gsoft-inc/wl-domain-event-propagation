@@ -36,9 +36,9 @@ internal sealed class CloudEventHandler : BaseEventHandler, ICloudEventHandler
         {
             return new DomainEventWrapper(cloudEvent);
         }
-        catch (Exception e)
+        catch (Exception ex)
         {
-            throw new CloudEventSerializationException(cloudEvent.Subject ?? "Unknown", e);
+            throw new CloudEventSerializationException(cloudEvent.Subject ?? "Unknown", ex);
         }
     }
 
