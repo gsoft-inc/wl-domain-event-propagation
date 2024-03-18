@@ -114,6 +114,6 @@ internal class EventPullerService : BackgroundService
     {
         return eventGridTopicSubscription.Client.RejectCloudEventAsync(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, lockToken, stoppingToken);
     }
-    
+
     private record EventGridTopicSubscription(string TopicName, string SubscriptionName, IEventGridClientAdapter Client);
 }

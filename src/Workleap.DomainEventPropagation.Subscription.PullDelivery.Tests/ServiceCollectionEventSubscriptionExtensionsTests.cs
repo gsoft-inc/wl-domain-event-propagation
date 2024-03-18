@@ -222,18 +222,18 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
 
     private static void GivenConfigurations(IServiceCollection services, params string[] sections)
     {
-        var dictionnary = new Dictionary<string, string>();
+        var dictionary = new Dictionary<string, string?>();
 
         foreach (var section in sections)
         {
-            dictionnary[$"{section}:{nameof(EventPropagationSubscriptionOptions.TopicAccessKey)}"] = AccessKey;
-            dictionnary[$"{section}:{nameof(EventPropagationSubscriptionOptions.TopicEndpoint)}"] = TopicEndPoint;
-            dictionnary[$"{section}:{nameof(EventPropagationSubscriptionOptions.TopicName)}"] = TopicName;
-            dictionnary[$"{section}:{nameof(EventPropagationSubscriptionOptions.SubscriptionName)}"] = SubscriptionName;
+            dictionary[$"{section}:{nameof(EventPropagationSubscriptionOptions.TopicAccessKey)}"] = AccessKey;
+            dictionary[$"{section}:{nameof(EventPropagationSubscriptionOptions.TopicEndpoint)}"] = TopicEndPoint;
+            dictionary[$"{section}:{nameof(EventPropagationSubscriptionOptions.TopicName)}"] = TopicName;
+            dictionary[$"{section}:{nameof(EventPropagationSubscriptionOptions.SubscriptionName)}"] = SubscriptionName;
         }
 
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(dictionnary!)
+            .AddInMemoryCollection(dictionary)
             .Build();
         services.AddSingleton<IConfiguration>(configuration);
     }
