@@ -18,6 +18,10 @@ internal static class TracingHelper
     // https://github.com/open-telemetry/opentelemetry-specification/blob/v1.18.0/specification/trace/semantic_conventions/cloudevents.md#conventions
     internal const string EventGridEventsPublisherActivityType = "EventGridEvents create";
     internal const string EventGridEventsSubscriberActivityType = "EventGridEvents process";
+    
+    // https://github.com/open-telemetry/opentelemetry-specification/blob/v1.18.0/specification/trace/semantic_conventions/cloudevents.md#conventions
+    internal const string CloudEventsPublisherActivityType = "CloudEvents create";
+    internal const string CloudEventsSubscriberActivityType = "CloudEvents process";
 
     private static readonly Assembly Assembly = typeof(TracingHelper).Assembly;
     private static readonly AssemblyName AssemblyName = Assembly.GetName();
@@ -32,7 +36,7 @@ internal static class TracingHelper
 
     public static Activity? StartConsumerActivity(string activityName, ActivityContext linkedActivityContext)
     {
-        var activityLinks = new[] { new ActivityLink(linkedActivityContext) };
+        var activityLinks = linkedActivityContext == default ? Enumerable.Empty<ActivityLink>() : [new ActivityLink(linkedActivityContext)];
         return ActivitySource.StartActivity(activityName, ActivityKind.Consumer, default(ActivityContext), links: activityLinks);
     }
 
@@ -63,4 +67,8 @@ internal static class TracingHelper
     internal static string GetEventGridEventsPublisherActivityName(string eventType) => $"{EventGridEventsPublisherActivityType} {eventType}";
 
     internal static string GetEventGridEventsSubscriberActivityName(string eventType) => $"{EventGridEventsSubscriberActivityType} {eventType}";
+    
+    internal static string GetCloudEventsPublisherActivityName(string eventType) => $"{CloudEventsPublisherActivityType} {eventType}";
+
+    internal static string GetCloudEventsSubscriberActivityName(string eventType) => $"{CloudEventsSubscriberActivityType} {eventType}";
 }

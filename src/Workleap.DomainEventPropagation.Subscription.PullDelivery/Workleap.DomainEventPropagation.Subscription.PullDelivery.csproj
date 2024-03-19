@@ -25,6 +25,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+    <PackageReference Include="OpenTelemetry.Api" Version="1.7.0" />
   </ItemGroup>
 
   <ItemGroup>
@@ -45,11 +46,12 @@
     <Compile Include="..\Shared\DomainEventWrapper.cs" Link="Shared\DomainEventWrapper.cs" />
     <Compile Include="..\Shared\BaseEventHandler.cs" Link="Shared\BaseEventHandler.cs" />
     <Compile Include="..\Shared\AssemblyHelper.cs" Link="Shared\AssemblyHelper.cs" />
-    <Compile Include="..\Shared\JsonSerializerConstants.cs">
-      <Link>Shared\JsonSerializerConstants.cs</Link>
-    </Compile>
+    <Compile Include="..\Shared\ISubscriptionDomainEventBehavior.cs" Link="Shared\ISubscriptionDomainEventBehavior.cs" />
+    <Compile Include="..\Shared\JsonSerializerConstants.cs" Link="Shared\JsonSerializerConstants.cs"/>
     <Compile Include="..\Shared\ServiceCollectionExtensions.cs" Link="Shared\ServiceCollectionExtensions.cs" />
     <Compile Include="..\Shared\LoggingExtensions.cs" Link="Shared\LoggingExtensions.cs" />
+    <Compile Include="..\Shared\TracingHelper.cs" Link="Shared\TracingHelper.cs"/>
+    <Compile Include="..\Shared\TracingSubscriptionDomainEventBehavior.cs" Link="Shared\TracingSubscriptionDomainEventBehavior.cs" />
   </ItemGroup>
 
 </Project>

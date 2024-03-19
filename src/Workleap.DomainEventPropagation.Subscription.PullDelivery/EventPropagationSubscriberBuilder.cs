@@ -24,9 +24,9 @@ internal sealed class EventPropagationSubscriberBuilder : IEventPropagationSubsc
             .OfType<DomainEventTypeRegistry>()
             .FirstOrDefault() ?? new DomainEventTypeRegistry();
         this.Services.TryAddSingleton<IDomainEventTypeRegistry>(this._domainEventTypeRegistry);
-
         this.Services.AddTransient<IEventGridClientWrapperFactory, EventGridClientAdapterFactory>();
         this.Services.AddTransient<ICloudEventHandler, CloudEventHandler>();
+        this.Services.TryAddEnumerable(ServiceDescriptor.Singleton<ISubscriptionDomainEventBehavior, TracingSubscriptionDomainEventBehavior>());
         this.Services.AddHostedService<EventPullerService>();
     }
 

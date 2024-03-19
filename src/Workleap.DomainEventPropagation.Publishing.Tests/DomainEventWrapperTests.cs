@@ -13,7 +13,7 @@ public class DomainEventWrapperTests
         "eventType",
         "1.0",
         new BinaryData(new SampleDomainEvent()));
-
+    
     private readonly CloudEvent _cloudEvent = new(
         "source",
         "eventType",
@@ -34,25 +34,20 @@ public class DomainEventWrapperTests
         Assert.True(valueFound);
         Assert.Equal("someValue", value);
     }
-
+    
     [Fact]
-    public void GivenCloudEvent_WhenSetMetadata_ThenExceptionIsThrown()
+    public void GivenCloudEvent_WhenSetMetadata_ThenMetadataIsSet()
     {
         // Given
         var eventWrapper = new DomainEventWrapper(this._cloudEvent);
 
         // When
-        Assert.Throws<NotSupportedException>(() => eventWrapper.SetMetadata("someKey", "someValue"));
-    }
-
-    [Fact]
-    public void GivenCloudEvent_WhenGetMetadata_ThenExceptionIsThrown()
-    {
-        // Given
-        var eventWrapper = new DomainEventWrapper(this._cloudEvent);
-
-        // When
-        Assert.Throws<NotSupportedException>(() => eventWrapper.TryGetMetadata("someKey", out _));
+        eventWrapper.SetMetadata("someKey", "someValue");
+        
+        // Then
+        var valueFound = eventWrapper.TryGetMetadata("someKey", out var value);
+        Assert.True(valueFound);
+        Assert.Equal("someValue", value);
     }
 
     [Fact]
@@ -60,6 +55,20 @@ public class DomainEventWrapperTests
     {
         // Given
         var eventWrapper = new DomainEventWrapper(this._eventGridEvent);
+
+        // When
+        var valueFound = eventWrapper.TryGetMetadata("somekey", out var value);
+
+        // Then
+        Assert.False(valueFound);
+        Assert.Null(value);
+    }
+    
+    [Fact]
+    public void GivenCloudEventWithoutMetadata_WhenTryGetMetadata_ThenMetadataNotFound()
+    {
+        // Given
+        var eventWrapper = new DomainEventWrapper(this._cloudEvent);
 
         // When
         var valueFound = eventWrapper.TryGetMetadata("somekey", out var value);

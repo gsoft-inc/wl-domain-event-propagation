@@ -7,7 +7,7 @@ internal sealed class TracingSubscriptionDomainEventBehavior : ISubscriptionDoma
 {
     public async Task HandleAsync(DomainEventWrapper domainEventWrapper, DomainEventHandlerDelegate next, CancellationToken cancellationToken)
     {
-        var activityName = TracingHelper.GetEventGridEventsSubscriberActivityName(domainEventWrapper.DomainEventName);
+        var activityName = GetSubscriptionActivityName(domainEventWrapper);
         var propagationContext = ExtractPropagationContextFromEvent(domainEventWrapper);
 
         using var activity = TracingHelper.StartConsumerActivity(activityName, propagationContext.ActivityContext);
@@ -46,4 +46,11 @@ internal sealed class TracingSubscriptionDomainEventBehavior : ISubscriptionDoma
             throw;
         }
     }
+    
+    private static string GetSubscriptionActivityName(DomainEventWrapper domainEventWrappers) => domainEventWrappers.DomainEventSchema switch
+    {
+        EventSchema.EventGridEvent => TracingHelper.GetEventGridEventsSubscriberActivityName(domainEventWrappers.DomainEventName),
+        EventSchema.CloudEvent => TracingHelper.GetCloudEventsSubscriberActivityName(domainEventWrappers.DomainEventName),
+        _ => TracingHelper.GetEventGridEventsSubscriberActivityName(domainEventWrappers.DomainEventName),
+    };
 }

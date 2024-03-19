@@ -8,14 +8,8 @@ internal sealed class TracingPublishingDomainEventBehavior : IPublishingDomainEv
 {
     public async Task HandleAsync(DomainEventWrapperCollection domainEventWrappers, DomainEventsHandlerDelegate next, CancellationToken cancellationToken)
     {
-        if (domainEventWrappers.DomainSchema == EventSchema.CloudEvent)
-        {
-            await next(domainEventWrappers, cancellationToken).ConfigureAwait(false);
-            return;
-        }
-
-        var activityName = TracingHelper.GetEventGridEventsPublisherActivityName(domainEventWrappers.DomainEventName);
-
+        var activityName = GetPublishingActivityName(domainEventWrappers);
+        
         using var activity = TracingHelper.StartProducerActivity(activityName);
 
         if (activity == null)
@@ -82,4 +76,11 @@ internal sealed class TracingPublishingDomainEventBehavior : IPublishingDomainEv
     {
         activityProperties[key] = value;
     }
+    
+    private static string GetPublishingActivityName(DomainEventWrapperCollection domainEventWrappers) => domainEventWrappers.DomainSchema switch
+    {
+        EventSchema.EventGridEvent => TracingHelper.GetEventGridEventsPublisherActivityName(domainEventWrappers.DomainEventName),
+        EventSchema.CloudEvent => TracingHelper.GetCloudEventsPublisherActivityName(domainEventWrappers.DomainEventName),
+        _ => TracingHelper.GetEventGridEventsPublisherActivityName(domainEventWrappers.DomainEventName),
+    };
 }

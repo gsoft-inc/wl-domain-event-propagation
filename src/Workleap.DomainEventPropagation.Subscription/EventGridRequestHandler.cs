@@ -39,12 +39,14 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
         return new EventGridRequestResult(EventGridRequestType.Event);
     }
 
+    // Special event that an EventGrid custom topic sends upon creation of a push model subscription. 
     private EventGridRequestResult ProcessSubscriptionEvent(SubscriptionValidationEventData subscriptionValidationEventData)
     {
         var response = this._subscriptionEventGridWebhookHandler.HandleEventGridSubscriptionEvent(subscriptionValidationEventData);
         return new EventGridRequestResult(EventGridRequestType.Subscription, response);
     }
-
+    
+    // Events that our services send
     private async Task ProcessDomainEventAsync(EventGridEvent eventGridEvent, CancellationToken cancellationToken)
     {
         await this._domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, cancellationToken).ConfigureAwait(false);

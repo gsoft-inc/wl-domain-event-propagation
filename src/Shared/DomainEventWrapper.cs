@@ -36,21 +36,11 @@ internal sealed class DomainEventWrapper
 
     public void SetMetadata(string key, string value)
     {
-        if (this.DomainEventSchema == EventSchema.CloudEvent)
-        {
-            throw new NotSupportedException();
-        }
-
         this.Data[GetMetadataKey(key)] = value;
     }
 
     public bool TryGetMetadata(string key, out string? value)
     {
-        if (this.DomainEventSchema == EventSchema.CloudEvent)
-        {
-            throw new NotSupportedException();
-        }
-
         if (this.Data.TryGetPropertyValue(GetMetadataKey(key), out var nodeValue) && nodeValue != null)
         {
             value = nodeValue.GetValue<string?>();
@@ -67,6 +57,8 @@ internal sealed class DomainEventWrapper
     {
         return this.Data.Deserialize(returnType, JsonSerializerConstants.DomainEventSerializerOptions) ?? throw new ArgumentException("The event cannot be deserialized from JSON");
     }
+    
+    public BinaryData ToBinaryData() => BinaryData.FromObjectAsJson(this.Data);
 
     public static DomainEventWrapper Wrap<T>(T domainEvent)
         where T : IDomainEvent
