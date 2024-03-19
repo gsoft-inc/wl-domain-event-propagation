@@ -74,8 +74,9 @@ internal class EventPullerService : BackgroundService
                     await RejectEvent(eventGridTopicSubscription, lockToken, stoppingToken).ConfigureAwait(false);
                     break;
                 default:
+                    this._logger.EventWillBeReleased(cloudEvent.Id, cloudEvent.Type, ex);
                     await ReleaseEvent(eventGridTopicSubscription, lockToken, stoppingToken).ConfigureAwait(false);
-                    throw;
+                    break;
             }
         }
     }

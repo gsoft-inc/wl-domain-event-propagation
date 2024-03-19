@@ -175,16 +175,18 @@ public abstract class EventPullerServiceTests
         }
 
         [Fact]
-        public async Task GivenOneEventReceived_WhenHandleSuccessfully_ThenEventIsHandled()
+        public async Task GivenTwoEventReceived_WhenHandleSuccessfully_ThenEveryEventsAreHandled()
         {
             // Given
-            var call = A.CallTo(() => this._eventHandler.HandleCloudEventAsync(this._eventBundle1.Event, A<CancellationToken>._));
+            var call1 = A.CallTo(() => this._eventHandler.HandleCloudEventAsync(this._eventBundle1.Event, A<CancellationToken>._));
+            var call2 = A.CallTo(() => this._eventHandler.HandleCloudEventAsync(this._eventBundle2.Event, A<CancellationToken>._));
         
             // When
             await StartWaitAndStop(this._pullerService);
 
             // Then
-            call.MustHaveHappenedOnceOrMore();
+            call1.MustHaveHappenedOnceOrMore();
+            call2.MustHaveHappenedOnceOrMore();
         }
 
         [Fact]
@@ -212,7 +214,7 @@ public abstract class EventPullerServiceTests
         }
 
         [Fact]
-        public async Task GivenEventReceived_WhenHandleThrowUnhandleException_ThenEventIsReleased()
+        public async Task GivenTwoEventsReceived_WhenHandleThrowUnhandledException_ThenEventsAreReleased()
         {
             // Given
             A.CallTo(() => this._eventHandler.HandleCloudEventAsync(A<CloudEvent>._, A<CancellationToken>._))
@@ -221,11 +223,17 @@ public abstract class EventPullerServiceTests
             // When
             await StartWaitAndStop(this._pullerService);
 
-            // Then
+            // Then --> this just checks if the method happened once or more --> no trigger.
             A.CallTo(() => this._client.ReleaseCloudEventAsync(
                 this._option.TopicName,
                 this._option.SubscriptionName,
                 this._eventBundle1.LockToken,
+                A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
+
+            A.CallTo(() => this._client.ReleaseCloudEventAsync(
+                this._option.TopicName,
+                this._option.SubscriptionName,
+                this._eventBundle2.LockToken,
                 A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
         }
 
