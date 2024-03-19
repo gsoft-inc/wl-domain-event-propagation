@@ -1,4 +1,5 @@
-﻿using Azure.Messaging;
+﻿using System.ComponentModel.Design;
+using Azure.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -41,17 +42,10 @@ internal class EventPullerService : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            try
+            var bundles = await eventGridTopicSubscription.Client.ReceiveCloudEventsAsync(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, cancellationToken: stoppingToken).ConfigureAwait(false);
+            foreach (var (cloudEvent, lockToken) in bundles)
             {
-                var bundles = await eventGridTopicSubscription.Client.ReceiveCloudEventsAsync(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, cancellationToken: stoppingToken).ConfigureAwait(false);
-                foreach (var (cloudEvent, lockToken) in bundles)
-                {
-                    await this.HandleEventAsync(cloudEventHandler, eventGridTopicSubscription, cloudEvent, lockToken, stoppingToken).ConfigureAwait(false);
-                }
-            }
-            catch (Exception ex)
-            {
-                this._logger.CloudEventCannotBeReceived(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, ex);
+                await this.HandleEventAsync(cloudEventHandler, eventGridTopicSubscription, cloudEvent, lockToken, stoppingToken).ConfigureAwait(false);
             }
         }
     }
@@ -60,62 +54,44 @@ internal class EventPullerService : BackgroundService
     {
         try
         {
+            throw new Exception();
             await cloudEventHandler.HandleCloudEventAsync(cloudEvent, stoppingToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
+            // The first 3 use cases --> 3 excepted use cases --> handle and log and thats it. Those are the expected errors. --> no need to rethrow the exceptions here.
             switch (ex)
             {
                 case DomainEventTypeNotRegisteredException:
                 case CloudEventSerializationException:
                 case DomainEventHandlerNotRegisteredException:
                     this._logger.EventWillBeRejected(cloudEvent.Id, cloudEvent.Type, ex);
-                    await this.RejectEvent(eventGridTopicSubscription, lockToken, stoppingToken).ConfigureAwait(false);
-                    return;
+                    await RejectEvent(eventGridTopicSubscription, lockToken, stoppingToken).ConfigureAwait(false);
+                    break;
+                // If we just catch the exception, we hide the exception here --> will never see the event.
+                // This is an unexpected error.
                 default:
-                    this._logger.EventWillBeReleased(cloudEvent.Id, cloudEvent.Type, ex);
-                    await this.ReleaseEvent(eventGridTopicSubscription, lockToken, stoppingToken).ConfigureAwait(false);
-                    return;
+                    await ReleaseEvent(eventGridTopicSubscription, lockToken, stoppingToken).ConfigureAwait(false);
+                    throw;
             }
         }
-        
-        await this.AcknowledgeEvent(eventGridTopicSubscription, lockToken, stoppingToken).ConfigureAwait(false);
+
+        await AcknowledgeEvent(eventGridTopicSubscription, lockToken, stoppingToken).ConfigureAwait(false);
     }
 
-    private async Task AcknowledgeEvent(EventGridTopicSubscription eventGridTopicSubscription, string lockToken, CancellationToken stoppingToken)
-    {
-        try
-        {
-            await eventGridTopicSubscription.Client.AcknowledgeCloudEventAsync(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, lockToken, stoppingToken).ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            this._logger.CloudEventCannotBeAcknowledged(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, ex);
-        }
+    private static async Task AcknowledgeEvent(EventGridTopicSubscription eventGridTopicSubscription, string lockToken, CancellationToken stoppingToken)
+    { 
+        await eventGridTopicSubscription.Client.AcknowledgeCloudEventAsync(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, lockToken, stoppingToken).ConfigureAwait(false);
     }
 
-    private async Task ReleaseEvent(EventGridTopicSubscription eventGridTopicSubscription, string lockToken, CancellationToken stoppingToken)
+    private static async Task ReleaseEvent(EventGridTopicSubscription eventGridTopicSubscription, string lockToken, CancellationToken stoppingToken)
     {
-        try
-        {
-            await eventGridTopicSubscription.Client.ReleaseCloudEventAsync(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, lockToken, stoppingToken).ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            this._logger.CloudEventCannotBeReleased(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, ex);
-        }
+        await eventGridTopicSubscription.Client.ReleaseCloudEventAsync(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, lockToken, stoppingToken).ConfigureAwait(false);
     }
 
-    private async Task RejectEvent(EventGridTopicSubscription eventGridTopicSubscription, string lockToken, CancellationToken stoppingToken)
+    private static async Task RejectEvent(EventGridTopicSubscription eventGridTopicSubscription, string lockToken, CancellationToken stoppingToken)
     {
-        try
-        {
-            await eventGridTopicSubscription.Client.RejectCloudEventAsync(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, lockToken, stoppingToken).ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            this._logger.CloudEventCannotBeRejected(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, ex);
-        }
+        await eventGridTopicSubscription.Client.RejectCloudEventAsync(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, lockToken, stoppingToken).ConfigureAwait(false);
     }
 
     private record EventGridTopicSubscription(string TopicName, string SubscriptionName, IEventGridClientAdapter Client);
