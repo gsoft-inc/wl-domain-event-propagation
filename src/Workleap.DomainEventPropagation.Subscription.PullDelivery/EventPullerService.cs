@@ -31,10 +31,10 @@ internal class EventPullerService : BackgroundService
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
-        return Task.WhenAll(this._eventGridTopicSubscriptions.Select(sub => Task.Run(() => this.StartReceivingEventsAsync(sub, this._logger, stoppingToken), stoppingToken)));
+        return Task.WhenAll(this._eventGridTopicSubscriptions.Select(sub => Task.Run(() => this.StartReceivingEventsAsync(sub, stoppingToken), stoppingToken)));
     }
 
-    private async Task StartReceivingEventsAsync(EventGridTopicSubscription eventGridTopicSubscription, ILogger<EventPullerService> logger, CancellationToken stoppingToken)
+    private async Task StartReceivingEventsAsync(EventGridTopicSubscription eventGridTopicSubscription, CancellationToken stoppingToken)
     {
         using var scope = this._serviceScopeFactory.CreateScope();
         var cloudEventHandler = scope.ServiceProvider.GetRequiredService<ICloudEventHandler>();
