@@ -68,8 +68,8 @@ internal class EventPullerService : BackgroundService
                     this._logger.EventWillBeRejected(cloudEvent.Id, cloudEvent.Type, ex);
                     await RejectEvent(eventGridTopicSubscription, lockToken, stoppingToken).ConfigureAwait(false);
                     break;
-                // If we just catch the exception, we hide the exception here --> will never see the event.
-                // This is an unexpected error.
+
+                // If we just catch the exception, we hide the exception here --> will never see the event. This is an unexpected error.
                 default:
                     await ReleaseEvent(eventGridTopicSubscription, lockToken, stoppingToken).ConfigureAwait(false);
                     throw;

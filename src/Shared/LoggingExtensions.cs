@@ -17,19 +17,4 @@ internal static partial class LoggingExtensions
     
     [LoggerMessage(4, LogLevel.Information, "The event with {eventId} {EventName} will be rejected.")]
     public static partial void EventWillBeRejected(this ILogger logger, string eventId, string eventName, Exception ex);
-    //
-    // [LoggerMessage(5, LogLevel.Information, "The event with {eventId} {EventName} will be released.")]
-    // public static partial void EventWillBeReleased(this ILogger logger, string eventId, string eventName, Exception ex);
-    
-    // [LoggerMessage(23, LogLevel.Warning, "Failed to pull CloudEvents from the Event Grid topic {topicName} on subscription {subscription}")]
-    // public static partial void CloudEventCannotBeReceived(this ILogger logger, string topicName, string subscription, Exception ex);
-    //
-    // [LoggerMessage(24, LogLevel.Warning, "Failed to acknowledge CloudEvents from the Event Grid topic {topicName} on subscription {subscription}")]
-    // public static partial void CloudEventCannotBeAcknowledged(this ILogger logger, string topicName, string subscription, Exception ex);
-    //
-    // [LoggerMessage(25, LogLevel.Warning, "Failed to release CloudEvents from the Event Grid topic {topicName} on subscription {subscription}")]
-    // public static partial void CloudEventCannotBeReleased(this ILogger logger, string topicName, string subscription, Exception ex);
-    
-    // [LoggerMessage(4, LogLevel.Warning, "Failed to reject CloudEvents from the Event Grid topic {topicName} on subscription {subscription}")]
-    // public static partial void CloudEventCannotBeRejected(this ILogger logger, string topicName, string subscription, Exception ex);
 }
