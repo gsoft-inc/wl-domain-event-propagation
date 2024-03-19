@@ -1,5 +1,4 @@
-﻿using System.ComponentModel.Design;
-using Azure.Messaging;
+﻿using Azure.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -42,10 +41,17 @@ internal class EventPullerService : BackgroundService
 
         while (!stoppingToken.IsCancellationRequested)
         {
-            var bundles = await eventGridTopicSubscription.Client.ReceiveCloudEventsAsync(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, cancellationToken: stoppingToken).ConfigureAwait(false);
-            foreach (var (cloudEvent, lockToken) in bundles)
+            try
             {
-                await this.HandleEventAsync(cloudEventHandler, eventGridTopicSubscription, cloudEvent, lockToken, stoppingToken).ConfigureAwait(false);
+                var bundles = await eventGridTopicSubscription.Client.ReceiveCloudEventsAsync(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, cancellationToken: stoppingToken).ConfigureAwait(false);
+                foreach (var (cloudEvent, lockToken) in bundles)
+                {
+                    await this.HandleEventAsync(cloudEventHandler, eventGridTopicSubscription, cloudEvent, lockToken, stoppingToken).ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                this._logger.CloudEventCouldNotBeHandled(eventGridTopicSubscription.TopicName, eventGridTopicSubscription.SubscriptionName, ex);
             }
         }
     }
@@ -54,12 +60,11 @@ internal class EventPullerService : BackgroundService
     {
         try
         {
-            throw new Exception();
             await cloudEventHandler.HandleCloudEventAsync(cloudEvent, stoppingToken).ConfigureAwait(false);
+            await AcknowledgeEvent(eventGridTopicSubscription, lockToken, stoppingToken).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            // The first 3 use cases --> 3 excepted use cases --> handle and log and thats it. Those are the expected errors. --> no need to rethrow the exceptions here.
             switch (ex)
             {
                 case DomainEventTypeNotRegisteredException:
@@ -68,15 +73,11 @@ internal class EventPullerService : BackgroundService
                     this._logger.EventWillBeRejected(cloudEvent.Id, cloudEvent.Type, ex);
                     await RejectEvent(eventGridTopicSubscription, lockToken, stoppingToken).ConfigureAwait(false);
                     break;
-
-                // If we just catch the exception, we hide the exception here --> will never see the event. This is an unexpected error.
                 default:
                     await ReleaseEvent(eventGridTopicSubscription, lockToken, stoppingToken).ConfigureAwait(false);
                     throw;
             }
         }
-
-        await AcknowledgeEvent(eventGridTopicSubscription, lockToken, stoppingToken).ConfigureAwait(false);
     }
 
     private static async Task AcknowledgeEvent(EventGridTopicSubscription eventGridTopicSubscription, string lockToken, CancellationToken stoppingToken)
