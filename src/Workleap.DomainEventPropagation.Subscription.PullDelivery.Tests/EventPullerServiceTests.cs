@@ -223,7 +223,7 @@ public abstract class EventPullerServiceTests
             // When
             await StartWaitAndStop(this._pullerService);
 
-            // Then --> this just checks if the method happened once or more --> no trigger.
+            // Then
             A.CallTo(() => this._client.ReleaseCloudEventAsync(
                 this._option.TopicName,
                 this._option.SubscriptionName,
