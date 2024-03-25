@@ -183,8 +183,8 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         // When
         var act = () => services.AddPullDeliverySubscription()
             .AddTopicSubscription()
-            .AddDomainEventHandler<MisconfiguredTestAssembly.SampleEvent, MisconfiguredTestAssembly.SampleEventTestHandler>()
-            .AddDomainEventHandler<MisconfiguredTestAssembly.SampleEvent, MisconfiguredTestAssembly.AnotherSampleEventTestHandler>();
+            .AddDomainEventHandler<Shared.TestAssembly.SampleEvent, Shared.TestAssembly.SampleEventTestHandler>()
+            .AddDomainEventHandler<Shared.TestAssembly.SampleEvent, Shared.TestAssembly.AnotherSampleEventTestHandler>();
 
         // Then
         Assert.Throws<InvalidOperationException>(act);
@@ -214,7 +214,7 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
 
         // When
         var act = () => services.AddPullDeliverySubscription()
-            .AddDomainEventHandlers(Assembly.GetAssembly(typeof(MisconfiguredTestAssembly.SampleEvent))!);
+            .AddDomainEventHandlers(Assembly.GetAssembly(typeof(Shared.TestAssembly.SampleEvent))!);
 
         // Then
         Assert.Throws<InvalidOperationException>(act);

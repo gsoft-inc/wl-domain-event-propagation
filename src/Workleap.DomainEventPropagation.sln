@@ -33,7 +33,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Workleap.DomainEventPropaga
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests", "Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests\Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests.csproj", "{B06DE020-8945-4EF8-82E5-CE573BA5F032}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Workleap.DomainEventPropagation.Subscription.PullDelivery.MisconfiguredTestAssembly", "Workleap.DomainEventPropagation.Subscription.PullDelivery.MisconfiguredTestAssembly\Workleap.DomainEventPropagation.Subscription.PullDelivery.MisconfiguredTestAssembly.csproj", "{1A3B898E-1210-4ABA-A71E-8FE7440F0F32}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Workleap.DomainEventPropagation.Shared.TestAssembly", "Workleap.DomainEventPropagation.Shared.TestAssembly\Workleap.DomainEventPropagation.Shared.TestAssembly.csproj", "{1A3B898E-1210-4ABA-A71E-8FE7440F0F32}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
