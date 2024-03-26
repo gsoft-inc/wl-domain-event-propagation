@@ -29,7 +29,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Workleap.DomainEventPropagation.Publishing\Workleap.DomainEventPropagation.Publishing.csproj" />
-    <ProjectReference Include="..\Workleap.DomainEventPropagation.Subscription.PullDelivery.MisconfiguredTestAssembly\Workleap.DomainEventPropagation.Subscription.PullDelivery.MisconfiguredTestAssembly.csproj" />
+    <ProjectReference Include="..\Workleap.DomainEventPropagation.Shared.TestAssembly\Workleap.DomainEventPropagation.Shared.TestAssembly.csproj" />
     <ProjectReference Include="..\Workleap.DomainEventPropagation.Subscription.PullDelivery\Workleap.DomainEventPropagation.Subscription.PullDelivery.csproj" />
   </ItemGroup>
 

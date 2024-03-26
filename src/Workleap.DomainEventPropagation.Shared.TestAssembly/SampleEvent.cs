@@ -1,4 +1,4 @@
-﻿namespace Workleap.DomainEventPropagation.Subscription.PullDelivery.MisconfiguredTestAssembly;
+namespace Workleap.DomainEventPropagation.Shared.TestAssembly;
 
 [DomainEvent("an-event", EventSchema.CloudEvent)]
 public class SampleEvent : IDomainEvent
