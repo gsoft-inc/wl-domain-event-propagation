@@ -11,7 +11,7 @@ namespace Workleap.DomainEventPropagation.Subscription.Tests;
 
 public class PushDeliveryTests(ITestOutputHelper testOutputHelper)
 {
-    private const int EmulatorPort = 6505;
+    private const int EmulatorPort = 6500;
     private const string TopicName = "Topic1";
     private const string SubscriberEndpoint = "/my-webhook";
     private const string LocalUrl = "http://host.testcontainers.internal:5000";
@@ -118,6 +118,7 @@ public class PushDeliveryTests(ITestOutputHelper testOutputHelper)
         {
             var configurationPath = await WriteConfigurationFile(testOutputHelper);
 
+            await TestcontainersSettings.ExposeHostPortsAsync(5000);
             var container = BuildContainer(configurationPath);
             
             try
@@ -147,13 +148,9 @@ public class PushDeliveryTests(ITestOutputHelper testOutputHelper)
         {
             return new ContainerBuilder()
                 .WithImage("workleap/eventgridemulator:0.2.0") // TODO Renovate this?
-                .WithExposedPort(EmulatorPort)
-                .WithEnvironment("ASPNETCORE_URLS", $"http://+:{EmulatorPort}")
                 .WithPortBinding(EmulatorPort, assignRandomHostPort: true)
                 .WithBindMount(configurationPath, "/app/appsettings.json", AccessMode.ReadOnly)
                 .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(EmulatorPort))
-                .WithName("eventgrid-emulator-push-delivery")
-                .WithOutputConsumer(Consume.RedirectStdoutAndStderrToConsole())
                 .Build();
         }
 
