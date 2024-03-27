@@ -14,7 +14,7 @@ public class PushDeliveryTests(ITestOutputHelper testOutputHelper)
     private const int EmulatorPort = 6505;
     private const string TopicName = "Topic1";
     private const string SubscriberEndpoint = "/my-webhook";
-    private const string LocalUrl = "http://host.docker.internal:5000";
+    private const string LocalUrl = "http://host.testcontainers.internal:5000";
     private const int EventGridId = 1;
     private const int CloudEventId = 2;
     
@@ -117,7 +117,8 @@ public class PushDeliveryTests(ITestOutputHelper testOutputHelper)
         public static async Task<EventGridEmulatorContext> StartAsync(ITestOutputHelper testOutputHelper)
         {
             var configurationPath = await WriteConfigurationFile(testOutputHelper);
-            
+
+            await TestcontainersSettings.ExposeHostPortsAsync(5000);
             var container = BuildContainer(configurationPath);
             
             try
@@ -154,7 +155,6 @@ public class PushDeliveryTests(ITestOutputHelper testOutputHelper)
                 .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(EmulatorPort))
                 .WithName("eventgrid-emulator-push-delivery")
                 .WithOutputConsumer(Consume.RedirectStdoutAndStderrToConsole())
-                .WithExtraHost("host.docker.internal", "host-gateway")
                 .Build();
         }
 
