@@ -343,6 +343,6 @@ public class EventGridRequestHandlerTests
     }
 }
 
-internal record LocalSubscriptionValidationEventData(string ValidationCode, string ValidationUrl);
+internal sealed record LocalSubscriptionValidationEventData(string ValidationCode, string ValidationUrl);
 
-internal record ExampleDomainEvent(DateTimeOffset EventDate, Guid EventId);
+internal sealed record ExampleDomainEvent(DateTimeOffset EventDate, Guid EventId);
