@@ -9,6 +9,7 @@ using Workleap.DomainEventPropagation.Tests;
 
 namespace Workleap.DomainEventPropagation.Subscription.Tests;
 
+[Collection("Sequential")]
 public class PushDeliveryTests(ITestOutputHelper testOutputHelper)
 {
     private const string TopicName = "Topic1";

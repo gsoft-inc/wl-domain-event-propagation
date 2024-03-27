@@ -1,4 +1,4 @@
-﻿using System.Threading.Channels;
+using System.Threading.Channels;
 using DotNet.Testcontainers.Builders;
 using DotNet.Testcontainers.Configurations;
 using DotNet.Testcontainers.Containers;
@@ -8,6 +8,7 @@ using Workleap.DomainEventPropagation.Tests;
 
 namespace Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests;
 
+[Collection("Sequential")]
 public class PullDeliveryTests(ITestOutputHelper testOutputHelper)
 {
     private const string TopicName = "Topic1";
