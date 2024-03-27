@@ -152,6 +152,7 @@ public class PushDeliveryTests(ITestOutputHelper testOutputHelper)
                 .WithPortBinding(EmulatorPort, assignRandomHostPort: true)
                 .WithBindMount(configurationPath, "/app/appsettings.json", AccessMode.ReadOnly)
                 .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(EmulatorPort))
+                .WithName("eventgrid-emulator-push-delivery")
                 .Build();
         }
 

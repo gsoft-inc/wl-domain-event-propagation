@@ -10,7 +10,7 @@ namespace Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests;
 
 public class PullDeliveryTests(ITestOutputHelper testOutputHelper)
 {
-    private const int EmulatorPort = 6500;
+    private const int EmulatorPort = 6504;
     private const string TopicName = "Topic1";
     private const string SubscriberName = "subscriber1";
     private const int EventId = 1;
@@ -130,6 +130,7 @@ public class PullDeliveryTests(ITestOutputHelper testOutputHelper)
                 .WithPortBinding(EmulatorPort, assignRandomHostPort: true)
                 .WithBindMount(configurationPath, "/app/appsettings.json", AccessMode.ReadOnly)
                 .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(EmulatorPort))
+                .WithName("eventgrid-emulator-pull-delivery")
                 .Build();
         }
 
