@@ -8,9 +8,9 @@ using Workleap.DomainEventPropagation.Tests;
 
 namespace Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests;
 
-[Collection("Sequential")]
 public class PullDeliveryTests(ITestOutputHelper testOutputHelper)
 {
+    private const int EmulatorPort = 6500;
     private const string TopicName = "Topic1";
     private const string SubscriberName = "subscriber1";
     private const int EventId = 1;
@@ -90,7 +90,7 @@ public class PullDeliveryTests(ITestOutputHelper testOutputHelper)
 
     private sealed class EventGridEmulatorContext(IContainer container) : IAsyncDisposable
     {
-        public string Url { get; } = $"http://localhost:{container.GetMappedPublicPort(6500)}/";
+        public string Url { get; } = $"http://localhost:{container.GetMappedPublicPort(EmulatorPort)}/";
 
         public static async Task<EventGridEmulatorContext> StartAsync(ITestOutputHelper testOutputHelper)
         {
@@ -125,9 +125,11 @@ public class PullDeliveryTests(ITestOutputHelper testOutputHelper)
         {
             return new ContainerBuilder()
                 .WithImage("workleap/eventgridemulator:0.2.0") // TODO Renovate this?
-                .WithPortBinding(6500, assignRandomHostPort: true)
+                .WithExposedPort(EmulatorPort)
+                .WithEnvironment("ASPNETCORE_URLS", $"http://+:{EmulatorPort}")
+                .WithPortBinding(EmulatorPort, assignRandomHostPort: true)
                 .WithBindMount(configurationPath, "/app/appsettings.json", AccessMode.ReadOnly)
-                .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(6500))
+                .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(EmulatorPort))
                 .Build();
         }
 
