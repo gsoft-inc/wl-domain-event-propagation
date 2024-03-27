@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
+using Azure.Messaging;
 using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
 using Microsoft.AspNetCore.Builder;
@@ -24,7 +25,7 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
     }
 
     [Fact]
-    public async Task GivenEventsApi_WhenASubscriptionEventIsPosted_ThenReturnsOkWithValidationResponse()
+    public async Task GivenEventsApi_WhenASubscriptionEventGridEventIsPosted_ThenReturnsOkWithValidationResponse()
     {
         var serializerOptions = new JsonSerializerOptions()
         {
@@ -59,7 +60,42 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
     }
 
     [Fact]
-    public async Task GivenEventsApi_WhenADomainEventIsPosted_ThenReturnsOk()
+    public async Task GivenEventsApi_WhenASubscriptionCloudEventIsPosted_ThenReturnsOkWithValidationResponse()
+    {
+        var serializerOptions = new JsonSerializerOptions()
+        {
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        };
+
+        // Given
+        var subscriptionValidationEventData = new SubscriptionValidationEventTestData
+        {
+            ValidationCode = "ABC",
+        };
+
+        var cloudEvent = new CloudEvent(
+            source: EventsApiIntegrationTestsFixture.TestTopic,
+            type: SystemEventNames.EventGridSubscriptionValidation,
+            data: new BinaryData(subscriptionValidationEventData, serializerOptions),
+            dataContentType: "application/json")
+        {
+            Subject = "Blabla",
+        };
+
+        // When
+        var response = await this._httpClient.PostAsJsonAsync("/eventgrid/domainevents", new[] { cloudEvent });
+
+        // Then
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+        var subscriptionValidationResponse = await response.Content.ReadFromJsonAsync<SubscriptionValidationResponse>(serializerOptions);
+
+        Assert.NotNull(subscriptionValidationResponse);
+        Assert.Equal(subscriptionValidationEventData.ValidationCode, subscriptionValidationResponse.ValidationResponse);
+    }
+
+    [Fact]
+    public async Task GivenEventsApi_WhenADomainEventGridEventIsPosted_ThenReturnsOk()
     {
         // Given
         var wrapperEvent = DomainEventWrapper.Wrap(new DummyDomainEvent { PropertyB = 1, PropertyA = "Hello world" });
@@ -81,7 +117,29 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
     }
 
     [Fact]
-    public async Task GivenSecuredEventsApi_WhenADomainEventIsPostedWithoutAccessToken_ThenReturnsUnauthorized()
+    public async Task GivenEventsApi_WhenADomainCloudEventIsPosted_ThenReturnsOk()
+    {
+        // Given
+        var wrapperEvent = DomainEventWrapper.Wrap(new DummyDomainEvent { PropertyB = 1, PropertyA = "Hello world" });
+
+        var cloudEvent = new CloudEvent(
+            source: EventsApiIntegrationTestsFixture.TestTopic,
+            type: "event type",
+            data: new BinaryData(wrapperEvent.Data),
+            dataContentType: "application/json")
+        {
+            Subject = "blabla",
+        };
+
+        // When
+        var response = await this._httpClient.PostAsJsonAsync("/eventgrid/domainevents", new[] { cloudEvent });
+
+        // Then
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GivenSecuredEventsApi_WhenADomainEventGridEventIsPostedWithoutAccessToken_ThenReturnsUnauthorized()
     {
         // Given
         var wrapperEvent = DomainEventWrapper.Wrap(new DummyDomainEvent { PropertyB = 1, PropertyA = "Hello world" });
@@ -97,6 +155,28 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
 
         // When
         var response = await this._httpClient.PostAsJsonAsync("/eventgrid/domainevents", new[] { eventGridEvent });
+
+        // Then
+        Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task GivenSecuredEventsApi_WhenADomainCloudEventIsPostedWithoutAccessToken_ThenReturnsUnauthorized()
+    {
+        // Given
+        var wrapperEvent = DomainEventWrapper.Wrap(new DummyDomainEvent { PropertyB = 1, PropertyA = "Hello world" });
+
+        var cloudEvent = new CloudEvent(
+            source: EventsApiIntegrationTestsFixture.TestTopic,
+            type: wrapperEvent.DomainEventName,
+            data: new BinaryData(wrapperEvent.Data),
+            dataContentType: "application/json")
+        {
+            Subject = wrapperEvent.DomainEventName,
+        };
+
+        // When
+        var response = await this._httpClient.PostAsJsonAsync("/eventgrid/domainevents", new[] { cloudEvent });
 
         // Then
         Assert.Equal(HttpStatusCode.OK, response.StatusCode);

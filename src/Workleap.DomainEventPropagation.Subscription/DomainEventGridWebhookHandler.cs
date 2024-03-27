@@ -1,5 +1,6 @@
 using System.Reflection;
 using System.Text.Json;
+using Azure.Messaging;
 using Azure.Messaging.EventGrid;
 using Microsoft.Extensions.Logging;
 
@@ -47,6 +48,19 @@ internal sealed class DomainEventGridWebhookHandler : BaseEventHandler, IDomainE
         if (this.GetDomainEventType(domainEventWrapper.DomainEventName) == null)
         {
             this._logger.EventDomainTypeNotRegistered(domainEventWrapper.DomainEventName, eventGridEvent.Subject);
+            return;
+        }
+
+        await this._pipeline(domainEventWrapper, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task HandleEventGridWebhookEventAsync(CloudEvent cloudEvent, CancellationToken cancellationToken)
+    {
+        var domainEventWrapper = new DomainEventWrapper(cloudEvent);
+
+        if (this.GetDomainEventType(domainEventWrapper.DomainEventName) == null)
+        {
+            this._logger.EventDomainTypeNotRegistered(domainEventWrapper.DomainEventName, cloudEvent.Source);
             return;
         }
 

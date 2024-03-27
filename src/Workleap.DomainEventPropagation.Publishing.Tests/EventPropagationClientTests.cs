@@ -177,16 +177,19 @@ public class EventPropagationClientForCustomTopicTests() : EventPropagationClien
     }
 
     [Fact]
-    public async Task GivenCloudEvent_WhenPublishDomainEvent_ThenThrowsException()
+    public async Task GivenCloudEvent_WhenPublishDomainEvent_ThenCallsPropagationClient()
     {
         // Given
         var domainEvent = new TestCloudEvent { Text = "Hello world", Number = 2 };
 
         // When
-        var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(async () => await this.EventPropagationClient.PublishDomainEventAsync(domainEvent, CancellationToken.None));
+        await this.EventPropagationClient.PublishDomainEventAsync(domainEvent, CancellationToken.None);
 
         // Then
-        Assert.Contains(CloudEventName, exception.Message);
+        A.CallTo(() => this.EventGridPublisherClient.SendEventsAsync(
+                A<IEnumerable<CloudEvent>>.That.Matches(events => IsSingleCloudEvent(events)),
+                A<CancellationToken>._))
+            .MustHaveHappened();
     }
 }
 

@@ -1,3 +1,4 @@
+using Azure.Messaging;
 using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
 
@@ -39,6 +40,29 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
         return new EventGridRequestResult(EventGridRequestType.Event);
     }
 
+    public async Task<EventGridRequestResult> HandleRequestAsync(CloudEvent[] cloudEvents, CancellationToken cancellationToken)
+    {
+        foreach (var cloudEvent in cloudEvents)
+        {
+            if (cloudEvent.TryGetSystemEventData(out var systemEventData))
+            {
+                if (systemEventData is SubscriptionValidationEventData subscriptionValidationEventData)
+                {
+                    return this.ProcessSubscriptionEvent(subscriptionValidationEventData);
+                }
+
+                return new EventGridRequestResult(EventGridRequestType.Unsupported);
+            }
+
+            if (!string.IsNullOrEmpty(cloudEvent.Source))
+            {
+                await this.ProcessDomainEventAsync(cloudEvent, cancellationToken).ConfigureAwait(false);
+            }
+        }
+
+        return new EventGridRequestResult(EventGridRequestType.Event);
+    }
+
     // Special event that an EventGrid custom topic sends upon creation of a push model subscription. 
     private EventGridRequestResult ProcessSubscriptionEvent(SubscriptionValidationEventData subscriptionValidationEventData)
     {
@@ -50,5 +74,10 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
     private async Task ProcessDomainEventAsync(EventGridEvent eventGridEvent, CancellationToken cancellationToken)
     {
         await this._domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(eventGridEvent, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task ProcessDomainEventAsync(CloudEvent cloudEvent, CancellationToken cancellationToken)
+    {
+        await this._domainEventGridWebhookHandler.HandleEventGridWebhookEventAsync(cloudEvent, cancellationToken).ConfigureAwait(false);
     }
 }
