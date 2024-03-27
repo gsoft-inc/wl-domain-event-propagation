@@ -118,7 +118,6 @@ public class PushDeliveryTests(ITestOutputHelper testOutputHelper)
         {
             var configurationPath = await WriteConfigurationFile(testOutputHelper);
 
-            await TestcontainersSettings.ExposeHostPortsAsync(5000);
             var container = BuildContainer(configurationPath);
             
             try
