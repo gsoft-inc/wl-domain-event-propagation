@@ -154,6 +154,7 @@ public class PushDeliveryTests(ITestOutputHelper testOutputHelper)
                 .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(EmulatorPort))
                 .WithName("eventgrid-emulator-push-delivery")
                 .WithOutputConsumer(Consume.RedirectStdoutAndStderrToConsole())
+                .WithExtraHost("host.docker.internal", "host-gateway")
                 .Build();
         }
 
