@@ -5,6 +5,7 @@ using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.SystemEvents;
 using FakeItEasy;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Workleap.DomainEventPropagation.Subscription.Tests.Apis;
 
@@ -118,7 +119,10 @@ public class EventsApiUnitTests
         var (data, statusCode) = await actualResult.GetResponseAsync<object>();
 
         Assert.Equal(HttpStatusCode.InternalServerError, statusCode);
-        Assert.Null(data);
+        Assert.NotNull(data);
+
+        var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(data.ToString()!);
+        Assert.Contains("Unknown payload", problemDetails!.Detail);
     }
 
     private static EventGridEvent[] GenerateEventGridEvents()
