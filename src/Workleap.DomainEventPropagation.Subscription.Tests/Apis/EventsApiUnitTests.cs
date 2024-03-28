@@ -105,6 +105,22 @@ public class EventsApiUnitTests
         Assert.Null(data);
     }
 
+    [Fact]
+    public async Task GivenEventsApiHandleEvent_WhenEventIsNeitherEventGridEventOrCloudEvent_ThenReturns500Result()
+    {
+        // Given
+        var httpRequest = await CreateHttpRequest(new { Unknown = "Event" });
+
+        // When
+        var actualResult = await EventsApi.HandleEvents(httpRequest, this._eventGridRequestHandler, CancellationToken.None);
+
+        // Then
+        var (data, statusCode) = await actualResult.GetResponseAsync<object>();
+
+        Assert.Equal(HttpStatusCode.InternalServerError, statusCode);
+        Assert.Null(data);
+    }
+
     private static EventGridEvent[] GenerateEventGridEvents()
     {
         var eventGridEvent = new EventGridEvent("subject", "Workleap.DomainEventPropagation.Dummy.Type", "1.0", new BinaryData(new { id = Guid.NewGuid() }))

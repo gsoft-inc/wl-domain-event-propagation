@@ -24,6 +24,10 @@ internal static class EventsApi
         {
             result = await eventGridRequestHandler.HandleRequestAsync(cloudEvents, cancellationToken).ConfigureAwait(false);
         }
+        else
+        {
+            return Results.StatusCode(500);
+        }
 
         return result?.RequestType switch
         {
