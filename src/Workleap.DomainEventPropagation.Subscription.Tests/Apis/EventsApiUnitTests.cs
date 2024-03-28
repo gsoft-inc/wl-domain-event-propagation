@@ -107,22 +107,17 @@ public class EventsApiUnitTests
     }
 
     [Fact]
-    public async Task GivenEventsApiHandleEvent_WhenEventIsNeitherEventGridEventOrCloudEvent_ThenReturns500Result()
+    public async Task GivenEventsApiHandleEvent_WhenEventIsNeitherEventGridEventOrCloudEvent_ThenThrows()
     {
         // Given
         var httpRequest = await CreateHttpRequest(new { Unknown = "Event" });
 
         // When
-        var actualResult = await EventsApi.HandleEvents(httpRequest, this._eventGridRequestHandler, CancellationToken.None);
+        var ex = await Assert.ThrowsAsync<NotSupportedException>(() => EventsApi.HandleEvents(httpRequest, this._eventGridRequestHandler, CancellationToken.None));
 
         // Then
-        var (data, statusCode) = await actualResult.GetResponseAsync<object>();
-
-        Assert.Equal(HttpStatusCode.InternalServerError, statusCode);
-        Assert.NotNull(data);
-
-        var problemDetails = JsonSerializer.Deserialize<ProblemDetails>(data.ToString()!);
-        Assert.Contains("Unknown payload", problemDetails!.Detail);
+        Assert.NotNull(ex);
+        Assert.Contains("Unknown payload", ex.Message);
     }
 
     private static EventGridEvent[] GenerateEventGridEvents()

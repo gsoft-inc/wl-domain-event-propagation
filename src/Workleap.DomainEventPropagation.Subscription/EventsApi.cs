@@ -26,7 +26,7 @@ internal static class EventsApi
         }
         else
         {
-            return Results.Problem("Unknown payload, only EventGridEvent or CloudEvent are supported", statusCode: 500);
+            throw new NotSupportedException("Unknown payload, only EventGridEvent or CloudEvent are supported");
         }
 
         return result?.RequestType switch
