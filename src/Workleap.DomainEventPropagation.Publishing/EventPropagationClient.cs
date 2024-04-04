@@ -41,9 +41,21 @@ internal sealed class EventPropagationClient : IEventPropagationClient
 
     public Task PublishDomainEventAsync<T>(T domainEvent, CancellationToken cancellationToken)
         where T : IDomainEvent
-        => this.PublishDomainEventsAsync(new[] { domainEvent }, cancellationToken);
+        => this.InternalPublishDomainEventsAsync(new[] { domainEvent }, null, cancellationToken);
 
-    public async Task PublishDomainEventsAsync<T>(IEnumerable<T> domainEvents, CancellationToken cancellationToken)
+    public Task PublishDomainEventAsync<T>(T domainEvent, Action<IDomainEventMetadata> domainEventConfiguration, CancellationToken cancellationToken)
+        where T : IDomainEvent
+        => this.InternalPublishDomainEventsAsync(new[] { domainEvent }, domainEventConfiguration, cancellationToken);
+
+    public Task PublishDomainEventsAsync<T>(IEnumerable<T> domainEvents, CancellationToken cancellationToken)
+        where T : IDomainEvent
+        => this.InternalPublishDomainEventsAsync(domainEvents, null, cancellationToken);
+
+    public Task PublishDomainEventsAsync<T>(IEnumerable<T> domainEvents, Action<IDomainEventMetadata> domainEventConfiguration, CancellationToken cancellationToken)
+        where T : IDomainEvent
+        => this.InternalPublishDomainEventsAsync(domainEvents, domainEventConfiguration, cancellationToken);
+
+    private async Task InternalPublishDomainEventsAsync<T>(IEnumerable<T> domainEvents, Action<IDomainEventMetadata>? domainEventConfiguration, CancellationToken cancellationToken)
         where T : IDomainEvent
     {
         if (domainEvents == null)
@@ -51,10 +63,15 @@ internal sealed class EventPropagationClient : IEventPropagationClient
             throw new ArgumentNullException(nameof(domainEvents));
         }
 
-        var domainEventWrappers = DomainEventWrapperCollection.Create(domainEvents);
+        var domainEventWrappers = DomainEventWrapperCollection.Create(domainEvents, domainEventConfiguration);
         if (domainEventWrappers.Count == 0)
         {
             return;
+        }
+
+        if (domainEventConfiguration != null && domainEventWrappers.DomainSchema != EventSchema.CloudEvent)
+        {
+            throw new NotSupportedException("Domain event configuration is only supported for CloudEvents");
         }
 
         try
@@ -104,6 +121,15 @@ internal sealed class EventPropagationClient : IEventPropagationClient
             type: wrapper.DomainEventName,
             source: this._eventPropagationPublisherOptions.TopicEndpoint,
             jsonSerializableData: wrapper.Data));
+
+        if (domainEventWrappers.DomainEventConfiguration != null)
+        {
+            cloudEvents = cloudEvents.Select(cloudEvent =>
+            {
+                domainEventWrappers.DomainEventConfiguration(new DomainEventMetadataWrapper(cloudEvent));
+                return cloudEvent;
+            });
+        }
 
         var topicName = this._eventPropagationPublisherOptions.TopicName;
 
