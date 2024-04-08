@@ -11,6 +11,22 @@ Workleap.DomainEventPropagation.EventSchema.CloudEvent = 2 -> Workleap.DomainEve
 Workleap.DomainEventPropagation.IDomainEvent
 Workleap.DomainEventPropagation.IDomainEventHandler<TDomainEvent>
 Workleap.DomainEventPropagation.IDomainEventHandler<TDomainEvent>.HandleDomainEventAsync(TDomainEvent domainEvent, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Workleap.DomainEventPropagation.IDomainEventMetadata
+Workleap.DomainEventPropagation.IDomainEventMetadata.DataSchema.get -> string?
+Workleap.DomainEventPropagation.IDomainEventMetadata.DataSchema.set -> void
+Workleap.DomainEventPropagation.IDomainEventMetadata.ExtensionAttributes.get -> System.Collections.Generic.IDictionary<string!, object!>!
+Workleap.DomainEventPropagation.IDomainEventMetadata.Id.get -> string!
+Workleap.DomainEventPropagation.IDomainEventMetadata.Id.set -> void
+Workleap.DomainEventPropagation.IDomainEventMetadata.Source.get -> string!
+Workleap.DomainEventPropagation.IDomainEventMetadata.Source.set -> void
+Workleap.DomainEventPropagation.IDomainEventMetadata.Subject.get -> string?
+Workleap.DomainEventPropagation.IDomainEventMetadata.Subject.set -> void
+Workleap.DomainEventPropagation.IDomainEventMetadata.Time.get -> System.DateTimeOffset?
+Workleap.DomainEventPropagation.IDomainEventMetadata.Time.set -> void
+Workleap.DomainEventPropagation.IDomainEventMetadata.Type.get -> string!
+Workleap.DomainEventPropagation.IDomainEventMetadata.Type.set -> void
 Workleap.DomainEventPropagation.IEventPropagationClient
 Workleap.DomainEventPropagation.IEventPropagationClient.PublishDomainEventAsync<T>(T domainEvent, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Workleap.DomainEventPropagation.IEventPropagationClient.PublishDomainEventAsync<T>(T domainEvent, System.Action<Workleap.DomainEventPropagation.IDomainEventMetadata!>! configureDomainEventMetadata, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
 Workleap.DomainEventPropagation.IEventPropagationClient.PublishDomainEventsAsync<T>(System.Collections.Generic.IEnumerable<T>! domainEvents, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!
+Workleap.DomainEventPropagation.IEventPropagationClient.PublishDomainEventsAsync<T>(System.Collections.Generic.IEnumerable<T>! domainEvents, System.Action<Workleap.DomainEventPropagation.IDomainEventMetadata!>! configureDomainEventMetadata, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!

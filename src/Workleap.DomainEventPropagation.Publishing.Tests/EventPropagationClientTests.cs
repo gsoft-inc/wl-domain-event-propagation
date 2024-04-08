@@ -163,6 +163,23 @@ public class EventPropagationClientForCustomTopicTests() : EventPropagationClien
     }
 
     [Fact]
+    public async Task GivenEventGridEvent_WhenPublishEventWithMetadataConfiguration_ThenThrowsException()
+    {
+        // Given
+        var domainEvent = new TestEventGridEvent { Text = "Hello world", Number = 1 };
+
+        // When
+        var exception = await Assert.ThrowsAsync<NotSupportedException>(async () => await this.EventPropagationClient.PublishDomainEventAsync(domainEvent, x => x.Subject = "TestSubject", CancellationToken.None));
+
+        // Then
+        Assert.Equal("Domain event configuration is only supported for CloudEvents", exception.Message);
+        A.CallTo(() => this.EventGridPublisherClient.SendEventsAsync(
+                A<IEnumerable<EventGridEvent>>._,
+                A<CancellationToken>._))
+            .MustNotHaveHappened();
+    }
+
+    [Fact]
     public async Task GivenEventGridEvent_WhenErrorDuringPublishEvent_ThenThrowsException()
     {
         // Given
@@ -231,6 +248,23 @@ public class EventPropagationClientForNamespaceTopicTests() : EventPropagationCl
         A.CallTo(() => this.EventGridClient.PublishCloudEventsAsync(
                 TopicName,
                 A<IEnumerable<CloudEvent>>.That.Matches(events => IsSingleCloudEvent(events)),
+                A<CancellationToken>._))
+            .MustHaveHappened();
+    }
+
+    [Fact]
+    public async Task GivenCloudEvent_WhenPublishEventWithMetadataConfiguration_ThenCallsConfigurationBeforePropagationClient()
+    {
+        // Given
+        var domainEvent = new TestCloudEvent { Text = "Hello world", Number = 1 };
+
+        // When
+        await this.EventPropagationClient.PublishDomainEventAsync(domainEvent, x => x.Subject = "Test subject", CancellationToken.None);
+
+        // Then
+        A.CallTo(() => this.EventGridClient.PublishCloudEventsAsync(
+                TopicName,
+                A<IEnumerable<CloudEvent>>.That.Matches(events => IsSingleCloudEvent(events) && events.First().Subject == "Test subject"),
                 A<CancellationToken>._))
             .MustHaveHappened();
     }
