@@ -117,7 +117,7 @@ var domainEvent = new ExampleDomainEvent
 await this._eventPropagationClient.PublishDomainEventAsync(domainEvent, CancellationToken.None);
 ```
 
-It is possible to specify additional metadata on your domain events to allow leveraging the subscription filtering within Azure.
+You can specify additional metadata for your domain events to leverage subscription filtering within Azure.
 *This is only supported on domain events that use the CloudEvent schema.*
 
 ```csharp
