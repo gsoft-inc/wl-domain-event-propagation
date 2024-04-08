@@ -43,19 +43,19 @@ internal sealed class EventPropagationClient : IEventPropagationClient
         where T : IDomainEvent
         => this.InternalPublishDomainEventsAsync(new[] { domainEvent }, null, cancellationToken);
 
-    public Task PublishDomainEventAsync<T>(T domainEvent, Action<IDomainEventMetadata> domainEventConfiguration, CancellationToken cancellationToken)
+    public Task PublishDomainEventAsync<T>(T domainEvent, Action<IDomainEventMetadata> configureDomainEventMetadata, CancellationToken cancellationToken)
         where T : IDomainEvent
-        => this.InternalPublishDomainEventsAsync(new[] { domainEvent }, domainEventConfiguration, cancellationToken);
+        => this.InternalPublishDomainEventsAsync(new[] { domainEvent }, configureDomainEventMetadata, cancellationToken);
 
     public Task PublishDomainEventsAsync<T>(IEnumerable<T> domainEvents, CancellationToken cancellationToken)
         where T : IDomainEvent
         => this.InternalPublishDomainEventsAsync(domainEvents, null, cancellationToken);
 
-    public Task PublishDomainEventsAsync<T>(IEnumerable<T> domainEvents, Action<IDomainEventMetadata> domainEventConfiguration, CancellationToken cancellationToken)
+    public Task PublishDomainEventsAsync<T>(IEnumerable<T> domainEvents, Action<IDomainEventMetadata> configureDomainEventMetadata, CancellationToken cancellationToken)
         where T : IDomainEvent
-        => this.InternalPublishDomainEventsAsync(domainEvents, domainEventConfiguration, cancellationToken);
+        => this.InternalPublishDomainEventsAsync(domainEvents, configureDomainEventMetadata, cancellationToken);
 
-    private async Task InternalPublishDomainEventsAsync<T>(IEnumerable<T> domainEvents, Action<IDomainEventMetadata>? domainEventConfiguration, CancellationToken cancellationToken)
+    private async Task InternalPublishDomainEventsAsync<T>(IEnumerable<T> domainEvents, Action<IDomainEventMetadata>? configureDomainEventMetadata, CancellationToken cancellationToken)
         where T : IDomainEvent
     {
         if (domainEvents == null)
@@ -63,13 +63,13 @@ internal sealed class EventPropagationClient : IEventPropagationClient
             throw new ArgumentNullException(nameof(domainEvents));
         }
 
-        var domainEventWrappers = DomainEventWrapperCollection.Create(domainEvents, domainEventConfiguration);
+        var domainEventWrappers = DomainEventWrapperCollection.Create(domainEvents, configureDomainEventMetadata);
         if (domainEventWrappers.Count == 0)
         {
             return;
         }
 
-        if (domainEventConfiguration != null && domainEventWrappers.DomainSchema != EventSchema.CloudEvent)
+        if (configureDomainEventMetadata != null && domainEventWrappers.DomainSchema != EventSchema.CloudEvent)
         {
             throw new NotSupportedException("Domain event configuration is only supported for CloudEvents");
         }
@@ -122,11 +122,11 @@ internal sealed class EventPropagationClient : IEventPropagationClient
             source: this._eventPropagationPublisherOptions.TopicEndpoint,
             jsonSerializableData: wrapper.Data));
 
-        if (domainEventWrappers.DomainEventConfiguration != null)
+        if (domainEventWrappers.ConfigureDomainEventMetadata != null)
         {
             cloudEvents = cloudEvents.Select(cloudEvent =>
             {
-                domainEventWrappers.DomainEventConfiguration(new DomainEventMetadataWrapper(cloudEvent));
+                domainEventWrappers.ConfigureDomainEventMetadata(new DomainEventMetadataWrapper(cloudEvent));
                 return cloudEvent;
             });
         }

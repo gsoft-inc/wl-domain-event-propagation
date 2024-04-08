@@ -6,12 +6,12 @@ internal sealed class DomainEventWrapperCollection : IReadOnlyCollection<DomainE
 {
     private readonly DomainEventWrapper[] _domainEventWrappers;
 
-    private DomainEventWrapperCollection(IEnumerable<DomainEventWrapper> domainEventWrappers, Action<IDomainEventMetadata>? domainEventConfiguration, string domainEventName, EventSchema schema)
+    private DomainEventWrapperCollection(IEnumerable<DomainEventWrapper> domainEventWrappers, Action<IDomainEventMetadata>? configureDomainEventMetadata, string domainEventName, EventSchema schema)
     {
         this._domainEventWrappers = domainEventWrappers.ToArray();
         this.DomainEventName = domainEventName;
         this.DomainSchema = schema;
-        this.DomainEventConfiguration = domainEventConfiguration;
+        this.ConfigureDomainEventMetadata = configureDomainEventMetadata;
     }
 
     public int Count => this._domainEventWrappers.Length;
@@ -20,14 +20,14 @@ internal sealed class DomainEventWrapperCollection : IReadOnlyCollection<DomainE
 
     public EventSchema DomainSchema { get; }
 
-    public Action<IDomainEventMetadata>? DomainEventConfiguration { get; }
+    public Action<IDomainEventMetadata>? ConfigureDomainEventMetadata { get; }
 
-    public static DomainEventWrapperCollection Create<T>(IEnumerable<T> domainEvents, Action<IDomainEventMetadata>? domainEventConfiguration)
+    public static DomainEventWrapperCollection Create<T>(IEnumerable<T> domainEvents, Action<IDomainEventMetadata>? configureDomainEventMetadata)
         where T : IDomainEvent
     {
         var domainEventWrappers = domainEvents.Select(DomainEventWrapper.Wrap).ToArray();
         
-        return new DomainEventWrapperCollection(domainEventWrappers, domainEventConfiguration, DomainEventNameCache.GetName<T>(), DomainEventSchemaCache.GetEventSchema<T>());
+        return new DomainEventWrapperCollection(domainEventWrappers, configureDomainEventMetadata, DomainEventNameCache.GetName<T>(), DomainEventSchemaCache.GetEventSchema<T>());
     }
 
     public IEnumerator<DomainEventWrapper> GetEnumerator()
