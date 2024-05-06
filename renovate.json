@@ -37,6 +37,12 @@
       "enabled": false
     },
     {
+      "matchManagers": ["nuget"],
+      "excludePackageNames": ["Azure.Messaging.EventGrid"],
+      "description": "We want to avoid updates to Azure.Messaging.EventGrid versions given that Pull delivery API for CloudEvents is only supported on the beta versions.",
+      "enabled": false
+    },
+    {
       "matchPackageNames": ["dotnet-sdk"],
       "groupName": "Dotnet SDK",
       "description": "Only update patch and minor for the dotnet SDK version within the global.json",
@@ -54,7 +60,7 @@
       "fileMatch": ["\\.cs$"],
       "matchStringsStrategy": "any",
       "matchStrings": [
-        "WithImage(\"(?<imageName>.*?):(?<version>.*?)\")"
+        "WithImage(\"(?<depName>.*?):(?<currentValue>.*?)\")"
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker"
