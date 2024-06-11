@@ -32,7 +32,7 @@ public abstract class EventPullerServiceTests
 
     private static EventPropagationSubscriptionOptions GivenEventPropagationSubscriptionOptions(IOptionsMonitor<EventPropagationSubscriptionOptions> optionMonitor, string clientName)
     {
-        var option = new AutoFaker<EventPropagationSubscriptionOptions>().RuleFor(x => x.MaxDop, f => f.Random.Int(min: 0)).Generate();
+        var option = new AutoFaker<EventPropagationSubscriptionOptions>().RuleFor(x => x.MaxDegreeOfParallelism, f => f.Random.Int(min: 0)).Generate();
         A.CallTo(() => optionMonitor.Get(clientName)).Returns(option);
         return option;
     }

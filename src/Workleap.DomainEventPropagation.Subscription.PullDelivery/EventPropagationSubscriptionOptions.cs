@@ -16,5 +16,5 @@ public class EventPropagationSubscriptionOptions
 
     public string SubscriptionName { get; set; } = string.Empty;
 
-    public int MaxDop { get; set; } = 1;
+    public int MaxDegreeOfParallelism { get; set; } = 1;
 }

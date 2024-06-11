@@ -24,7 +24,7 @@ internal class EventPullerService : BackgroundService
                     new EventGridTopicSubscription(
                         optionsMonitor.Get(descriptor.Name).TopicName,
                         optionsMonitor.Get(descriptor.Name).SubscriptionName,
-                        optionsMonitor.Get(descriptor.Name).MaxDop,
+                        optionsMonitor.Get(descriptor.Name).MaxDegreeOfParallelism,
                         eventGridClientWrapperFactory.CreateClient(descriptor.Name)),
                     serviceScopeFactory,
                     logger))

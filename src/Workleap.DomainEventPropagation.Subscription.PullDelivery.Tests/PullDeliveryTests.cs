@@ -112,7 +112,7 @@ public class PullDeliveryTests(ITestOutputHelper testOutputHelper)
                     options.TopicName = TopicName;
                     options.SubscriptionName = SubscriberName;
                     options.TopicAccessKey = "noop";
-                    options.MaxDop = 500;
+                    options.MaxDegreeOfParallelism = 500;
                 })
                 .AddDomainEventHandler<TestEvent, TestDomainEventHandler>()
                 .AddDomainEventHandler<SlowTestEvent, SlowTestDomainEventHandler>();
