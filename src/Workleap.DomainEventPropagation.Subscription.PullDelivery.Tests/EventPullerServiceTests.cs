@@ -32,17 +32,26 @@ public abstract class EventPullerServiceTests
 
     private static EventPropagationSubscriptionOptions GivenEventPropagationSubscriptionOptions(IOptionsMonitor<EventPropagationSubscriptionOptions> optionMonitor, string clientName)
     {
-        var option = AutoFaker.Generate<EventPropagationSubscriptionOptions>();
+        var option = new AutoFaker<EventPropagationSubscriptionOptions>().RuleFor(x => x.MaxDop, f => f.Random.Int(min: 0)).Generate();
         A.CallTo(() => optionMonitor.Get(clientName)).Returns(option);
         return option;
     }
 
     private static void RegisterCloudEventsInClient(IEventGridClientAdapter client, EventPropagationSubscriptionOptions option, params EventGridClientAdapter.EventGridClientAdapter.EventBundle[] events)
     {
+        // The first call will return the events, subsequent calls will return an empty array after a delay
+        // The actual implementation of EventGrid will perform similarly if there are only some events to return
         A.CallTo(() => client.ReceiveCloudEventsAsync(
             option.TopicName,
             option.SubscriptionName,
-            A<CancellationToken>._)).Returns(events);
+            A<int>._,
+            A<CancellationToken>._))
+            .Returns(events).Once()
+            .Then.ReturnsLazily(async x =>
+            {
+                await Task.Delay(100);
+                return [];
+            });
     }
 
     private static async Task StartWaitAndStop(IHostedService pullerService)
@@ -81,12 +90,14 @@ public abstract class EventPullerServiceTests
                     .ReceiveCloudEventsAsync(
                         options1.TopicName,
                         options1.SubscriptionName,
+                        A<int>._,
                         A<CancellationToken>._))
                 .MustHaveHappenedOnceOrMore();
             A.CallTo(() => fakeClient2
                     .ReceiveCloudEventsAsync(
                         options2.TopicName,
                         options2.SubscriptionName,
+                        A<int>._,
                         A<CancellationToken>._))
                 .MustHaveHappenedOnceOrMore();
             A.CallTo(() => scopeFactory.CreateScope()).MustHaveHappenedTwiceOrMore();
@@ -106,6 +117,7 @@ public abstract class EventPullerServiceTests
             A.CallTo(() => failingClient.ReceiveCloudEventsAsync(
                 A<string>._,
                 A<string>._,
+                A<int>._,
                 A<CancellationToken>._)).Throws<Exception>();
             var functionalClient = GivenFakeClient(clientFactory, clientName2);
 
@@ -125,6 +137,7 @@ public abstract class EventPullerServiceTests
                     .ReceiveCloudEventsAsync(
                         options1.TopicName,
                         options1.SubscriptionName,
+                        A<int>._,
                         A<CancellationToken>._))
                 .MustHaveHappenedOnceOrMore();
             A.CallTo(() => eventHandler.HandleCloudEventAsync(eventBundle.Event, A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
@@ -200,16 +213,15 @@ public abstract class EventPullerServiceTests
             await StartWaitAndStop(this._pullerService);
 
             // Then
-            A.CallTo(() => this._client.AcknowledgeCloudEventAsync(
+            A.CallTo(() => this._client.AcknowledgeCloudEventsAsync(
                 this._option.TopicName,
                 this._option.SubscriptionName,
-                this._eventBundle1.LockToken,
+                A<IEnumerable<string>>.That.Contains(this._eventBundle1.LockToken),
                 A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
-
-            A.CallTo(() => this._client.AcknowledgeCloudEventAsync(
+            A.CallTo(() => this._client.AcknowledgeCloudEventsAsync(
                 this._option.TopicName,
                 this._option.SubscriptionName,
-                this._eventBundle2.LockToken,
+                A<IEnumerable<string>>.That.Contains(this._eventBundle2.LockToken),
                 A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
         }
 
@@ -224,16 +236,16 @@ public abstract class EventPullerServiceTests
             await StartWaitAndStop(this._pullerService);
 
             // Then
-            A.CallTo(() => this._client.ReleaseCloudEventAsync(
+            A.CallTo(() => this._client.ReleaseCloudEventsAsync(
                 this._option.TopicName,
                 this._option.SubscriptionName,
-                this._eventBundle1.LockToken,
+                A<IEnumerable<string>>.That.Contains(this._eventBundle1.LockToken),
                 A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
 
-            A.CallTo(() => this._client.ReleaseCloudEventAsync(
+            A.CallTo(() => this._client.ReleaseCloudEventsAsync(
                 this._option.TopicName,
                 this._option.SubscriptionName,
-                this._eventBundle2.LockToken,
+                A<IEnumerable<string>>.That.Contains(this._eventBundle2.LockToken),
                 A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
         }
 
@@ -249,16 +261,16 @@ public abstract class EventPullerServiceTests
             await StartWaitAndStop(this._pullerService);
 
             // Then
-            A.CallTo(() => this._client.RejectCloudEventAsync(
+            A.CallTo(() => this._client.RejectCloudEventsAsync(
                 this._option.TopicName,
                 this._option.SubscriptionName,
-                this._eventBundle1.LockToken,
+                A<IEnumerable<string>>.That.Contains(this._eventBundle1.LockToken),
                 A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
 
-            A.CallTo(() => this._client.RejectCloudEventAsync(
+            A.CallTo(() => this._client.RejectCloudEventsAsync(
                 this._option.TopicName,
                 this._option.SubscriptionName,
-                this._eventBundle2.LockToken,
+                A<IEnumerable<string>>.That.Contains(this._eventBundle2.LockToken),
                 A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
         }
 
