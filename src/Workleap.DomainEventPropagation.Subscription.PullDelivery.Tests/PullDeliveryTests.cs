@@ -30,7 +30,7 @@ public class PullDeliveryTests(ITestOutputHelper testOutputHelper)
         await using var eventGridEmulator = await EventGridEmulatorContext.StartAsync(testOutputHelper);
         
         // Configure the publisher and the subscriptions, and start the service
-        var host = this.BuildHost<TestDomainEventHandler>(eventGridEmulator.Url);
+        var host = this.BuildHost(eventGridEmulator.Url);
         var runTask = host.RunAsync(cts.Token); // The method returns when the services are running
         
         // Send an event
@@ -63,7 +63,7 @@ public class PullDeliveryTests(ITestOutputHelper testOutputHelper)
         await using var eventGridEmulator = await EventGridEmulatorContext.StartAsync(testOutputHelper);
 
         // Configure the publisher and the subscriptions, and start the service
-        var host = this.BuildHost<SlowTestDomainEventHandler>(eventGridEmulator.Url);
+        var host = this.BuildHost(eventGridEmulator.Url);
         var runTask = host.RunAsync(cts.Token); // The method returns when the services are running
 
         // Get the event processing output. The background service should call SlowTestDomainEventHandler, so the data should get updated
@@ -73,7 +73,7 @@ public class PullDeliveryTests(ITestOutputHelper testOutputHelper)
         var client = host.Services.GetRequiredService<IEventPropagationClient>();
         var eventBatches = Enumerable.Range(0, eventCount)
             .Chunk(1000)
-            .Select(x => x.Select(id => new TestEvent { Id = id }).ToList());
+            .Select(x => x.Select(id => new SlowTestEvent { Id = id }).ToList());
 
         foreach (var eventBatch in eventBatches)
         {
@@ -91,7 +91,7 @@ public class PullDeliveryTests(ITestOutputHelper testOutputHelper)
         await runTask;
     }
 
-    private IHost BuildHost<T>(string eventGridUrl) where T : class, IDomainEventHandler<TestEvent>
+    private IHost BuildHost(string eventGridUrl)
     {
         IHostBuilder? builder = Host.CreateDefaultBuilder();
         builder.ConfigureServices(services =>
@@ -114,7 +114,8 @@ public class PullDeliveryTests(ITestOutputHelper testOutputHelper)
                     options.TopicAccessKey = "noop";
                     options.MaxDop = 500;
                 })
-                .AddDomainEventHandler<TestEvent, T>();
+                .AddDomainEventHandler<TestEvent, TestDomainEventHandler>()
+                .AddDomainEventHandler<SlowTestEvent, SlowTestDomainEventHandler>();
         });
 
         return builder.Build();
@@ -122,6 +123,12 @@ public class PullDeliveryTests(ITestOutputHelper testOutputHelper)
 
     [DomainEvent("com.workleap.sample.testEvent", EventSchema.CloudEvent)]
     private sealed record TestEvent : IDomainEvent
+    {
+        public int Id { get; set; }
+    }
+
+    [DomainEvent("com.workleap.sample.slowTestEvent", EventSchema.CloudEvent)]
+    private sealed record SlowTestEvent : IDomainEvent
     {
         public int Id { get; set; }
     }
@@ -134,9 +141,9 @@ public class PullDeliveryTests(ITestOutputHelper testOutputHelper)
         }
     }
 
-    private sealed class SlowTestDomainEventHandler(EventProcessingOutput eventProcessingOutput) : IDomainEventHandler<TestEvent>
+    private sealed class SlowTestDomainEventHandler(EventProcessingOutput eventProcessingOutput) : IDomainEventHandler<SlowTestEvent>
     {
-        public async Task HandleDomainEventAsync(TestEvent domainEvent, CancellationToken cancellationToken)
+        public async Task HandleDomainEventAsync(SlowTestEvent domainEvent, CancellationToken cancellationToken)
         {
             eventProcessingOutput.StartProcessing();
             await Task.Delay(SlowHandlerDelay, cancellationToken);
