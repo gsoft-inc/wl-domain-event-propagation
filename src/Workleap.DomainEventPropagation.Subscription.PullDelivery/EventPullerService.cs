@@ -72,7 +72,7 @@ internal class EventPullerService : BackgroundService
 
         private async Task FeedEventsIntoChannel(CancellationToken cancellationToken)
         {
-            using var scope = this._serviceScopeFactory.CreateScope();
+            await using var scope = this._serviceScopeFactory.CreateAsyncScope();
             var cloudEventHandler = scope.ServiceProvider.GetRequiredService<ICloudEventHandler>();
 
             while (!cancellationToken.IsCancellationRequested)
