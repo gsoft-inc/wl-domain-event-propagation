@@ -100,7 +100,6 @@ public abstract class EventPullerServiceTests
                         A<int>._,
                         A<CancellationToken>._))
                 .MustHaveHappenedOnceOrMore();
-            A.CallTo(() => scopeFactory.CreateScope()).MustHaveHappenedTwiceOrMore();
         }
 
         [Fact]
@@ -205,73 +204,65 @@ public abstract class EventPullerServiceTests
         [Fact]
         public async Task GivenTwoEventsReceived_WhenHandleSuccessfully_ThenEventsAreAcknowledged()
         {
+            var acknowledgedEvents = new List<string>();
+
             // Given
             A.CallTo(() => this._eventHandler.HandleCloudEventAsync(A<CloudEvent>._, A<CancellationToken>._))
                 .Returns(Task.CompletedTask);
+
+            // Special case: the IEnumerable received by the call needs to be consumed immediately, otherwise the data is never removed from the channel until the end when it is too late
+            A.CallTo(() => this._client.AcknowledgeCloudEventsAsync(A<string>._, A<string>._, A<IEnumerable<string>>._, A<CancellationToken>._))
+                .Invokes(x => acknowledgedEvents.AddRange(x.GetArgument<IEnumerable<string>>(2)!));
 
             // When
             await StartWaitAndStop(this._pullerService);
 
             // Then
-            A.CallTo(() => this._client.AcknowledgeCloudEventsAsync(
-                this._option.TopicName,
-                this._option.SubscriptionName,
-                A<IEnumerable<string>>.That.Contains(this._eventBundle1.LockToken),
-                A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
-            A.CallTo(() => this._client.AcknowledgeCloudEventsAsync(
-                this._option.TopicName,
-                this._option.SubscriptionName,
-                A<IEnumerable<string>>.That.Contains(this._eventBundle2.LockToken),
-                A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
+            Assert.Contains(this._eventBundle1.LockToken, acknowledgedEvents);
+            Assert.Contains(this._eventBundle2.LockToken, acknowledgedEvents);
         }
 
         [Fact]
         public async Task GivenTwoEventsReceived_WhenHandleThrowUnhandledException_ThenEventsAreReleased()
         {
+            var releasedEvents = new List<string>();
+
             // Given
             A.CallTo(() => this._eventHandler.HandleCloudEventAsync(A<CloudEvent>._, A<CancellationToken>._))
                 .ThrowsAsync(new Exception("Unhandled exception"));
+
+            // Special case: the IEnumerable received by the call needs to be consumed immediately, otherwise the data is never removed from the channel until the end when it is too late
+            A.CallTo(() => this._client.ReleaseCloudEventsAsync(A<string>._, A<string>._, A<IEnumerable<string>>._, A<CancellationToken>._))
+                .Invokes(x => releasedEvents.AddRange(x.GetArgument<IEnumerable<string>>(2)!));
 
             // When
             await StartWaitAndStop(this._pullerService);
 
             // Then
-            A.CallTo(() => this._client.ReleaseCloudEventsAsync(
-                this._option.TopicName,
-                this._option.SubscriptionName,
-                A<IEnumerable<string>>.That.Contains(this._eventBundle1.LockToken),
-                A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
-
-            A.CallTo(() => this._client.ReleaseCloudEventsAsync(
-                this._option.TopicName,
-                this._option.SubscriptionName,
-                A<IEnumerable<string>>.That.Contains(this._eventBundle2.LockToken),
-                A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
+            Assert.Contains(this._eventBundle1.LockToken, releasedEvents);
+            Assert.Contains(this._eventBundle2.LockToken, releasedEvents);
         }
 
         [Theory]
         [MemberData(nameof(RejectingExceptions))]
         public async Task GivenTwoEventsReceived_WhenHandleThrowRejectingException_ThenEventsAreRejected(Exception exception)
         {
+            var rejectedEvents = new List<string>();
+
             // Given
             A.CallTo(() => this._eventHandler.HandleCloudEventAsync(A<CloudEvent>._, A<CancellationToken>._))
                 .Throws(exception);
+
+            // Special case: the IEnumerable received by the call needs to be consumed immediately, otherwise the data is never removed from the channel until the end when it is too late
+            A.CallTo(() => this._client.RejectCloudEventsAsync(A<string>._, A<string>._, A<IEnumerable<string>>._, A<CancellationToken>._))
+                .Invokes(x => rejectedEvents.AddRange(x.GetArgument<IEnumerable<string>>(2)!));
 
             // When
             await StartWaitAndStop(this._pullerService);
 
             // Then
-            A.CallTo(() => this._client.RejectCloudEventsAsync(
-                this._option.TopicName,
-                this._option.SubscriptionName,
-                A<IEnumerable<string>>.That.Contains(this._eventBundle1.LockToken),
-                A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
-
-            A.CallTo(() => this._client.RejectCloudEventsAsync(
-                this._option.TopicName,
-                this._option.SubscriptionName,
-                A<IEnumerable<string>>.That.Contains(this._eventBundle2.LockToken),
-                A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
+            Assert.Contains(this._eventBundle1.LockToken, rejectedEvents);
+            Assert.Contains(this._eventBundle2.LockToken, rejectedEvents);
         }
 
         public static IEnumerable<object[]> RejectingExceptions()
