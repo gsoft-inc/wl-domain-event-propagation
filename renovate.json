@@ -54,7 +54,7 @@
       "fileMatch": ["\\.cs$"],
       "matchStringsStrategy": "any",
       "matchStrings": [
-        "WithImage(\"(?<imageName>.*?):(?<version>.*?)\")"
+        "(?<depName>workleap\\/eventgridemulator):(?<currentValue>[-a-z0-9.]*)"
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker"
