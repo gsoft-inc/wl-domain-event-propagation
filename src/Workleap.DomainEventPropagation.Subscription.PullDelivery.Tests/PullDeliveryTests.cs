@@ -49,7 +49,7 @@ public class PullDeliveryTests(ITestOutputHelper testOutputHelper)
         await runTask;
     }
 
-    [Theory]
+    [Theory(Skip = "Too long for the CI, only used locally to test performance")]
     [InlineData(10)]
     [InlineData(100)]
     [InlineData(1000)]
