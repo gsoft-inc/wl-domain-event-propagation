@@ -184,16 +184,16 @@ internal class EventPullerService : BackgroundService
             }
         }
 
-        private Task WaitForAvailableHandler(CancellationToken cancellationToken)
+        private ValueTask WaitForAvailableHandler(CancellationToken cancellationToken)
         {
             lock (this._eventGridTopicSubscription)
             {
                 if (this._handlersInProgress < this._eventGridTopicSubscription.MaxHandlerDop)
                 {
-                    return Task.CompletedTask;
+                    return ValueTask.CompletedTask;
                 }
 
-                return this._taskCompletionSource.Task.WaitAsync(cancellationToken);
+                return new ValueTask(this._taskCompletionSource.Task.WaitAsync(cancellationToken));
             }
         }
 
