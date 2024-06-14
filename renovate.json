@@ -54,7 +54,7 @@
       "fileMatch": ["\\.cs$"],
       "matchStringsStrategy": "any",
       "matchStrings": [
-        "(?<depName>workleap\\/eventgridemulator):(?<currentValue>[-a-z0-9.]*)"
+        "(?<depName>workleap\\/eventgridemulator):(?<currentValue>[0-9]+\\.[0-9]+\\.[0-9]+(-[-a-zA-Z0-9.]+)?)"
       ],
       "datasourceTemplate": "docker",
       "versioningTemplate": "docker"
