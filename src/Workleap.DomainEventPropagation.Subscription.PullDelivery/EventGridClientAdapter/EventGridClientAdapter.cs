@@ -1,4 +1,4 @@
-﻿using Azure.Messaging;
+using Azure.Messaging;
 using Azure.Messaging.EventGrid.Namespaces;
 
 namespace Workleap.DomainEventPropagation.EventGridClientAdapter;
@@ -12,28 +12,28 @@ internal sealed class EventGridClientAdapter : IEventGridClientAdapter
         this._adaptee = adaptee;
     }
 
-    public async Task<IEnumerable<EventBundle>> ReceiveCloudEventsAsync(string topicName, string eventSubscriptionName, CancellationToken cancellationToken)
+    public async Task<IEnumerable<EventBundle>> ReceiveCloudEventsAsync(string topicName, string eventSubscriptionName, int maxEvents, CancellationToken cancellationToken)
     {
-        var result = await this._adaptee.ReceiveCloudEventsAsync(topicName, eventSubscriptionName, cancellationToken: cancellationToken).ConfigureAwait(false);
+        var result = await this._adaptee.ReceiveCloudEventsAsync(topicName, eventSubscriptionName, maxEvents, cancellationToken: cancellationToken).ConfigureAwait(false);
 
         return result.HasValue
             ? result.Value.Value.Select(x => new EventBundle(x.Event, x.BrokerProperties.LockToken))
             : Array.Empty<EventBundle>();
     }
 
-    public Task AcknowledgeCloudEventAsync(string topicName, string eventSubscriptionName, string lockToken, CancellationToken cancellationToken)
+    public Task AcknowledgeCloudEventsAsync(string topicName, string eventSubscriptionName, IEnumerable<string> lockTokens, CancellationToken cancellationToken)
     {
-        return this._adaptee.AcknowledgeCloudEventsAsync(topicName, eventSubscriptionName, new AcknowledgeOptions(new[] { lockToken }), cancellationToken);
+        return this._adaptee.AcknowledgeCloudEventsAsync(topicName, eventSubscriptionName, new AcknowledgeOptions(lockTokens), cancellationToken);
     }
 
-    public Task ReleaseCloudEventAsync(string topicName, string eventSubscriptionName, string lockToken, CancellationToken cancellationToken)
+    public Task ReleaseCloudEventsAsync(string topicName, string eventSubscriptionName, IEnumerable<string> lockTokens, CancellationToken cancellationToken)
     {
-        return this._adaptee.ReleaseCloudEventsAsync(topicName, eventSubscriptionName, new ReleaseOptions(new[] { lockToken }), cancellationToken: cancellationToken);
+        return this._adaptee.ReleaseCloudEventsAsync(topicName, eventSubscriptionName, new ReleaseOptions(lockTokens), cancellationToken: cancellationToken);
     }
 
-    public Task RejectCloudEventAsync(string topicName, string eventSubscriptionName, string lockToken, CancellationToken cancellationToken)
+    public Task RejectCloudEventsAsync(string topicName, string eventSubscriptionName, IEnumerable<string> lockTokens, CancellationToken cancellationToken)
     {
-        return this._adaptee.RejectCloudEventsAsync(topicName, eventSubscriptionName, new RejectOptions(new[] { lockToken }), cancellationToken);
+        return this._adaptee.RejectCloudEventsAsync(topicName, eventSubscriptionName, new RejectOptions(lockTokens), cancellationToken);
     }
 
     internal sealed record EventBundle(CloudEvent Event, string LockToken);

@@ -1,4 +1,4 @@
-﻿using Azure.Core;
+using Azure.Core;
 
 namespace Workleap.DomainEventPropagation;
 
@@ -15,4 +15,6 @@ public class EventPropagationSubscriptionOptions
     public string TopicName { get; set; } = string.Empty;
 
     public string SubscriptionName { get; set; } = string.Empty;
+
+    public int MaxDegreeOfParallelism { get; set; } = 1;
 }

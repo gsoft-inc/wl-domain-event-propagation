@@ -12,6 +12,8 @@ Workleap.DomainEventPropagation.EventPropagationSubscriptionOptions.TopicEndpoin
 Workleap.DomainEventPropagation.EventPropagationSubscriptionOptions.TopicEndpoint.set -> void
 Workleap.DomainEventPropagation.EventPropagationSubscriptionOptions.TopicName.get -> string!
 Workleap.DomainEventPropagation.EventPropagationSubscriptionOptions.TopicName.set -> void
+Workleap.DomainEventPropagation.EventPropagationSubscriptionOptions.MaxDegreeOfParallelism.get -> int
+Workleap.DomainEventPropagation.EventPropagationSubscriptionOptions.MaxDegreeOfParallelism.set -> void
 Workleap.DomainEventPropagation.EventPropagationSubscriptionOptionsValidator
 Workleap.DomainEventPropagation.EventPropagationSubscriptionOptionsValidator.EventPropagationSubscriptionOptionsValidator() -> void
 Workleap.DomainEventPropagation.EventPropagationSubscriptionOptionsValidator.Validate(string! name, Workleap.DomainEventPropagation.EventPropagationSubscriptionOptions! options) -> Microsoft.Extensions.Options.ValidateOptionsResult!
