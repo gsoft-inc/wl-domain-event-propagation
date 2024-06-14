@@ -40,6 +40,7 @@ internal class EventPullerService : BackgroundService
     private class EventGridSubscriptionEventPuller
     {
         private const int OutputChannelSize = 5000;
+        private const int MaxEventRequestSize = 100;
 
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<EventPullerService> _logger;
@@ -108,7 +109,7 @@ internal class EventPullerService : BackgroundService
                     continue;
                 }
 
-                var bundles = await this._eventGridTopicSubscription.Client.ReceiveCloudEventsAsync(this._eventGridTopicSubscription.TopicName, this._eventGridTopicSubscription.SubscriptionName, availableHandlers, cancellationToken).ConfigureAwait(false);
+                var bundles = await this._eventGridTopicSubscription.Client.ReceiveCloudEventsAsync(this._eventGridTopicSubscription.TopicName, this._eventGridTopicSubscription.SubscriptionName, Math.Min(availableHandlers, MaxEventRequestSize), cancellationToken).ConfigureAwait(false);
 
                 foreach (var bundle in bundles)
                 {
