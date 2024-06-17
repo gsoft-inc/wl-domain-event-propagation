@@ -200,6 +200,7 @@ services.AddPullDeliverySubscription()
       "TopicEndpoint": "<azure_topic_uri>",
       "TopicName": "<namespace_topic_to_listen_to>"
       "SubscriptionName": "<subscription_name_under_specified_topic>",
+      "MaxDegreeOfParallelism": 10,
       "TopicAccessKey": "<secret_value>", // Can be omitted to use Azure Identity (RBAC)
     }
   }
@@ -217,12 +218,14 @@ services.AddPullDeliverySubscription()
       "TopicEndpoint": "<azure_topic_uri>",
       "TopicName": "<namespace_topic_to_listen_to>"
       "SubscriptionName": "<subscription_name_under_specified_topic>",
+      "MaxDegreeOfParallelism": 10,
       "TopicAccessKey": "<secret_value>", // Can be omitted to use Azure Identity (RBAC)
     },
     "TopicSub2": {
       "TopicEndpoint": "<azure_topic_uri>",
       "TopicName": "<namespace_topic_to_listen_to>"
       "SubscriptionName": "<subscription_name_under_specified_topic>",
+      "MaxDegreeOfParallelism": 10,
       "TopicAccessKey": "<secret_value>", // Can be omitted to use Azure Identity (RBAC)
     }
   }
@@ -239,6 +242,9 @@ services.AddPullDeliverySubscription()
 
     // Namespace topic subscription name
     options.SubscriptionName = "<subscription_name>";
+
+    // Maximum degree of parallelism for processing events
+    options.MaxDegreeOfParallelism = 10;
 
     // Using an access key        
     options.TopicAccessKey = "<secret_value>";
@@ -281,6 +287,7 @@ public class ExampleDomainEventHandler : IDomainEventHandler<ExampleDomainEvent>
 * You may only define one domain event handler per domain event you wish to handle. If you would require more, use the single allowed domain event handler as a facade for multiple operations.
 * Domain event handlers must have idempotent behavior (you could execute it multiple times for the same event and the result would always be the same).
 * If your domain event types and handlers are in dedicated assemblies, you can reference the [Workleap.DomainEventPropagation.Abstractions](https://www.nuget.org/packages/Workleap.DomainEventPropagation.Abstractions) packages in order to avoid a dependency on third-parties like Azure and Microsoft extensions.
+* For improved performance, it is possible to run multiple event handlers in parallel by adjusting the `MaxDegreeOfParallelism` option in the subscription configuration. The default value is 1.
 
 ## Building, releasing and versioning
 
