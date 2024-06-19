@@ -282,6 +282,17 @@ public class ExampleDomainEventHandler : IDomainEventHandler<ExampleDomainEvent>
 }
 ```
 
+## Configure the underlying Event Grid clients options
+
+You can use the [named options pattern](https://learn.microsoft.com/en-us/dotnet/core/extensions/options#named-options-support-using-iconfigurenamedoptions) to configure the behavior of the underlying Event Grid clients. For instance:
+
+```csharp
+services.Configure<EventGridPublisherClientOptions>(EventPropagationPublisherOptions.EventGridClientName, options =>
+{
+    options.Retry.NetworkTimeout = TimeSpan.FromSeconds(15);
+});
+```
+
 ## Additional notes
 
 * You may only define one domain event handler per domain event you wish to handle. If you would require more, use the single allowed domain event handler as a facade for multiple operations.

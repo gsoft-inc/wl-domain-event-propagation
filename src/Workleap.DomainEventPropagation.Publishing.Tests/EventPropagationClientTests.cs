@@ -24,8 +24,8 @@ public abstract class EventPropagationClientTests
     protected EventPropagationClientTests(IOptions<EventPropagationPublisherOptions> publisherOptions)
     {
         this._publisherOptions = publisherOptions;
-        A.CallTo(() => this.EventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.CustomTopicClientName)).Returns(this.EventGridPublisherClient);
-        A.CallTo(() => this.EventGridClientFactory.CreateClient(EventPropagationPublisherOptions.NamespaceTopicClientName)).Returns(this.EventGridClient);
+        A.CallTo(() => this.EventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.EventGridClientName)).Returns(this.EventGridPublisherClient);
+        A.CallTo(() => this.EventGridClientFactory.CreateClient(EventPropagationPublisherOptions.EventGridClientName)).Returns(this.EventGridClient);
 
         this.EventPropagationClient = new EventPropagationClient(
             this.EventGridPublisherClientFactory,
