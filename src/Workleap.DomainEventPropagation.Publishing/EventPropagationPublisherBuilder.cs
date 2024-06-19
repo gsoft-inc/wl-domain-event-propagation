@@ -42,11 +42,11 @@ internal sealed class EventPropagationPublisherBuilder : IEventPropagationPublis
     private static void ConfigureEventPublisherClients(AzureClientFactoryBuilder builder)
     {
         builder.AddClient<EventGridPublisherClient, EventGridPublisherClientOptions>(EventGridPublisherClientFactory)
-            .WithName(EventPropagationPublisherOptions.CustomTopicClientName)
+            .WithName(EventPropagationPublisherOptions.EventGridClientName)
             .ConfigureOptions(ConfigureClientOptions);
 
         builder.AddClient<EventGridClient, EventGridClientOptions>(EventGridClientFactory)
-            .WithName(EventPropagationPublisherOptions.NamespaceTopicClientName)
+            .WithName(EventPropagationPublisherOptions.EventGridClientName)
             .ConfigureOptions(ConfigureClientOptions);
     }
 

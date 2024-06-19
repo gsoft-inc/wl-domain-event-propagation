@@ -78,7 +78,7 @@ public class ServiceCollectionEventPropagationExtensionsTests
         services.AddEventPropagationPublisher();
         var serviceProvider = services.BuildServiceProvider();
         var clientFactory = serviceProvider.GetRequiredService<IAzureClientFactory<EventGridPublisherClient>>();
-        var client = clientFactory.CreateClient(EventPropagationPublisherOptions.CustomTopicClientName);
+        var client = clientFactory.CreateClient(EventPropagationPublisherOptions.EventGridClientName);
 
         // Then
         Assert.NotNull(client);
@@ -104,7 +104,7 @@ public class ServiceCollectionEventPropagationExtensionsTests
         });
         var serviceProvider = services.BuildServiceProvider();
         var clientFactory = serviceProvider.GetRequiredService<IAzureClientFactory<EventGridPublisherClient>>();
-        var client = clientFactory.CreateClient(EventPropagationPublisherOptions.CustomTopicClientName);
+        var client = clientFactory.CreateClient(EventPropagationPublisherOptions.EventGridClientName);
 
         // Then
         Assert.NotNull(client);

@@ -1,4 +1,5 @@
 #nullable enable
+const Workleap.DomainEventPropagation.EventPropagationPublisherOptions.EventGridClientName = "DomainEventPropagation" -> string!
 static Workleap.DomainEventPropagation.ServiceCollectionEventPropagationExtensions.AddEventPropagationPublisher(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services) -> Workleap.DomainEventPropagation.IEventPropagationPublisherBuilder!
 static Workleap.DomainEventPropagation.ServiceCollectionEventPropagationExtensions.AddEventPropagationPublisher(this Microsoft.Extensions.DependencyInjection.IServiceCollection! services, System.Action<Workleap.DomainEventPropagation.EventPropagationPublisherOptions!>! configure) -> Workleap.DomainEventPropagation.IEventPropagationPublisherBuilder!
 Workleap.DomainEventPropagation.EventPropagationPublisherOptions

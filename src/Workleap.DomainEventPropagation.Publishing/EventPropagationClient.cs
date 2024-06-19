@@ -30,8 +30,8 @@ internal sealed class EventPropagationClient : IEventPropagationClient
     {
         this._eventPropagationPublisherOptions = eventPropagationPublisherOptions.Value;
         this._pipeline = publishingDomainEventBehaviors.Reverse().Aggregate((DomainEventsHandlerDelegate)this.SendDomainEventsAsync, BuildPipeline);
-        this._eventGridPublisherClient = eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.CustomTopicClientName);
-        this._eventGridNamespaceClient = eventGridClientFactory.CreateClient(EventPropagationPublisherOptions.NamespaceTopicClientName);
+        this._eventGridPublisherClient = eventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.EventGridClientName);
+        this._eventGridNamespaceClient = eventGridClientFactory.CreateClient(EventPropagationPublisherOptions.EventGridClientName);
     }
 
     private static DomainEventsHandlerDelegate BuildPipeline(DomainEventsHandlerDelegate accumulator, IPublishingDomainEventBehavior next)
