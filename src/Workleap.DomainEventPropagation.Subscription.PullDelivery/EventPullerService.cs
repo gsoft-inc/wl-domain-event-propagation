@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 using Azure.Messaging;
@@ -9,32 +10,100 @@ using Workleap.DomainEventPropagation.EventGridClientAdapter;
 
 namespace Workleap.DomainEventPropagation;
 
-internal class EventPullerService : BackgroundService
+internal sealed class EventPullerService : BackgroundService
 {
     private readonly List<EventGridSubscriptionEventPuller> _eventGridSubscriptionPullers;
+
+    // For testing purposes    
+    private readonly Dictionary<string, SemaphoreSlim>? _processEventSemaphoreSlim;
+    private TaskCompletionSource? _eventProcessedTaskCompletionSource;
 
     public EventPullerService(
         IServiceScopeFactory serviceScopeFactory,
         IEnumerable<EventGridClientDescriptor> clientDescriptors,
         IEventGridClientWrapperFactory eventGridClientWrapperFactory,
         IOptionsMonitor<EventPropagationSubscriptionOptions> optionsMonitor,
+        IOptions<EventPullerServiceOptions> serviceOptions,
         ILogger<EventPullerService> logger)
     {
-        this._eventGridSubscriptionPullers = clientDescriptors.Select(descriptor =>
-                new EventGridSubscriptionEventPuller(
-                    new EventGridTopicSubscription(
-                        optionsMonitor.Get(descriptor.Name).TopicName,
-                        optionsMonitor.Get(descriptor.Name).SubscriptionName,
-                        optionsMonitor.Get(descriptor.Name).MaxDegreeOfParallelism,
-                        eventGridClientWrapperFactory.CreateClient(descriptor.Name)),
-                    serviceScopeFactory,
-                    logger))
+        var clientDescriptorsList = clientDescriptors.ToArray();
+
+        this.ProcessEventManually = serviceOptions.Value.ProcessEventManually;
+        this._eventGridSubscriptionPullers = clientDescriptorsList
+            .Select(descriptor =>
+            {
+                var eventPropagationSubscriptionOptions = optionsMonitor.Get(descriptor.Name);
+                return new EventGridSubscriptionEventPuller(
+                            this,
+                            descriptor.Name,
+                            new EventGridTopicSubscription(
+                                eventPropagationSubscriptionOptions.TopicName,
+                                eventPropagationSubscriptionOptions.SubscriptionName,
+                                eventPropagationSubscriptionOptions.MaxDegreeOfParallelism,
+                                eventGridClientWrapperFactory.CreateClient(descriptor.Name)),
+                            serviceScopeFactory,
+                            logger);
+            })
             .ToList();
+
+        if (this.ProcessEventManually)
+        {
+            this._processEventSemaphoreSlim = new();
+            foreach (var descriptor in clientDescriptorsList)
+            {
+                this._processEventSemaphoreSlim.Add(descriptor.Name, new SemaphoreSlim(initialCount: 0, maxCount: 1));
+            }
+        }
     }
+
+    [MemberNotNullWhen(true, nameof(_processEventSemaphoreSlim))]
+    private bool ProcessEventManually { get; }
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
         return Task.WhenAll(this._eventGridSubscriptionPullers.Select(puller => Task.Run(() => puller.StartReceivingEventsAsync(stoppingToken), stoppingToken)));
+    }
+
+    // For testing purposes
+    // note: this method is not thread-safe. Support only one caller at a time.
+    internal async Task ProcessOneEventAsync(string? descriptorName = null)
+    {
+        if (!this.ProcessEventManually)
+        {
+            throw new InvalidOperationException("Debug mode is not enabled");
+        }
+
+        this._eventProcessedTaskCompletionSource = new TaskCompletionSource();
+
+        if (descriptorName is null)
+        {
+            foreach (var kvp in this._processEventSemaphoreSlim)
+            {
+                kvp.Value.Release();
+                await this._eventProcessedTaskCompletionSource.Task.ConfigureAwait(false);
+                this._eventProcessedTaskCompletionSource = new TaskCompletionSource();
+            }
+        }
+        else
+        {
+            this._processEventSemaphoreSlim[descriptorName].Release();
+            await this._eventProcessedTaskCompletionSource.Task.ConfigureAwait(false);
+        }
+
+        this._eventProcessedTaskCompletionSource = null;
+    }
+
+    public override void Dispose()
+    {
+        if (this._processEventSemaphoreSlim is not null)
+        {
+            foreach (var kvp in this._processEventSemaphoreSlim)
+            {
+                kvp.Value.Dispose();
+            }
+        }
+
+        base.Dispose();
     }
 
     private class EventGridSubscriptionEventPuller
@@ -44,6 +113,8 @@ internal class EventPullerService : BackgroundService
 
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<EventPullerService> _logger;
+        private readonly EventPullerService _pullerService;
+        private readonly string _descriptorName;
         private readonly EventGridTopicSubscription _eventGridTopicSubscription;
 
         private readonly Channel<string> _acknowledgeEventChannel = Channel.CreateBounded<string>(OutputChannelSize);
@@ -54,12 +125,16 @@ internal class EventPullerService : BackgroundService
         private TaskCompletionSource _taskCompletionSource = new();
 
         public EventGridSubscriptionEventPuller(
+            EventPullerService pullerService,
+            string descriptorName,
             EventGridTopicSubscription eventGridTopicSubscription,
             IServiceScopeFactory serviceScopeFactory,
             ILogger<EventPullerService> logger)
         {
             this._serviceScopeFactory = serviceScopeFactory;
             this._logger = logger;
+            this._pullerService = pullerService;
+            this._descriptorName = descriptorName;
             this._eventGridTopicSubscription = eventGridTopicSubscription;
         }
 
@@ -77,8 +152,13 @@ internal class EventPullerService : BackgroundService
         {
             var parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = this._eventGridTopicSubscription.MaxHandlerDop, CancellationToken = cancellationToken };
 
-            return Parallel.ForEachAsync(this.StreamEventGridEvents(cancellationToken), parallelOptions, async (bundle, ctx) =>
+            return Parallel.ForEachAsync(this.StreamEventGridEvents(cancellationToken), parallelOptions, async (bundle, cancellationToken) =>
             {
+                if (this._pullerService.ProcessEventManually)
+                {
+                    await this._pullerService._processEventSemaphoreSlim![this._descriptorName].WaitAsync(cancellationToken).ConfigureAwait(false);
+                }
+
                 this.SignalHandlerStarting();
 
                 try
@@ -88,11 +168,12 @@ internal class EventPullerService : BackgroundService
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
                     var cloudEventHandler = scope.ServiceProvider.GetRequiredService<ICloudEventHandler>();
 
-                    await this.HandleBundleAsync(cloudEventHandler, bundle.Event, bundle.LockToken, ctx).ConfigureAwait(false);
+                    await this.HandleBundleAsync(cloudEventHandler, bundle.Event, bundle.LockToken, cancellationToken).ConfigureAwait(false);
                 }
                 finally
                 {
                     this.SignalHandlerCompleted();
+                    this._pullerService._eventProcessedTaskCompletionSource?.SetResult();
                 }
             });
         }
