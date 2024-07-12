@@ -57,7 +57,7 @@ public abstract class EventPullerServiceTests
             });
     }
 
-    private static async Task StartWaitAndStop(EventPullerService pullerService, int numberOfEventToProcess = 1)
+    private static async Task StartWaitAndStop(EventPullerService pullerService, int numberOfEventToProcess)
     {
         // We need this to start on the thread pool otherwise it will just block the test
         await pullerService.StartAsync(CancellationToken.None);
