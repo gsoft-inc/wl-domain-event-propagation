@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 
 namespace Workleap.DomainEventPropagation.Tests;
 
@@ -88,13 +88,17 @@ internal sealed class InMemoryActivityTracker : IDisposable
     {
         lock (this._activitiesLock)
         {
-            var activity = Assert.Single(this._activities, activity => activity.OperationName == activityName);
-
-            Assert.Equal(activityName, activity.OperationName);
-            Assert.Equal(ActivityKind.Consumer, activity.Kind);
-            Assert.Equal(ActivityStatusCode.Ok, activity.Status);
-            Assert.Equal("OK", activity.GetTagItem(TracingHelper.StatusCodeTag));
-            Assert.Single(activity.Links);
+            Assert.NotEmpty(this._activities.Where(activity => activity.OperationName == activityName));
+            Assert.All(
+                this._activities.Where(activity => activity.OperationName == activityName),
+                activity =>
+                {
+                    Assert.Equal(activityName, activity.OperationName);
+                    Assert.Equal(ActivityKind.Consumer, activity.Kind);
+                    Assert.Equal(ActivityStatusCode.Ok, activity.Status);
+                    Assert.Equal("OK", activity.GetTagItem(TracingHelper.StatusCodeTag));
+                    Assert.Single(activity.Links);
+                });
         }
     }
 

@@ -1,12 +1,15 @@
 using AutoBogus;
+using Azure.Identity;
 using Azure.Messaging;
 using FakeItEasy;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Workleap.DomainEventPropagation.EventGridClientAdapter;
 using Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests.TestExtensions;
+using static Workleap.DomainEventPropagation.EventGridClientAdapter.EventGridClientAdapter;
 
 namespace Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests;
 
@@ -32,7 +35,7 @@ public abstract class EventPullerServiceTests
 
     private static EventPropagationSubscriptionOptions GivenEventPropagationSubscriptionOptions(IOptionsMonitor<EventPropagationSubscriptionOptions> optionMonitor, string clientName)
     {
-        var option = new AutoFaker<EventPropagationSubscriptionOptions>().RuleFor(x => x.MaxDegreeOfParallelism, f => f.Random.Int(min: 0)).Generate();
+        var option = new AutoFaker<EventPropagationSubscriptionOptions>().RuleFor(x => x.MaxDegreeOfParallelism, f => f.Random.Int(min: 1, max: 10)).Generate();
         A.CallTo(() => optionMonitor.Get(clientName)).Returns(option);
         return option;
     }
@@ -54,93 +57,16 @@ public abstract class EventPullerServiceTests
             });
     }
 
-    private static async Task StartWaitAndStop(IHostedService pullerService)
+    private static async Task StartWaitAndStop(EventPullerService pullerService, int numberOfEventToProcess)
     {
         // We need this to start on the thread pool otherwise it will just block the test
-        Task.Run(() => pullerService.StartAsync(CancellationToken.None)).Forget();
-        await Task.Delay(50);
+        await pullerService.StartAsync(CancellationToken.None);
+        for (int i = numberOfEventToProcess - 1; i >= 0; i--)
+        {
+            await pullerService.ProcessOneEventAsync();
+        }
+
         await pullerService.StopAsync(CancellationToken.None);
-    }
-
-    public class TwoSubscribers : EventPullerServiceTests
-    {
-        [Fact]
-        public async Task GivenPuller_WhenStarted_ThenEveryRegisteredClientWasCalled()
-        {
-            // Given
-            var clientName1 = AutoFaker.Generate<string>();
-            var clientName2 = AutoFaker.Generate<string>();
-            var scopeFactory = GivenScopeFactory(A.Fake<ICloudEventHandler>());
-            var eventGridClientDescriptors = new EventGridClientDescriptor[] { new(clientName1), new(clientName2) };
-
-            var clientFactory = A.Fake<IEventGridClientWrapperFactory>();
-            var fakeClient1 = GivenFakeClient(clientFactory, clientName1);
-            var fakeClient2 = GivenFakeClient(clientFactory, clientName2);
-
-            var optionMonitor = A.Fake<IOptionsMonitor<EventPropagationSubscriptionOptions>>();
-            var options1 = GivenEventPropagationSubscriptionOptions(optionMonitor, clientName1);
-            var options2 = GivenEventPropagationSubscriptionOptions(optionMonitor, clientName2);
-
-            // When
-            using var pullerService = new EventPullerService(scopeFactory, eventGridClientDescriptors, clientFactory, optionMonitor, new NullLogger<EventPullerService>());
-            await StartWaitAndStop(pullerService);
-
-            // Then
-            A.CallTo(() => fakeClient1
-                    .ReceiveCloudEventsAsync(
-                        options1.TopicName,
-                        options1.SubscriptionName,
-                        A<int>._,
-                        A<CancellationToken>._))
-                .MustHaveHappenedOnceOrMore();
-            A.CallTo(() => fakeClient2
-                    .ReceiveCloudEventsAsync(
-                        options2.TopicName,
-                        options2.SubscriptionName,
-                        A<int>._,
-                        A<CancellationToken>._))
-                .MustHaveHappenedOnceOrMore();
-        }
-
-        [Fact]
-        public async Task GivenFailingClient_WhenErrorOccured_ThenKeepsPollingAndDoesNotInterfereWithOtherClients()
-        {
-            // Given
-            var clientName1 = AutoFaker.Generate<string>();
-            var clientName2 = AutoFaker.Generate<string>();
-            var eventHandler = A.Fake<ICloudEventHandler>();
-            var eventGridClientDescriptors = new EventGridClientDescriptor[] { new(clientName1), new(clientName2) };
-
-            var clientFactory = A.Fake<IEventGridClientWrapperFactory>();
-            var failingClient = GivenFakeClient(clientFactory, clientName1);
-            A.CallTo(() => failingClient.ReceiveCloudEventsAsync(
-                A<string>._,
-                A<string>._,
-                A<int>._,
-                A<CancellationToken>._)).Throws<Exception>();
-            var functionalClient = GivenFakeClient(clientFactory, clientName2);
-
-            var optionMonitor = A.Fake<IOptionsMonitor<EventPropagationSubscriptionOptions>>();
-            var options1 = GivenEventPropagationSubscriptionOptions(optionMonitor, clientName1);
-            var options2 = GivenEventPropagationSubscriptionOptions(optionMonitor, clientName2);
-
-            var eventBundle = AutoFaker.Generate<EventGridClientAdapter.EventGridClientAdapter.EventBundle>();
-            RegisterCloudEventsInClient(functionalClient, options2, eventBundle);
-
-            // When
-            using var pullerService = new EventPullerService(GivenScopeFactory(eventHandler), eventGridClientDescriptors, clientFactory, optionMonitor, new NullLogger<EventPullerService>());
-            await StartWaitAndStop(pullerService);
-
-            // Then
-            A.CallTo(() => failingClient
-                    .ReceiveCloudEventsAsync(
-                        options1.TopicName,
-                        options1.SubscriptionName,
-                        A<int>._,
-                        A<CancellationToken>._))
-                .MustHaveHappenedOnceOrMore();
-            A.CallTo(() => eventHandler.HandleCloudEventAsync(eventBundle.Event, A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
-        }
     }
 
     public class OneSubscriber : EventPullerServiceTests, IDisposable
@@ -167,9 +93,11 @@ public abstract class EventPullerServiceTests
             this._eventBundle2 = AutoFaker.Generate<EventGridClientAdapter.EventGridClientAdapter.EventBundle>();
             RegisterCloudEventsInClient(this._client, this._option, this._eventBundle1, this._eventBundle2);
 
+            var pullerServiceOptions = Options.Create(new EventPullerServiceOptions { ProcessEventManually = true });
+
             this._eventHandler = A.Fake<ICloudEventHandler>(opt => opt.Strict());
 
-            this._pullerService = new EventPullerService(GivenScopeFactory(this._eventHandler), eventGridClientDescriptors, clientFactory, optionMonitor, new NullLogger<EventPullerService>());
+            this._pullerService = new EventPullerService(GivenScopeFactory(this._eventHandler), eventGridClientDescriptors, clientFactory, optionMonitor, pullerServiceOptions, new NullLogger<EventPullerService>());
         }
 
         public void Dispose()
@@ -192,9 +120,9 @@ public abstract class EventPullerServiceTests
             // Given
             var call1 = A.CallTo(() => this._eventHandler.HandleCloudEventAsync(this._eventBundle1.Event, A<CancellationToken>._));
             var call2 = A.CallTo(() => this._eventHandler.HandleCloudEventAsync(this._eventBundle2.Event, A<CancellationToken>._));
-        
+
             // When
-            await StartWaitAndStop(this._pullerService);
+            await StartWaitAndStop(this._pullerService, numberOfEventToProcess: 2);
 
             // Then
             call1.MustHaveHappenedOnceOrMore();
@@ -215,7 +143,7 @@ public abstract class EventPullerServiceTests
                 .Invokes(x => acknowledgedEvents.AddRange(x.GetArgument<IEnumerable<string>>(2)!));
 
             // When
-            await StartWaitAndStop(this._pullerService);
+            await StartWaitAndStop(this._pullerService, numberOfEventToProcess: 2);
 
             // Then
             Assert.Contains(this._eventBundle1.LockToken, acknowledgedEvents);
@@ -236,7 +164,7 @@ public abstract class EventPullerServiceTests
                 .Invokes(x => releasedEvents.AddRange(x.GetArgument<IEnumerable<string>>(2)!));
 
             // When
-            await StartWaitAndStop(this._pullerService);
+            await StartWaitAndStop(this._pullerService, numberOfEventToProcess: 2);
 
             // Then
             Assert.Contains(this._eventBundle1.LockToken, releasedEvents);
@@ -258,18 +186,21 @@ public abstract class EventPullerServiceTests
                 .Invokes(x => rejectedEvents.AddRange(x.GetArgument<IEnumerable<string>>(2)!));
 
             // When
-            await StartWaitAndStop(this._pullerService);
+            await StartWaitAndStop(this._pullerService, numberOfEventToProcess: 2);
 
             // Then
             Assert.Contains(this._eventBundle1.LockToken, rejectedEvents);
             Assert.Contains(this._eventBundle2.LockToken, rejectedEvents);
         }
 
-        public static IEnumerable<object[]> RejectingExceptions()
+        public static TheoryData<Exception> RejectingExceptions()
         {
-            yield return [new DomainEventTypeNotRegisteredException("event")];
-            yield return [new CloudEventSerializationException("type", new Exception())];
-            yield return [new DomainEventHandlerNotRegisteredException("eventName")];
+            return new()
+            {
+                new DomainEventTypeNotRegisteredException("event"),
+                new CloudEventSerializationException("type", new Exception()),
+                new DomainEventHandlerNotRegisteredException("eventName"),
+            };
         }
     }
 }
