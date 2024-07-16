@@ -17,4 +17,6 @@ public class EventPropagationSubscriptionOptions
     public string SubscriptionName { get; set; } = string.Empty;
 
     public int MaxDegreeOfParallelism { get; set; } = 1;
+
+    public IReadOnlyCollection<int>? RetryDelays { get; set; }
 }
