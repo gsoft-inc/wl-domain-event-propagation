@@ -10,7 +10,7 @@ using EventBundle = Workleap.DomainEventPropagation.EventGridClientAdapter.Event
 
 namespace Workleap.DomainEventPropagation;
 
-internal class EventPullerService : BackgroundService
+internal sealed class EventPullerService : BackgroundService
 {
     private readonly List<EventGridSubscriptionEventPuller> _eventGridSubscriptionPullers;
 

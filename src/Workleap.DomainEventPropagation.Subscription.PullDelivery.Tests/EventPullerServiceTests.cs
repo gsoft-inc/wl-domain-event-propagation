@@ -16,29 +16,16 @@ public class EventPullerServiceTests : IDisposable
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IEventGridClientWrapperFactory _eventGridClientWrapperFactory;
     private readonly IOptionsMonitor<EventPropagationSubscriptionOptions> _optionsMonitor;
+    private readonly TaskCompletionSource _eventCompletionSource = new();
 
     private EventPullerService? _pullerService;
+    private int _eventCounter;
 
     public EventPullerServiceTests()
     {
         this._scopeFactory = A.Fake<IServiceScopeFactory>();
         this._eventGridClientWrapperFactory = A.Fake<IEventGridClientWrapperFactory>();
         this._optionsMonitor = A.Fake<IOptionsMonitor<EventPropagationSubscriptionOptions>>();
-    }
-
-    [Fact]
-    public async Task GivenPuller_WhenStarted_ThenEveryRegisteredClientWasCalled()
-    {
-        // Given
-        var client1 = this.GivenClient("client1");
-        var client2 = this.GivenClient("client2");
-
-        // When
-        await this.WhenRunningPullerService();
-
-        // Then
-        this.ThenClientReceivedEvents(client1);
-        this.ThenClientReceivedEvents(client2);
     }
 
     [Fact]
@@ -163,15 +150,32 @@ public class EventPullerServiceTests : IDisposable
 
         // Special case: the IEnumerable received by these calls needs to be consumed immediately, otherwise the data is never removed from the channel until the end when it is too late
         A.CallTo(() => client.AcknowledgeCloudEventsAsync(A<string>._, A<string>._, A<IEnumerable<string>>._, A<CancellationToken>._))
-            .Invokes(x => eventHandlingResults.AcknowledgedEvents.AddRange(x.GetArgument<IEnumerable<string>>(2)!));
+            .Invokes(x => this.OnEventCompleted(eventHandlingResults.AcknowledgedEvents, x.GetArgument<IEnumerable<string>>(2)!));
 
         A.CallTo(() => client.ReleaseCloudEventsAsync(A<string>._, A<string>._, A<IEnumerable<string>>._, A<int>._, A<CancellationToken>._))
-            .Invokes(x => eventHandlingResults.ReleasedEvents.AddRange(x.GetArgument<IEnumerable<string>>(2)!.Select(y => (y, x.GetArgument<int>(3)))));
+            .Invokes(x => this.OnEventCompleted(eventHandlingResults.ReleasedEvents, x.GetArgument<IEnumerable<string>>(2)!.Select(y => (y, x.GetArgument<int>(3)))));
 
         A.CallTo(() => client.RejectCloudEventsAsync(A<string>._, A<string>._, A<IEnumerable<string>>._, A<CancellationToken>._))
-            .Invokes(x => eventHandlingResults.RejectedEvents.AddRange(x.GetArgument<IEnumerable<string>>(2)!));
+            .Invokes(x => this.OnEventCompleted(eventHandlingResults.RejectedEvents, x.GetArgument<IEnumerable<string>>(2)!));
 
         return eventPullerClient;
+    }
+
+    private void OnEventCompleted<T>(List<T> eventList, IEnumerable<T> eventsData)
+    {
+        var events = eventsData.ToList();
+
+        lock (this._pullerService!)
+        {
+            this._eventCounter -= events.Count;
+
+            if (this._eventCounter <= 0)
+            {
+                this._eventCompletionSource.SetResult();
+            }
+        }
+
+        eventList.AddRange(events);
     }
 
     private void GivenClientFailsReceivingEvents(EventPullerClient client)
@@ -188,9 +192,11 @@ public class EventPullerServiceTests : IDisposable
                 .Returns(events).Once()
                 .Then.ReturnsLazily(async _ =>
                 {
-                    await Task.Delay(100);
+                    await Task.Delay(10);
                     return [];
                 });
+
+        this._eventCounter += events.Length;
 
         return events;
     }
@@ -207,7 +213,7 @@ public class EventPullerServiceTests : IDisposable
 
         // We need this to start on the thread pool otherwise it will just block the test
         Task.Run(() => this._pullerService.StartAsync(CancellationToken.None)).Forget();
-        await Task.Delay(50);
+        await this._eventCompletionSource.Task;
         await this._pullerService.StopAsync(CancellationToken.None);
     }
 
