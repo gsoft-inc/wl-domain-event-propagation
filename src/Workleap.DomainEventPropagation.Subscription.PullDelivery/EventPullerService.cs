@@ -67,7 +67,7 @@ internal sealed class EventPullerService : BackgroundService
             this._logger = logger;
             this._eventGridTopicSubscription = eventGridTopicSubscription;
 
-            if (eventGridTopicSubscription.RetryDelays != null && eventGridTopicSubscription.RetryDelays.Any())
+            if (eventGridTopicSubscription.RetryDelays is { Count: > 0 })
             {
                 this._retryDelays = eventGridTopicSubscription.RetryDelays
                     .Select((x, index) => new { DeliveryCount = index + 1, Delay = x })
