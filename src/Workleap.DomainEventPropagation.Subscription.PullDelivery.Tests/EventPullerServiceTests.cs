@@ -1,206 +1,293 @@
-using AutoBogus;
-using Azure.Identity;
 using Azure.Messaging;
 using FakeItEasy;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Workleap.DomainEventPropagation.EventGridClientAdapter;
 using Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests.TestExtensions;
-using static Workleap.DomainEventPropagation.EventGridClientAdapter.EventGridClientAdapter;
+
+using EventBundle = Workleap.DomainEventPropagation.EventGridClientAdapter.EventGridClientAdapter.EventBundle;
 
 namespace Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests;
 
-public abstract class EventPullerServiceTests
+public class EventPullerServiceTests : IDisposable
 {
-    private static IEventGridClientAdapter GivenFakeClient(IEventGridClientWrapperFactory clientWrapperFactory, string subName)
+    private readonly List<EventPullerClient> _clients = [];
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly IEventGridClientWrapperFactory _eventGridClientWrapperFactory;
+    private readonly IOptionsMonitor<EventPropagationSubscriptionOptions> _optionsMonitor;
+    private readonly TaskCompletionSource _eventCompletionSource = new();
+
+    private EventPullerService? _pullerService;
+    private int _eventCounter;
+
+    public EventPullerServiceTests()
     {
-        var fakeClient = A.Fake<IEventGridClientAdapter>();
-        A.CallTo(() => clientWrapperFactory.CreateClient(subName)).Returns(fakeClient);
-        return fakeClient;
+        this._scopeFactory = A.Fake<IServiceScopeFactory>();
+        this._eventGridClientWrapperFactory = A.Fake<IEventGridClientWrapperFactory>();
+        this._optionsMonitor = A.Fake<IOptionsMonitor<EventPropagationSubscriptionOptions>>();
     }
 
-    private static IServiceScopeFactory GivenScopeFactory(ICloudEventHandler handler)
+    [Fact]
+    public async Task GivenFailingClient_WhenErrorOccured_ThenKeepsPollingAndDoesNotInterfereWithOtherClients()
     {
-        var scopeFactory = A.Fake<IServiceScopeFactory>();
+        // Given
+        var failingClient = this.GivenClient("client1");
+        var functionalClient = this.GivenClient("client2");
+
+        this.GivenClientFailsReceivingEvents(failingClient);
+        var events = this.GivenEventsForClient(functionalClient, GenerateEvent());
+
+        // When
+        await this.WhenRunningPullerService();
+
+        // Then
+        this.ThenClientReceivedEvents(failingClient);
+        this.ThenClientHandledEvents(functionalClient, events);
+    }
+
+    [Fact]
+    public async Task GivenTwoEventReceived_WhenHandleSuccessfully_ThenEveryEventsAreHandled()
+    {
+        // Given
+        var client = this.GivenClient();
+        var events = this.GivenEventsForClient(client, GenerateEvent(), GenerateEvent());
+
+        // When
+        await this.WhenRunningPullerService();
+
+        // Then
+        this.ThenClientHandledEvents(client, events);
+    }
+
+    [Fact]
+    public async Task GivenTwoEventsReceived_WhenHandleSuccessfully_ThenEventsAreAcknowledged()
+    {
+        // Given
+        var client = this.GivenClient();
+        var events = this.GivenEventsForClient(client, GenerateEvent(), GenerateEvent());
+
+        // When
+        await this.WhenRunningPullerService();
+
+        // Then
+        this.ThenClientAcknowledgedEvents(client, events);
+    }
+
+    [Fact]
+    public async Task GivenTwoEventsReceived_WhenHandleThrowUnhandledException_ThenEventsAreReleased()
+    {
+        // Given
+        var client = this.GivenClient();
+        var events = this.GivenEventsForClient(client, GenerateEvent(), GenerateEvent(deliveryCount: 3));
+        this.GivenClientFailsHandlingEvents(client);
+
+        // When
+        await this.WhenRunningPullerService();
+
+        // Then
+        this.ThenClientReleasedEvents(client, events);
+    }
+
+    [Fact]
+    public async Task GivenMultipleEventsReceivedWithCustomRetryDelays_WhenHandleThrowUnhandledException_ThenEventsAreReleasedWithDelay()
+    {
+        // Given
+        var client = this.GivenClient(options: GenerateOptions(retryDelays: [TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(4), TimeSpan.FromSeconds(8)]));
+        var events = this.GivenEventsForClient(client, GenerateEvent(), GenerateEvent(deliveryCount: 3), GenerateEvent(deliveryCount: 4), GenerateEvent(deliveryCount: 5));
+        this.GivenClientFailsHandlingEvents(client);
+
+        // When
+        await this.WhenRunningPullerService();
+
+        // Then
+        this.ThenClientReleasedEvents(client, events);
+    }
+
+    [Theory]
+    [MemberData(nameof(RejectingExceptions))]
+    public async Task GivenTwoEventsReceived_WhenHandleThrowRejectingException_ThenEventsAreRejected(Exception exception)
+    {
+        // Given
+        var client = this.GivenClient();
+        var events = this.GivenEventsForClient(client, GenerateEvent(), GenerateEvent());
+        this.GivenClientFailsHandlingEvents(client, exception);
+
+        // When
+        await this.WhenRunningPullerService();
+
+        // Then
+        this.ThenClientRejectedEvents(client, events);
+    }
+
+    public static IEnumerable<object[]> RejectingExceptions()
+    {
+        yield return [new DomainEventTypeNotRegisteredException("event")];
+        yield return [new CloudEventSerializationException("type", new Exception())];
+        yield return [new DomainEventHandlerNotRegisteredException("eventName")];
+    }
+
+    private EventPullerClient GivenClient(string clientName = "client", EventPropagationSubscriptionOptions? options = null)
+    {
+        options ??= GenerateOptions(clientName);
+
+        var client = A.Fake<IEventGridClientAdapter>();
         var scope = A.Fake<IServiceScope>();
+        var eventHandler = A.Fake<ICloudEventHandler>();
+        var eventHandlingResults = new EventHandlingResult([], [], []);
+
+        var eventPullerClient = new EventPullerClient(clientName, client, eventHandler, options, eventHandlingResults);
+
+        this._clients.Add(eventPullerClient);
+
         var serviceCollection = new ServiceCollection();
-        serviceCollection.AddScoped<ICloudEventHandler>(_ => handler);
-        A.CallTo(() => scopeFactory.CreateScope()).Returns(scope);
+        serviceCollection.AddScoped(_ => eventHandler);
+
+        A.CallTo(() => this._eventGridClientWrapperFactory.CreateClient(clientName)).Returns(eventPullerClient.Client);
+        A.CallTo(() => this._optionsMonitor.Get(clientName)).Returns(options);
+        A.CallTo(() => this._scopeFactory.CreateScope()).Returns(scope);
         A.CallTo(() => scope.ServiceProvider).Returns(serviceCollection.BuildServiceProvider());
-        return scopeFactory;
+
+        // Special case: the IEnumerable received by these calls needs to be consumed immediately, otherwise the data is never removed from the channel until the end when it is too late
+        A.CallTo(() => client.AcknowledgeCloudEventsAsync(A<string>._, A<string>._, A<IEnumerable<string>>._, A<CancellationToken>._))
+            .Invokes(x => this.OnEventCompleted(eventHandlingResults.AcknowledgedEvents, x.GetArgument<IEnumerable<string>>(2)!));
+
+        A.CallTo(() => client.ReleaseCloudEventsAsync(A<string>._, A<string>._, A<IEnumerable<string>>._, A<TimeSpan>._, A<CancellationToken>._))
+            .Invokes(x => this.OnEventCompleted(eventHandlingResults.ReleasedEvents, x.GetArgument<IEnumerable<string>>(2)!.Select(y => (y, x.GetArgument<TimeSpan>(3)))));
+
+        A.CallTo(() => client.RejectCloudEventsAsync(A<string>._, A<string>._, A<IEnumerable<string>>._, A<CancellationToken>._))
+            .Invokes(x => this.OnEventCompleted(eventHandlingResults.RejectedEvents, x.GetArgument<IEnumerable<string>>(2)!));
+
+        return eventPullerClient;
     }
 
-    private static EventPropagationSubscriptionOptions GivenEventPropagationSubscriptionOptions(IOptionsMonitor<EventPropagationSubscriptionOptions> optionMonitor, string clientName)
+    private void OnEventCompleted<T>(List<T> eventList, IEnumerable<T> eventsData)
     {
-        var option = new AutoFaker<EventPropagationSubscriptionOptions>().RuleFor(x => x.MaxDegreeOfParallelism, f => f.Random.Int(min: 1, max: 10)).Generate();
-        A.CallTo(() => optionMonitor.Get(clientName)).Returns(option);
-        return option;
-    }
+        var events = eventsData.ToList();
 
-    private static void RegisterCloudEventsInClient(IEventGridClientAdapter client, EventPropagationSubscriptionOptions option, params EventGridClientAdapter.EventGridClientAdapter.EventBundle[] events)
-    {
-        // The first call will return the events, subsequent calls will return an empty array after a delay
-        // The actual implementation of EventGrid will perform similarly if there are only some events to return
-        A.CallTo(() => client.ReceiveCloudEventsAsync(
-            option.TopicName,
-            option.SubscriptionName,
-            A<int>._,
-            A<CancellationToken>._))
-            .Returns(events).Once()
-            .Then.ReturnsLazily(async x =>
+        lock (this._pullerService!)
+        {
+            this._eventCounter -= events.Count;
+
+            if (this._eventCounter <= 0)
             {
-                await Task.Delay(100);
-                return [];
-            });
-    }
-
-    private static async Task StartWaitAndStop(EventPullerService pullerService, int numberOfEventToProcess)
-    {
-        // We need this to start on the thread pool otherwise it will just block the test
-        await pullerService.StartAsync(CancellationToken.None);
-        for (int i = numberOfEventToProcess - 1; i >= 0; i--)
-        {
-            await pullerService.ProcessOneEventAsync();
-        }
-
-        await pullerService.StopAsync(CancellationToken.None);
-    }
-
-    public class OneSubscriber : EventPullerServiceTests, IDisposable
-    {
-        private readonly EventPullerService _pullerService;
-        private readonly IEventGridClientAdapter _client;
-        private readonly EventPropagationSubscriptionOptions _option;
-        private readonly ICloudEventHandler _eventHandler;
-        private readonly EventGridClientAdapter.EventGridClientAdapter.EventBundle _eventBundle1;
-
-        private readonly EventGridClientAdapter.EventGridClientAdapter.EventBundle _eventBundle2;
-
-        public OneSubscriber()
-        {
-            var clientName = AutoFaker.Generate<string>();
-            var eventGridClientDescriptors = new EventGridClientDescriptor[] { new(clientName) };
-
-            var optionMonitor = A.Fake<IOptionsMonitor<EventPropagationSubscriptionOptions>>();
-            this._option = GivenEventPropagationSubscriptionOptions(optionMonitor, clientName);
-
-            var clientFactory = A.Fake<IEventGridClientWrapperFactory>();
-            this._client = GivenFakeClient(clientFactory, clientName);
-            this._eventBundle1 = AutoFaker.Generate<EventGridClientAdapter.EventGridClientAdapter.EventBundle>();
-            this._eventBundle2 = AutoFaker.Generate<EventGridClientAdapter.EventGridClientAdapter.EventBundle>();
-            RegisterCloudEventsInClient(this._client, this._option, this._eventBundle1, this._eventBundle2);
-
-            var pullerServiceOptions = Options.Create(new EventPullerServiceOptions { ProcessEventManually = true });
-
-            this._eventHandler = A.Fake<ICloudEventHandler>(opt => opt.Strict());
-
-            this._pullerService = new EventPullerService(GivenScopeFactory(this._eventHandler), eventGridClientDescriptors, clientFactory, optionMonitor, pullerServiceOptions, new NullLogger<EventPullerService>());
-        }
-
-        public void Dispose()
-        {
-            this.Dispose(true);
-            GC.SuppressFinalize(this);
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                this._pullerService.Dispose();
+                this._eventCompletionSource.SetResult();
             }
         }
 
-        [Fact]
-        public async Task GivenTwoEventReceived_WhenHandleSuccessfully_ThenEveryEventsAreHandled()
+        eventList.AddRange(events);
+    }
+
+    private void GivenClientFailsReceivingEvents(EventPullerClient client)
+    {
+        A.CallTo(() => client.Client.ReceiveCloudEventsAsync(client.Options.TopicName, client.Options.SubscriptionName, A<int>._, A<CancellationToken>._)).Throws<Exception>();
+    }
+
+    private EventBundle[] GivenEventsForClient(EventPullerClient client, params EventBundle[] events)
+    {
+        // The first call will return the events, subsequent calls will return an empty array after a delay
+        // The actual implementation of EventGrid will perform similarly if there are only some events to return
+        A.CallTo(() => client.Client
+                .ReceiveCloudEventsAsync(client.Options.TopicName, client.Options.SubscriptionName, A<int>._, A<CancellationToken>._))
+                .Returns(events).Once()
+                .Then.ReturnsLazily(async _ =>
+                {
+                    await Task.Delay(10);
+                    return [];
+                });
+
+        this._eventCounter += events.Length;
+
+        return events;
+    }
+
+    private void GivenClientFailsHandlingEvents(EventPullerClient client, Exception? exception = null)
+    {
+        exception ??= new Exception("Unhandled exception");
+        A.CallTo(() => client.EventHandler.HandleCloudEventAsync(A<CloudEvent>._, A<CancellationToken>._)).Throws(exception);
+    }
+
+    private async Task WhenRunningPullerService()
+    {
+        this._pullerService = new EventPullerService(this._scopeFactory, this._clients.Select(x => new EventGridClientDescriptor(x.Name)), this._eventGridClientWrapperFactory, this._optionsMonitor, new NullLogger<EventPullerService>());
+
+        // We need this to start on the thread pool otherwise it will just block the test
+        Task.Run(() => this._pullerService.StartAsync(CancellationToken.None)).Forget();
+        await this._eventCompletionSource.Task;
+        await this._pullerService.StopAsync(CancellationToken.None);
+    }
+
+    private void ThenClientReceivedEvents(EventPullerClient client)
+    {
+        A.CallTo(() => client.Client.ReceiveCloudEventsAsync(client.Options.TopicName, client.Options.SubscriptionName, A<int>._, A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
+    }
+
+    private void ThenClientHandledEvents(EventPullerClient client, params EventBundle[] events)
+    {
+        foreach (var eventBundle in events)
         {
-            // Given
-            var call1 = A.CallTo(() => this._eventHandler.HandleCloudEventAsync(this._eventBundle1.Event, A<CancellationToken>._));
-            var call2 = A.CallTo(() => this._eventHandler.HandleCloudEventAsync(this._eventBundle2.Event, A<CancellationToken>._));
-
-            // When
-            await StartWaitAndStop(this._pullerService, numberOfEventToProcess: 2);
-
-            // Then
-            call1.MustHaveHappenedOnceOrMore();
-            call2.MustHaveHappenedOnceOrMore();
-        }
-
-        [Fact]
-        public async Task GivenTwoEventsReceived_WhenHandleSuccessfully_ThenEventsAreAcknowledged()
-        {
-            var acknowledgedEvents = new List<string>();
-
-            // Given
-            A.CallTo(() => this._eventHandler.HandleCloudEventAsync(A<CloudEvent>._, A<CancellationToken>._))
-                .Returns(Task.CompletedTask);
-
-            // Special case: the IEnumerable received by the call needs to be consumed immediately, otherwise the data is never removed from the channel until the end when it is too late
-            A.CallTo(() => this._client.AcknowledgeCloudEventsAsync(A<string>._, A<string>._, A<IEnumerable<string>>._, A<CancellationToken>._))
-                .Invokes(x => acknowledgedEvents.AddRange(x.GetArgument<IEnumerable<string>>(2)!));
-
-            // When
-            await StartWaitAndStop(this._pullerService, numberOfEventToProcess: 2);
-
-            // Then
-            Assert.Contains(this._eventBundle1.LockToken, acknowledgedEvents);
-            Assert.Contains(this._eventBundle2.LockToken, acknowledgedEvents);
-        }
-
-        [Fact]
-        public async Task GivenTwoEventsReceived_WhenHandleThrowUnhandledException_ThenEventsAreReleased()
-        {
-            var releasedEvents = new List<string>();
-
-            // Given
-            A.CallTo(() => this._eventHandler.HandleCloudEventAsync(A<CloudEvent>._, A<CancellationToken>._))
-                .ThrowsAsync(new Exception("Unhandled exception"));
-
-            // Special case: the IEnumerable received by the call needs to be consumed immediately, otherwise the data is never removed from the channel until the end when it is too late
-            A.CallTo(() => this._client.ReleaseCloudEventsAsync(A<string>._, A<string>._, A<IEnumerable<string>>._, A<CancellationToken>._))
-                .Invokes(x => releasedEvents.AddRange(x.GetArgument<IEnumerable<string>>(2)!));
-
-            // When
-            await StartWaitAndStop(this._pullerService, numberOfEventToProcess: 2);
-
-            // Then
-            Assert.Contains(this._eventBundle1.LockToken, releasedEvents);
-            Assert.Contains(this._eventBundle2.LockToken, releasedEvents);
-        }
-
-        [Theory]
-        [MemberData(nameof(RejectingExceptions))]
-        public async Task GivenTwoEventsReceived_WhenHandleThrowRejectingException_ThenEventsAreRejected(Exception exception)
-        {
-            var rejectedEvents = new List<string>();
-
-            // Given
-            A.CallTo(() => this._eventHandler.HandleCloudEventAsync(A<CloudEvent>._, A<CancellationToken>._))
-                .Throws(exception);
-
-            // Special case: the IEnumerable received by the call needs to be consumed immediately, otherwise the data is never removed from the channel until the end when it is too late
-            A.CallTo(() => this._client.RejectCloudEventsAsync(A<string>._, A<string>._, A<IEnumerable<string>>._, A<CancellationToken>._))
-                .Invokes(x => rejectedEvents.AddRange(x.GetArgument<IEnumerable<string>>(2)!));
-
-            // When
-            await StartWaitAndStop(this._pullerService, numberOfEventToProcess: 2);
-
-            // Then
-            Assert.Contains(this._eventBundle1.LockToken, rejectedEvents);
-            Assert.Contains(this._eventBundle2.LockToken, rejectedEvents);
-        }
-
-        public static TheoryData<Exception> RejectingExceptions()
-        {
-            return new()
-            {
-                new DomainEventTypeNotRegisteredException("event"),
-                new CloudEventSerializationException("type", new Exception()),
-                new DomainEventHandlerNotRegisteredException("eventName"),
-            };
+            A.CallTo(() => client.EventHandler.HandleCloudEventAsync(eventBundle.Event, A<CancellationToken>._)).MustHaveHappenedOnceOrMore();
         }
     }
+
+    private void ThenClientAcknowledgedEvents(EventPullerClient client, params EventBundle[] events)
+    {
+        Assert.True(events.All(x => client.EventHandlingResult.AcknowledgedEvents.Contains(x.LockToken)));
+    }
+
+    private void ThenClientReleasedEvents(EventPullerClient client, params EventBundle[] events)
+    {
+        foreach (var eventBundle in events)
+        {
+            if (client.Options.RetryDelays == null)
+            {
+                Assert.Contains(client.EventHandlingResult.ReleasedEvents, x => x.LockToken == eventBundle.LockToken && x.ReleaseDelay == TimeSpan.FromSeconds((int)Math.Pow(2, eventBundle.DeliveryCount - 1)));
+            }
+            else
+            {
+                var expectedDelay = eventBundle.DeliveryCount - 1 < client.Options.RetryDelays.Count ? client.Options.RetryDelays.ElementAt(eventBundle.DeliveryCount - 1) : client.Options.RetryDelays.Last();
+                Assert.Contains(client.EventHandlingResult.ReleasedEvents, x => x.LockToken == eventBundle.LockToken && x.ReleaseDelay == expectedDelay);
+            }
+        }
+    }
+
+    private void ThenClientRejectedEvents(EventPullerClient client, params EventBundle[] events)
+    {
+        Assert.True(events.All(x => client.EventHandlingResult.RejectedEvents.Contains(x.LockToken)));
+    }
+
+    private static EventPropagationSubscriptionOptions GenerateOptions(string id = "id", TimeSpan[]? retryDelays = null)
+    {
+        return new EventPropagationSubscriptionOptions
+        {
+            TopicName = $"topic-{id}",
+            SubscriptionName = $"subscription-{id}",
+            MaxDegreeOfParallelism = 10,
+            RetryDelays = retryDelays,
+        };
+    }
+
+    private static EventBundle GenerateEvent(string? id = null, int deliveryCount = 1)
+    {
+        id ??= Guid.NewGuid().ToString();
+        return new EventBundle(new CloudEvent("source", "type", null), $"lock-{id}", deliveryCount);
+    }
+
+    public void Dispose()
+    {
+        this.Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            this._pullerService?.Dispose();
+        }
+    }
+
+    internal sealed record EventPullerClient(string Name, IEventGridClientAdapter Client, ICloudEventHandler EventHandler, EventPropagationSubscriptionOptions Options, EventHandlingResult EventHandlingResult);
+
+    internal sealed record EventHandlingResult(List<string> AcknowledgedEvents, List<(string LockToken, TimeSpan ReleaseDelay)> ReleasedEvents, List<string> RejectedEvents);
 }

@@ -1,12 +1,12 @@
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
-using Azure.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Workleap.DomainEventPropagation.EventGridClientAdapter;
+
+using EventBundle = Workleap.DomainEventPropagation.EventGridClientAdapter.EventGridClientAdapter.EventBundle;
 
 namespace Workleap.DomainEventPropagation;
 
@@ -14,96 +14,29 @@ internal sealed class EventPullerService : BackgroundService
 {
     private readonly List<EventGridSubscriptionEventPuller> _eventGridSubscriptionPullers;
 
-    // For testing purposes    
-    private readonly Dictionary<string, SemaphoreSlim>? _processEventSemaphoreSlim;
-    private TaskCompletionSource? _eventProcessedTaskCompletionSource;
-
     public EventPullerService(
         IServiceScopeFactory serviceScopeFactory,
         IEnumerable<EventGridClientDescriptor> clientDescriptors,
         IEventGridClientWrapperFactory eventGridClientWrapperFactory,
         IOptionsMonitor<EventPropagationSubscriptionOptions> optionsMonitor,
-        IOptions<EventPullerServiceOptions> serviceOptions,
         ILogger<EventPullerService> logger)
     {
-        var clientDescriptorsList = clientDescriptors.ToArray();
-
-        this.ProcessEventManually = serviceOptions.Value.ProcessEventManually;
-        this._eventGridSubscriptionPullers = clientDescriptorsList
-            .Select(descriptor =>
-            {
-                var eventPropagationSubscriptionOptions = optionsMonitor.Get(descriptor.Name);
-                return new EventGridSubscriptionEventPuller(
-                            this,
-                            descriptor.Name,
-                            new EventGridTopicSubscription(
-                                eventPropagationSubscriptionOptions.TopicName,
-                                eventPropagationSubscriptionOptions.SubscriptionName,
-                                eventPropagationSubscriptionOptions.MaxDegreeOfParallelism,
-                                eventGridClientWrapperFactory.CreateClient(descriptor.Name)),
-                            serviceScopeFactory,
-                            logger);
-            })
+        this._eventGridSubscriptionPullers = clientDescriptors.Select(descriptor =>
+                new EventGridSubscriptionEventPuller(
+                    new EventGridTopicSubscription(
+                        optionsMonitor.Get(descriptor.Name).TopicName,
+                        optionsMonitor.Get(descriptor.Name).SubscriptionName,
+                        optionsMonitor.Get(descriptor.Name).MaxDegreeOfParallelism,
+                        optionsMonitor.Get(descriptor.Name).RetryDelays?.ToList(),
+                        eventGridClientWrapperFactory.CreateClient(descriptor.Name)),
+                    serviceScopeFactory,
+                    logger))
             .ToList();
-
-        if (this.ProcessEventManually)
-        {
-            this._processEventSemaphoreSlim = new();
-            foreach (var descriptor in clientDescriptorsList)
-            {
-                this._processEventSemaphoreSlim.Add(descriptor.Name, new SemaphoreSlim(initialCount: 0, maxCount: 1));
-            }
-        }
     }
-
-    [MemberNotNullWhen(true, nameof(_processEventSemaphoreSlim))]
-    private bool ProcessEventManually { get; }
 
     protected override Task ExecuteAsync(CancellationToken stoppingToken)
     {
         return Task.WhenAll(this._eventGridSubscriptionPullers.Select(puller => Task.Run(() => puller.StartReceivingEventsAsync(stoppingToken), stoppingToken)));
-    }
-
-    // For testing purposes
-    // note: this method is not thread-safe. Support only one caller at a time.
-    internal async Task ProcessOneEventAsync(string? descriptorName = null)
-    {
-        if (!this.ProcessEventManually)
-        {
-            throw new InvalidOperationException("Debug mode is not enabled");
-        }
-
-        this._eventProcessedTaskCompletionSource = new TaskCompletionSource();
-
-        if (descriptorName is null)
-        {
-            foreach (var kvp in this._processEventSemaphoreSlim)
-            {
-                kvp.Value.Release();
-                await this._eventProcessedTaskCompletionSource.Task.ConfigureAwait(false);
-                this._eventProcessedTaskCompletionSource = new TaskCompletionSource();
-            }
-        }
-        else
-        {
-            this._processEventSemaphoreSlim[descriptorName].Release();
-            await this._eventProcessedTaskCompletionSource.Task.ConfigureAwait(false);
-        }
-
-        this._eventProcessedTaskCompletionSource = null;
-    }
-
-    public override void Dispose()
-    {
-        if (this._processEventSemaphoreSlim is not null)
-        {
-            foreach (var kvp in this._processEventSemaphoreSlim)
-            {
-                kvp.Value.Dispose();
-            }
-        }
-
-        base.Dispose();
     }
 
     private class EventGridSubscriptionEventPuller
@@ -113,29 +46,35 @@ internal sealed class EventPullerService : BackgroundService
 
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly ILogger<EventPullerService> _logger;
-        private readonly EventPullerService _pullerService;
-        private readonly string _descriptorName;
         private readonly EventGridTopicSubscription _eventGridTopicSubscription;
 
-        private readonly Channel<string> _acknowledgeEventChannel = Channel.CreateBounded<string>(OutputChannelSize);
-        private readonly Channel<string> _releaseEventChannel = Channel.CreateBounded<string>(OutputChannelSize);
-        private readonly Channel<string> _rejectEventChannel = Channel.CreateBounded<string>(OutputChannelSize);
+        private readonly Dictionary<int, TimeSpan>? _retryDelays;
+        private readonly TimeSpan? _defaultDelay;
+
+        private readonly Channel<EventBundle> _acknowledgeEventChannel = Channel.CreateBounded<EventBundle>(OutputChannelSize);
+        private readonly Channel<EventBundle> _releaseEventChannel = Channel.CreateBounded<EventBundle>(OutputChannelSize);
+        private readonly Channel<EventBundle> _rejectEventChannel = Channel.CreateBounded<EventBundle>(OutputChannelSize);
 
         private int _handlersInProgress;
         private TaskCompletionSource _taskCompletionSource = new();
 
         public EventGridSubscriptionEventPuller(
-            EventPullerService pullerService,
-            string descriptorName,
             EventGridTopicSubscription eventGridTopicSubscription,
             IServiceScopeFactory serviceScopeFactory,
             ILogger<EventPullerService> logger)
         {
             this._serviceScopeFactory = serviceScopeFactory;
             this._logger = logger;
-            this._pullerService = pullerService;
-            this._descriptorName = descriptorName;
             this._eventGridTopicSubscription = eventGridTopicSubscription;
+
+            if (eventGridTopicSubscription.RetryDelays is { Count: > 0 })
+            {
+                this._retryDelays = eventGridTopicSubscription.RetryDelays
+                    .Select((x, index) => new { DeliveryCount = index + 1, Delay = x })
+                    .ToDictionary(x => x.DeliveryCount, x => x.Delay);
+
+                this._defaultDelay = eventGridTopicSubscription.RetryDelays.Last();
+            }
         }
 
         public Task StartReceivingEventsAsync(CancellationToken cancellationToken)
@@ -152,13 +91,8 @@ internal sealed class EventPullerService : BackgroundService
         {
             var parallelOptions = new ParallelOptions { MaxDegreeOfParallelism = this._eventGridTopicSubscription.MaxHandlerDop, CancellationToken = cancellationToken };
 
-            return Parallel.ForEachAsync(this.StreamEventGridEvents(cancellationToken), parallelOptions, async (bundle, cancellationToken) =>
+            return Parallel.ForEachAsync(this.StreamEventGridEvents(cancellationToken), parallelOptions, async (bundle, ctx) =>
             {
-                if (this._pullerService.ProcessEventManually)
-                {
-                    await this._pullerService._processEventSemaphoreSlim![this._descriptorName].WaitAsync(cancellationToken).ConfigureAwait(false);
-                }
-
                 this.SignalHandlerStarting();
 
                 try
@@ -168,17 +102,16 @@ internal sealed class EventPullerService : BackgroundService
 #pragma warning restore CA2007 // Consider calling ConfigureAwait on the awaited task
                     var cloudEventHandler = scope.ServiceProvider.GetRequiredService<ICloudEventHandler>();
 
-                    await this.HandleBundleAsync(cloudEventHandler, bundle.Event, bundle.LockToken, cancellationToken).ConfigureAwait(false);
+                    await this.HandleBundleAsync(cloudEventHandler, bundle, ctx).ConfigureAwait(false);
                 }
                 finally
                 {
                     this.SignalHandlerCompleted();
-                    this._pullerService._eventProcessedTaskCompletionSource?.SetResult();
                 }
             });
         }
 
-        private async IAsyncEnumerable<EventGridClientAdapter.EventGridClientAdapter.EventBundle> StreamEventGridEvents([EnumeratorCancellation] CancellationToken cancellationToken)
+        private async IAsyncEnumerable<EventBundle> StreamEventGridEvents([EnumeratorCancellation] CancellationToken cancellationToken)
         {
             while (!cancellationToken.IsCancellationRequested)
             {
@@ -199,12 +132,12 @@ internal sealed class EventPullerService : BackgroundService
             }
         }
 
-        private async Task HandleBundleAsync(ICloudEventHandler cloudEventHandler, CloudEvent cloudEvent, string lockToken, CancellationToken cancellationToken)
+        private async Task HandleBundleAsync(ICloudEventHandler cloudEventHandler, EventBundle eventBundle, CancellationToken cancellationToken)
         {
             try
             {
-                await cloudEventHandler.HandleCloudEventAsync(cloudEvent, cancellationToken).ConfigureAwait(false);
-                await this._acknowledgeEventChannel.Writer.WriteAsync(lockToken, cancellationToken).ConfigureAwait(false);
+                await cloudEventHandler.HandleCloudEventAsync(eventBundle.Event, cancellationToken).ConfigureAwait(false);
+                await this._acknowledgeEventChannel.Writer.WriteAsync(eventBundle, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
@@ -213,12 +146,12 @@ internal sealed class EventPullerService : BackgroundService
                     case DomainEventTypeNotRegisteredException:
                     case CloudEventSerializationException:
                     case DomainEventHandlerNotRegisteredException:
-                        this._logger.EventWillBeRejected(cloudEvent.Id, cloudEvent.Type, ex);
-                        await this._rejectEventChannel.Writer.WriteAsync(lockToken, cancellationToken).ConfigureAwait(false);
+                        this._logger.EventWillBeRejected(eventBundle.Event.Id, eventBundle.Event.Type, ex);
+                        await this._rejectEventChannel.Writer.WriteAsync(eventBundle, cancellationToken).ConfigureAwait(false);
                         break;
                     default:
-                        this._logger.EventWillBeReleased(cloudEvent.Id, cloudEvent.Type, ex);
-                        await this._releaseEventChannel.Writer.WriteAsync(lockToken, cancellationToken).ConfigureAwait(false);
+                        this._logger.EventWillBeReleased(eventBundle.Event.Id, eventBundle.Event.Type, ex);
+                        await this._releaseEventChannel.Writer.WriteAsync(eventBundle, cancellationToken).ConfigureAwait(false);
                         break;
                 }
             }
@@ -229,7 +162,9 @@ internal sealed class EventPullerService : BackgroundService
             while (!cancellationToken.IsCancellationRequested)
             {
                 await this._acknowledgeEventChannel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false);
-                await this._eventGridTopicSubscription.Client.AcknowledgeCloudEventsAsync(this._eventGridTopicSubscription.TopicName, this._eventGridTopicSubscription.SubscriptionName, ReadCurrentContent(this._acknowledgeEventChannel), cancellationToken).ConfigureAwait(false);
+
+                var lockTokens = ReadCurrentContent(this._acknowledgeEventChannel).Select(x => x.LockToken);
+                await this._eventGridTopicSubscription.Client.AcknowledgeCloudEventsAsync(this._eventGridTopicSubscription.TopicName, this._eventGridTopicSubscription.SubscriptionName, lockTokens, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -238,7 +173,15 @@ internal sealed class EventPullerService : BackgroundService
             while (!cancellationToken.IsCancellationRequested)
             {
                 await this._releaseEventChannel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false);
-                await this._eventGridTopicSubscription.Client.ReleaseCloudEventsAsync(this._eventGridTopicSubscription.TopicName, this._eventGridTopicSubscription.SubscriptionName, ReadCurrentContent(this._releaseEventChannel), cancellationToken).ConfigureAwait(false);
+
+                var eventBundlesByDelay = ReadCurrentContent(this._releaseEventChannel)
+                    .GroupBy(x => this.GetReleaseDelay(x.DeliveryCount));
+
+                foreach (var eventBundle in eventBundlesByDelay)
+                {
+                    var lockTokens = eventBundle.Select(x => x.LockToken);
+                    await this._eventGridTopicSubscription.Client.ReleaseCloudEventsAsync(this._eventGridTopicSubscription.TopicName, this._eventGridTopicSubscription.SubscriptionName, lockTokens, eventBundle.Key, cancellationToken).ConfigureAwait(false);
+                }
             }
         }
 
@@ -247,7 +190,9 @@ internal sealed class EventPullerService : BackgroundService
             while (!cancellationToken.IsCancellationRequested)
             {
                 await this._rejectEventChannel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false);
-                await this._eventGridTopicSubscription.Client.RejectCloudEventsAsync(this._eventGridTopicSubscription.TopicName, this._eventGridTopicSubscription.SubscriptionName, ReadCurrentContent(this._rejectEventChannel), cancellationToken).ConfigureAwait(false);
+
+                var lockTokens = ReadCurrentContent(this._rejectEventChannel).Select(x => x.LockToken);
+                await this._eventGridTopicSubscription.Client.RejectCloudEventsAsync(this._eventGridTopicSubscription.TopicName, this._eventGridTopicSubscription.SubscriptionName, lockTokens, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -279,7 +224,12 @@ internal sealed class EventPullerService : BackgroundService
             }
         }
 
-        private static IEnumerable<string> ReadCurrentContent(Channel<string> channel)
+        private TimeSpan GetReleaseDelay(int deliveryCount)
+        {
+            return this._retryDelays?.GetValueOrDefault(deliveryCount, this._defaultDelay!.Value) ?? TimeSpan.FromSeconds((int)Math.Min(Math.Pow(2, deliveryCount - 1), int.MaxValue));
+        }
+
+        private static IEnumerable<EventBundle> ReadCurrentContent(Channel<EventBundle> channel)
         {
             var maxResultCount = channel.Reader.Count;
             var resultCounter = 0;
@@ -296,5 +246,5 @@ internal sealed class EventPullerService : BackgroundService
         }
     }
 
-    private record EventGridTopicSubscription(string TopicName, string SubscriptionName, int MaxHandlerDop, IEventGridClientAdapter Client);
+    private record EventGridTopicSubscription(string TopicName, string SubscriptionName, int MaxHandlerDop, List<TimeSpan>? RetryDelays, IEventGridClientAdapter Client);
 }
