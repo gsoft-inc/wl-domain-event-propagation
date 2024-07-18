@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
 using Microsoft.ApplicationInsights.Extensibility;
@@ -22,7 +22,7 @@ internal static class TelemetryClientExtensions
         }
         else
         {
-           operation = telemetryClient.StartOperation<DependencyTelemetry>(activityName);
+            operation = telemetryClient.StartOperation<DependencyTelemetry>(activityName);
         }
 
         operation.Telemetry.Type = activityType;

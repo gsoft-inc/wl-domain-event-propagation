@@ -43,9 +43,9 @@ public class EventsApiIntegrationTests : IClassFixture<EventsApiIntegrationTests
             eventType: SystemEventNames.EventGridSubscriptionValidation,
             dataVersion: "1.0",
             data: new BinaryData(subscriptionValidationEventData, serializerOptions))
-            {
-              Topic = EventsApiIntegrationTestsFixture.TestTopic,
-            };
+        {
+            Topic = EventsApiIntegrationTestsFixture.TestTopic,
+        };
 
         // When
         var response = await this._httpClient.PostAsJsonAsync("/eventgrid/domainevents", new[] { eventGridEvent });

@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace Workleap.DomainEventPropagation;
 
@@ -17,7 +17,7 @@ internal static partial class LoggingExtensions
 
     [LoggerMessage(4, LogLevel.Information, "The event with {eventId} {EventName} will be rejected.")]
     public static partial void EventWillBeRejected(this ILogger logger, string eventId, string eventName, Exception ex);
-    
+
     [LoggerMessage(5, LogLevel.Information, "The event with {eventId} {EventName} will be released.")]
     public static partial void EventWillBeReleased(this ILogger logger, string eventId, string eventName, Exception ex);
 

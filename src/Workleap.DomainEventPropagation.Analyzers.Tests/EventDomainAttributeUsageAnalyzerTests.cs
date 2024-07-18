@@ -100,7 +100,7 @@ public class SampleDomainEvent : IDomainEvent
 public class {|WLDEP02:SampleDomainEvent2|} : IDomainEvent
 {    
 }
-"""; 
+""";
 
         // Retrying this test to ensure expected diagnostic by line numbers.
         // We don't know exactly which of the above defined "source" will get
@@ -148,7 +148,7 @@ public class SampleDomainEvent : IDomainEvent
         await this.WithSourceCode(source)
             .RunAsync();
     }
-    
+
     [Theory]
     [InlineData("comsampledomainserviceevent")] // no periods in event name
     [InlineData("com.invalidProduct.domainservice.created")] // invalid product name

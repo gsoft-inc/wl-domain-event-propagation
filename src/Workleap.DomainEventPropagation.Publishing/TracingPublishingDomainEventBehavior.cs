@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using OpenTelemetry;
 using OpenTelemetry.Context.Propagation;
 
@@ -9,7 +9,7 @@ internal sealed class TracingPublishingDomainEventBehavior : IPublishingDomainEv
     public async Task HandleAsync(DomainEventWrapperCollection domainEventWrappers, DomainEventsHandlerDelegate next, CancellationToken cancellationToken)
     {
         var activityName = GetPublishingActivityName(domainEventWrappers);
-        
+
         using var activity = TracingHelper.StartProducerActivity(activityName);
 
         if (activity == null)
@@ -76,7 +76,7 @@ internal sealed class TracingPublishingDomainEventBehavior : IPublishingDomainEv
     {
         activityProperties[key] = value;
     }
-    
+
     private static string GetPublishingActivityName(DomainEventWrapperCollection domainEventWrappers) => domainEventWrappers.DomainSchema switch
     {
         EventSchema.EventGridEvent => TracingHelper.GetEventGridEventsPublisherActivityName(domainEventWrappers.DomainEventName),

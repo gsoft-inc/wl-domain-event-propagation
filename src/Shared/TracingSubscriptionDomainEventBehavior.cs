@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using OpenTelemetry.Context.Propagation;
 
 namespace Workleap.DomainEventPropagation;
@@ -46,7 +46,7 @@ internal sealed class TracingSubscriptionDomainEventBehavior : ISubscriptionDoma
             throw;
         }
     }
-    
+
     private static string GetSubscriptionActivityName(DomainEventWrapper domainEventWrappers) => domainEventWrappers.DomainEventSchema switch
     {
         EventSchema.EventGridEvent => TracingHelper.GetEventGridEventsSubscriberActivityName(domainEventWrappers.DomainEventName),

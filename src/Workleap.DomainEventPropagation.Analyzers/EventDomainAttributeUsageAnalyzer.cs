@@ -27,7 +27,7 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
         defaultSeverity: DiagnosticSeverity.Warning,
         isEnabledByDefault: true,
         helpLinkUri: RuleIdentifiers.HelpUri);
-    
+
     internal static readonly DiagnosticDescriptor FollowNamingConventionAttribute = new DiagnosticDescriptor(
         id: RuleIdentifiers.FollowNamingConventionAttributeValue,
         title: "Follow naming convention in DomainEvent attribute",
@@ -115,7 +115,7 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
             {
                 return;
             }
-            
+
             // Report on the string literal of the DomainEvent attribute name instead of class name.
             var domainEventSyntax = domainEventAttribute.ApplicationSyntaxReference?.GetSyntax(context.CancellationToken);
             if (domainEventSyntax is AttributeSyntax attributeSyntax)
@@ -132,7 +132,7 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
                 }
             }
 
-            context.ReportDiagnostic(FollowNamingConventionAttribute, classTypeSymbol);    
+            context.ReportDiagnostic(FollowNamingConventionAttribute, classTypeSymbol);
         }
 
         private static bool IsEventNameFollowingConvention(string eventName, out string invalidNameReason)
@@ -155,7 +155,7 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
                 invalidNameReason = "The domain event name should not have empty segments.";
                 return false;
             }
-            
+
             if (!AllowedProductNames.Contains(listOfUrlComponents[1]))
             {
                 invalidNameReason = $"The domain event name product field should be part of the product list: [{string.Join(", ", AllowedProductNames)}]";

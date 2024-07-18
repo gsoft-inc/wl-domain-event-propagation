@@ -17,7 +17,7 @@ public class PushDeliveryTests(ITestOutputHelper testOutputHelper)
     private const string LocalUrl = "http://host.testcontainers.internal:5000";
     private const int EventGridId = 1;
     private const int CloudEventId = 2;
-    
+
     [Fact]
     public async Task TestPublishAndReceiveEvent()
     {
@@ -26,10 +26,10 @@ public class PushDeliveryTests(ITestOutputHelper testOutputHelper)
 
         // Enable activity tracking
         using var activityTracker = new InMemoryActivityTracker();
-        
+
         // Start Event Grid Emulator
         await using var eventGridEmulator = await EventGridEmulatorContext.StartAsync(testOutputHelper);
-        
+
         // Configure the publisher and the subscriptions, and start the service
         var host = this.BuildHost(eventGridEmulator.Url);
         var runTask = host.RunAsync(cts.Token); // The method returns when the services are running
@@ -120,7 +120,7 @@ public class PushDeliveryTests(ITestOutputHelper testOutputHelper)
 
             await TestcontainersSettings.ExposeHostPortsAsync(5000);
             var container = BuildContainer(configurationPath);
-            
+
             try
             {
                 await container.StartAsync();
@@ -162,7 +162,7 @@ public class PushDeliveryTests(ITestOutputHelper testOutputHelper)
             {
                 await CliWrap.Cli.Wrap("chmod").WithArguments(["0444", path]).ExecuteAsync();
             }
-            
+
             // For debug purposes only
             testOutputHelper.WriteLine("Write configuration file at: " + path);
             testOutputHelper.WriteLine("Write configuration content: " + await File.ReadAllTextAsync(path));
@@ -182,7 +182,7 @@ public class PushDeliveryTests(ITestOutputHelper testOutputHelper)
                      }
                      """;
         }
-        
+
         public async ValueTask DisposeAsync()
         {
             await container.DisposeAsync();

@@ -26,7 +26,7 @@ internal sealed class DomainEventWrapperCollection : IReadOnlyCollection<DomainE
         where T : IDomainEvent
     {
         var domainEventWrappers = domainEvents.Select(DomainEventWrapper.Wrap).ToArray();
-        
+
         return new DomainEventWrapperCollection(domainEventWrappers, configureDomainEventMetadata, DomainEventNameCache.GetName<T>(), DomainEventSchemaCache.GetEventSchema<T>());
     }
 

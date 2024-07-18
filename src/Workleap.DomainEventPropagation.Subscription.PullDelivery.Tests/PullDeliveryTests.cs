@@ -105,7 +105,7 @@ public class PullDeliveryTests(ITestOutputHelper testOutputHelper)
     {
         var channel = host.Services.GetRequiredService<Channel<ITestEvent>>();
         var result = new ITestEvent[count];
-        for (int i = 0; i < result.Length; i++)
+        for (var i = 0; i < result.Length; i++)
         {
             result[i] = await channel.Reader.ReadAsync(cancellationToken);
         }
@@ -115,7 +115,7 @@ public class PullDeliveryTests(ITestOutputHelper testOutputHelper)
 
     private IHost BuildHost(string eventGridUrl)
     {
-        IHostBuilder? builder = Host.CreateDefaultBuilder();
+        var builder = Host.CreateDefaultBuilder();
         builder.ConfigureServices(services =>
         {
             services.AddSingleton(Channel.CreateUnbounded<ITestEvent>());
