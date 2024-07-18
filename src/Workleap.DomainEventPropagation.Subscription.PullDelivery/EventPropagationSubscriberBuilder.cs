@@ -51,7 +51,7 @@ internal sealed class EventPropagationSubscriberBuilder : IEventPropagationSubsc
             .Configure<IConfiguration>((opt, cfg) => BindFromWellKnownConfigurationSection(opt, cfg, optionsSectionName))
             .Configure(configureOptions);
 
-        this.Services.AddTransient<EventGridClientDescriptor>(sp => new EventGridClientDescriptor(optionsSectionName));
+        this.Services.AddTransient(sp => new EventGridClientDescriptor(optionsSectionName));
         this.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<EventPropagationSubscriptionOptions>, EventPropagationSubscriptionOptionsValidator>());
 
         this.Services.AddAzureClients(builder =>
@@ -135,7 +135,7 @@ internal sealed class EventPropagationSubscriberBuilder : IEventPropagationSubsc
         {
             return;
         }
-        
+
         var sb = new StringBuilder();
         sb.AppendLine("Found duplicates handlers in assembly :");
         foreach (var group in groupsWithDuplicates)

@@ -14,7 +14,7 @@ internal static class EventsApi
     {
         var events = await BinaryData.FromStreamAsync(request.Body, cancellationToken).ConfigureAwait(false);
 
-        EventGridRequestResult? result = null;
+        EventGridRequestResult? result;
 
         if (TryParseMany(events, out EventGridEvent[] eventGridEvents))
         {

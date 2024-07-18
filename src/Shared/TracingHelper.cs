@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
@@ -18,7 +18,7 @@ internal static class TracingHelper
     // https://github.com/open-telemetry/opentelemetry-specification/blob/v1.18.0/specification/trace/semantic_conventions/cloudevents.md#conventions
     internal const string EventGridEventsPublisherActivityType = "EventGridEvents create";
     internal const string EventGridEventsSubscriberActivityType = "EventGridEvents process";
-    
+
     // https://github.com/open-telemetry/opentelemetry-specification/blob/v1.18.0/specification/trace/semantic_conventions/cloudevents.md#conventions
     internal const string CloudEventsPublisherActivityType = "CloudEvents create";
     internal const string CloudEventsSubscriberActivityType = "CloudEvents process";
@@ -67,7 +67,7 @@ internal static class TracingHelper
     internal static string GetEventGridEventsPublisherActivityName(string eventType) => $"{EventGridEventsPublisherActivityType} {eventType}";
 
     internal static string GetEventGridEventsSubscriberActivityName(string eventType) => $"{EventGridEventsSubscriberActivityType} {eventType}";
-    
+
     internal static string GetCloudEventsPublisherActivityName(string eventType) => $"{CloudEventsPublisherActivityType} {eventType}";
 
     internal static string GetCloudEventsSubscriberActivityName(string eventType) => $"{CloudEventsSubscriberActivityType} {eventType}";

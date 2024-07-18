@@ -1,4 +1,4 @@
-﻿using Azure;
+using Azure;
 using Azure.Core;
 using Azure.Messaging.EventGrid;
 using Azure.Messaging.EventGrid.Namespaces;
@@ -59,7 +59,7 @@ internal sealed class EventPropagationPublisherBuilder : IEventPropagationPublis
             ? new EventGridPublisherClient(topicEndpointUri, publisherOptions.TokenCredential, clientOptions)
             : new EventGridPublisherClient(topicEndpointUri, new AzureKeyCredential(publisherOptions.TopicAccessKey), clientOptions);
     }
-    
+
     private static EventGridClient EventGridClientFactory(EventGridClientOptions clientOptions, IServiceProvider serviceProvider)
     {
         var publisherOptions = serviceProvider.GetRequiredService<IOptions<EventPropagationPublisherOptions>>().Value;

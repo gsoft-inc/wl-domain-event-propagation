@@ -69,7 +69,7 @@ internal sealed class EventGridRequestHandler : IEventGridRequestHandler
         var response = this._subscriptionEventGridWebhookHandler.HandleEventGridSubscriptionEvent(subscriptionValidationEventData);
         return new EventGridRequestResult(EventGridRequestType.Subscription, response);
     }
-    
+
     // Events that our services send
     private async Task ProcessDomainEventAsync(EventGridEvent eventGridEvent, CancellationToken cancellationToken)
     {

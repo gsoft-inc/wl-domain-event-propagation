@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Azure.Messaging;
 using Azure.Messaging.EventGrid;
@@ -57,7 +57,7 @@ internal sealed class DomainEventWrapper
     {
         return this.Data.Deserialize(returnType, JsonSerializerConstants.DomainEventSerializerOptions) ?? throw new ArgumentException("The event cannot be deserialized from JSON");
     }
-    
+
     public BinaryData ToBinaryData() => BinaryData.FromObjectAsJson(this.Data);
 
     public static DomainEventWrapper Wrap<T>(T domainEvent)

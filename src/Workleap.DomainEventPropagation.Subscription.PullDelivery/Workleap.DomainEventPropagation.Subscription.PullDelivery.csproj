@@ -17,8 +17,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Azure.Identity" Version="1.11.4" />
-    <PackageReference Include="Azure.Core" Version="1.38.0" />
+    <PackageReference Include="Azure.Identity" Version="1.12.0" />
+    <PackageReference Include="Azure.Core" Version="1.41.0" />
     <PackageReference Include="Azure.Messaging.EventGrid" Version="4.22.0-beta.1" />
     <PackageReference Include="Microsoft.Extensions.Azure" Version="1.6.3" />
     <PackageReference Include="Microsoft.CodeAnalysis.PublicApiAnalyzers" Version="3.3.4">
@@ -47,10 +47,10 @@
     <Compile Include="..\Shared\BaseEventHandler.cs" Link="Shared\BaseEventHandler.cs" />
     <Compile Include="..\Shared\AssemblyHelper.cs" Link="Shared\AssemblyHelper.cs" />
     <Compile Include="..\Shared\ISubscriptionDomainEventBehavior.cs" Link="Shared\ISubscriptionDomainEventBehavior.cs" />
-    <Compile Include="..\Shared\JsonSerializerConstants.cs" Link="Shared\JsonSerializerConstants.cs"/>
+    <Compile Include="..\Shared\JsonSerializerConstants.cs" Link="Shared\JsonSerializerConstants.cs" />
     <Compile Include="..\Shared\ServiceCollectionExtensions.cs" Link="Shared\ServiceCollectionExtensions.cs" />
     <Compile Include="..\Shared\LoggingExtensions.cs" Link="Shared\LoggingExtensions.cs" />
-    <Compile Include="..\Shared\TracingHelper.cs" Link="Shared\TracingHelper.cs"/>
+    <Compile Include="..\Shared\TracingHelper.cs" Link="Shared\TracingHelper.cs" />
     <Compile Include="..\Shared\TracingSubscriptionDomainEventBehavior.cs" Link="Shared\TracingSubscriptionDomainEventBehavior.cs" />
   </ItemGroup>
 

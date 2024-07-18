@@ -117,7 +117,7 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
 
         // Then
         Assert.Equal(2, clientDescriptors.Length);
-        
+
         Assert.True(clientDescriptors.Select(d => d.Name).SequenceEqual([sectionName1, sectionName2]));
     }
 
