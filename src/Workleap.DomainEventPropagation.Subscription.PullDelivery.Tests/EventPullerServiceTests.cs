@@ -93,7 +93,7 @@ public class EventPullerServiceTests : IDisposable
     public async Task GivenMultipleEventsReceivedWithCustomRetryDelays_WhenHandleThrowUnhandledException_ThenEventsAreReleasedWithDelay()
     {
         // Given
-        var client = this.GivenClient(options: GenerateOptions(retryDelays: [1, 2, 4, 8]));
+        var client = this.GivenClient(options: GenerateOptions(retryDelays: [TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(4), TimeSpan.FromSeconds(8)]));
         var events = this.GivenEventsForClient(client, GenerateEvent(), GenerateEvent(deliveryCount: 3), GenerateEvent(deliveryCount: 4), GenerateEvent(deliveryCount: 5));
         this.GivenClientFailsHandlingEvents(client);
 
@@ -152,8 +152,8 @@ public class EventPullerServiceTests : IDisposable
         A.CallTo(() => client.AcknowledgeCloudEventsAsync(A<string>._, A<string>._, A<IEnumerable<string>>._, A<CancellationToken>._))
             .Invokes(x => this.OnEventCompleted(eventHandlingResults.AcknowledgedEvents, x.GetArgument<IEnumerable<string>>(2)!));
 
-        A.CallTo(() => client.ReleaseCloudEventsAsync(A<string>._, A<string>._, A<IEnumerable<string>>._, A<int>._, A<CancellationToken>._))
-            .Invokes(x => this.OnEventCompleted(eventHandlingResults.ReleasedEvents, x.GetArgument<IEnumerable<string>>(2)!.Select(y => (y, x.GetArgument<int>(3)))));
+        A.CallTo(() => client.ReleaseCloudEventsAsync(A<string>._, A<string>._, A<IEnumerable<string>>._, A<TimeSpan>._, A<CancellationToken>._))
+            .Invokes(x => this.OnEventCompleted(eventHandlingResults.ReleasedEvents, x.GetArgument<IEnumerable<string>>(2)!.Select(y => (y, x.GetArgument<TimeSpan>(3)))));
 
         A.CallTo(() => client.RejectCloudEventsAsync(A<string>._, A<string>._, A<IEnumerable<string>>._, A<CancellationToken>._))
             .Invokes(x => this.OnEventCompleted(eventHandlingResults.RejectedEvents, x.GetArgument<IEnumerable<string>>(2)!));
@@ -241,7 +241,7 @@ public class EventPullerServiceTests : IDisposable
         {
             if (client.Options.RetryDelays == null)
             {
-                Assert.Contains(client.EventHandlingResult.ReleasedEvents, x => x.LockToken == eventBundle.LockToken && x.ReleaseDelay == (int)Math.Pow(2, eventBundle.DeliveryCount - 1));
+                Assert.Contains(client.EventHandlingResult.ReleasedEvents, x => x.LockToken == eventBundle.LockToken && x.ReleaseDelay == TimeSpan.FromSeconds((int)Math.Pow(2, eventBundle.DeliveryCount - 1)));
             }
             else
             {
@@ -256,7 +256,7 @@ public class EventPullerServiceTests : IDisposable
         Assert.True(events.All(x => client.EventHandlingResult.RejectedEvents.Contains(x.LockToken)));
     }
 
-    private static EventPropagationSubscriptionOptions GenerateOptions(string id = "id", int[]? retryDelays = null)
+    private static EventPropagationSubscriptionOptions GenerateOptions(string id = "id", TimeSpan[]? retryDelays = null)
     {
         return new EventPropagationSubscriptionOptions
         {
@@ -289,5 +289,5 @@ public class EventPullerServiceTests : IDisposable
 
     internal sealed record EventPullerClient(string Name, IEventGridClientAdapter Client, ICloudEventHandler EventHandler, EventPropagationSubscriptionOptions Options, EventHandlingResult EventHandlingResult);
 
-    internal sealed record EventHandlingResult(List<string> AcknowledgedEvents, List<(string LockToken, int ReleaseDelay)> ReleasedEvents, List<string> RejectedEvents);
+    internal sealed record EventHandlingResult(List<string> AcknowledgedEvents, List<(string LockToken, TimeSpan ReleaseDelay)> ReleasedEvents, List<string> RejectedEvents);
 }

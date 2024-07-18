@@ -14,7 +14,7 @@ Workleap.DomainEventPropagation.EventPropagationSubscriptionOptions.TopicName.ge
 Workleap.DomainEventPropagation.EventPropagationSubscriptionOptions.TopicName.set -> void
 Workleap.DomainEventPropagation.EventPropagationSubscriptionOptions.MaxDegreeOfParallelism.get -> int
 Workleap.DomainEventPropagation.EventPropagationSubscriptionOptions.MaxDegreeOfParallelism.set -> void
-Workleap.DomainEventPropagation.EventPropagationSubscriptionOptions.RetryDelays.get -> System.Collections.Generic.IReadOnlyCollection<int>?
+Workleap.DomainEventPropagation.EventPropagationSubscriptionOptions.RetryDelays.get -> System.Collections.Generic.IReadOnlyCollection<System.TimeSpan>?
 Workleap.DomainEventPropagation.EventPropagationSubscriptionOptions.RetryDelays.set -> void
 Workleap.DomainEventPropagation.EventPropagationSubscriptionOptionsValidator
 Workleap.DomainEventPropagation.EventPropagationSubscriptionOptionsValidator.EventPropagationSubscriptionOptionsValidator() -> void

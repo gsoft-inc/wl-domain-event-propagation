@@ -48,6 +48,9 @@ internal sealed class EventPullerService : BackgroundService
         private readonly ILogger<EventPullerService> _logger;
         private readonly EventGridTopicSubscription _eventGridTopicSubscription;
 
+        private readonly Dictionary<int, TimeSpan>? _retryDelays;
+        private readonly TimeSpan? _defaultDelay;
+
         private readonly Channel<EventBundle> _acknowledgeEventChannel = Channel.CreateBounded<EventBundle>(OutputChannelSize);
         private readonly Channel<EventBundle> _releaseEventChannel = Channel.CreateBounded<EventBundle>(OutputChannelSize);
         private readonly Channel<EventBundle> _rejectEventChannel = Channel.CreateBounded<EventBundle>(OutputChannelSize);
@@ -63,6 +66,15 @@ internal sealed class EventPullerService : BackgroundService
             this._serviceScopeFactory = serviceScopeFactory;
             this._logger = logger;
             this._eventGridTopicSubscription = eventGridTopicSubscription;
+
+            if (eventGridTopicSubscription.RetryDelays != null)
+            {
+                this._retryDelays = eventGridTopicSubscription.RetryDelays
+                    .Select((x, index) => new { DeliveryCount = index + 1, Delay = x })
+                    .ToDictionary(x => x.DeliveryCount, x => x.Delay);
+
+                this._defaultDelay = eventGridTopicSubscription.RetryDelays.Last();
+            }
         }
 
         public Task StartReceivingEventsAsync(CancellationToken cancellationToken)
@@ -212,16 +224,9 @@ internal sealed class EventPullerService : BackgroundService
             }
         }
 
-        private int GetReleaseDelay(int deliveryCount)
+        private TimeSpan GetReleaseDelay(int deliveryCount)
         {
-            if (this._eventGridTopicSubscription.RetryDelays == null)
-            {
-                return (int)Math.Min(Math.Pow(2, deliveryCount - 1), int.MaxValue);
-            }
-
-            return deliveryCount - 1 < this._eventGridTopicSubscription.RetryDelays.Count
-                ? this._eventGridTopicSubscription.RetryDelays[deliveryCount - 1]
-                : this._eventGridTopicSubscription.RetryDelays.Last();
+            return this._retryDelays?.GetValueOrDefault(deliveryCount, this._defaultDelay!.Value) ?? TimeSpan.FromSeconds((int)Math.Min(Math.Pow(2, deliveryCount - 1), int.MaxValue));
         }
 
         private static IEnumerable<EventBundle> ReadCurrentContent(Channel<EventBundle> channel)
@@ -241,5 +246,5 @@ internal sealed class EventPullerService : BackgroundService
         }
     }
 
-    private record EventGridTopicSubscription(string TopicName, string SubscriptionName, int MaxHandlerDop, List<int>? RetryDelays, IEventGridClientAdapter Client);
+    private record EventGridTopicSubscription(string TopicName, string SubscriptionName, int MaxHandlerDop, List<TimeSpan>? RetryDelays, IEventGridClientAdapter Client);
 }

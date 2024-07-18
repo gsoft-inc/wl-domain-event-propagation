@@ -26,9 +26,9 @@ internal sealed class EventGridClientAdapter : IEventGridClientAdapter
         return this._adaptee.AcknowledgeCloudEventsAsync(topicName, eventSubscriptionName, new AcknowledgeOptions(lockTokens), cancellationToken);
     }
 
-    public Task ReleaseCloudEventsAsync(string topicName, string eventSubscriptionName, IEnumerable<string> lockTokens, int releaseDelayInSeconds, CancellationToken cancellationToken)
+    public Task ReleaseCloudEventsAsync(string topicName, string eventSubscriptionName, IEnumerable<string> lockTokens, TimeSpan releaseDelay, CancellationToken cancellationToken)
     {
-        return this._adaptee.ReleaseCloudEventsAsync(topicName, eventSubscriptionName, new ReleaseOptions(lockTokens), releaseDelayInSeconds, cancellationToken);
+        return this._adaptee.ReleaseCloudEventsAsync(topicName, eventSubscriptionName, new ReleaseOptions(lockTokens), releaseDelay.Seconds, cancellationToken);
     }
 
     public Task RejectCloudEventsAsync(string topicName, string eventSubscriptionName, IEnumerable<string> lockTokens, CancellationToken cancellationToken)

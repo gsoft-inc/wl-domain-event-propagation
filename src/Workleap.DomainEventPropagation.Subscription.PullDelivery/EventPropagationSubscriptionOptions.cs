@@ -18,5 +18,5 @@ public class EventPropagationSubscriptionOptions
 
     public int MaxDegreeOfParallelism { get; set; } = 1;
 
-    public IReadOnlyCollection<int>? RetryDelays { get; set; }
+    public IReadOnlyCollection<TimeSpan>? RetryDelays { get; set; }
 }
