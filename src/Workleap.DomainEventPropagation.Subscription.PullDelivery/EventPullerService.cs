@@ -231,7 +231,7 @@ internal sealed class EventPullerService : BackgroundService
 
         private static IEnumerable<EventBundle> ReadCurrentContent(Channel<EventBundle> channel)
         {
-            var maxResultCount = channel.Reader.Count;
+            var maxResultCount = Math.Min(channel.Reader.Count, MaxEventRequestSize);
             var resultCounter = 0;
 
             while (channel.Reader.TryRead(out var result))
