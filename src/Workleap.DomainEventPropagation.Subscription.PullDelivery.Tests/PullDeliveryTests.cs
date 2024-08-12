@@ -233,7 +233,7 @@ public class PullDeliveryTests(ITestOutputHelper testOutputHelper)
         private static IContainer BuildContainer(string configurationPath)
         {
             return new ContainerBuilder()
-                .WithImage("workleap/eventgridemulator:0.3.0")
+                .WithImage("workleap/eventgridemulator:0.4.1")
                 .WithPortBinding(EmulatorPort, assignRandomHostPort: true)
                 .WithBindMount(configurationPath, "/app/appsettings.json", AccessMode.ReadOnly)
                 .WithWaitStrategy(Wait.ForUnixContainer().UntilPortIsAvailable(EmulatorPort))
