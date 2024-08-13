@@ -37,6 +37,11 @@
       "enabled": false
     },
     {
+      "matchManagers": ["nuget"],
+      "matchPackageNames": ["Azure.Messaging.EventGrid"],
+      "groupName": "NuGet Azure.Messaging.EventGrid"
+    },
+    {
       "matchPackageNames": ["dotnet-sdk"],
       "groupName": "Dotnet SDK",
       "description": "Only update patch and minor for the dotnet SDK version within the global.json",
