@@ -42,7 +42,8 @@ internal sealed class EventPullerService : BackgroundService
     private class EventGridSubscriptionEventPuller
     {
         // At the moment the Release api only supports these delays
-        private static readonly List<TimeSpan> SupportedReleaseDelays = [TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(600), TimeSpan.FromSeconds(3600)];
+        // See https://learn.microsoft.com/en-us/dotnet/api/azure.messaging.eventgrid.namespaces.eventgridclient.releasecloudeventsasync?view=azure-dotnet-preview#azure-messaging-eventgrid-namespaces-eventgridclient-releasecloudeventsasync(system-string-system-string-azure-core-requestcontent-system-nullable((system-int32))-azure-requestcontext)
+        private static readonly TimeSpan[] SupportedReleaseDelays = [TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(600), TimeSpan.FromSeconds(3600)];
 
         private const int OutputChannelSize = 5000;
         private const int MaxEventRequestSize = 100;

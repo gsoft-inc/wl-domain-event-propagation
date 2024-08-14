@@ -12,7 +12,7 @@ namespace Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests;
 
 public class EventPullerServiceTests : IDisposable
 {
-    private static readonly List<TimeSpan> SupportedReleaseDelays = [TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(600), TimeSpan.FromSeconds(3600)];
+    private static readonly TimeSpan[] SupportedReleaseDelays = [TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(600), TimeSpan.FromSeconds(3600)];
 
     private readonly List<EventPullerClient> _clients = [];
     private readonly IServiceScopeFactory _scopeFactory;
