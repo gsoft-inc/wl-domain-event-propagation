@@ -11,6 +11,7 @@ namespace Workleap.DomainEventPropagation;
 /// </summary>
 internal sealed class EventPropagationClient : IEventPropagationClient
 {
+    private const int EventGridMaxEventsPerBatch = 1000;
     private const string DomainEventDefaultVersion = "1.0";
 
     private readonly EventPropagationPublisherOptions _eventPropagationPublisherOptions;
@@ -94,7 +95,7 @@ internal sealed class EventPropagationClient : IEventPropagationClient
         };
     }
 
-    private Task SendEventGridEvents(
+    private async Task SendEventGridEvents(
         DomainEventWrapperCollection domainEventWrappers,
         CancellationToken cancellationToken)
     {
@@ -105,15 +106,23 @@ internal sealed class EventPropagationClient : IEventPropagationClient
             dataVersion: DomainEventDefaultVersion,
             data: new BinaryData(wrapper.Data)));
 
-        return topicType switch
+        switch (topicType)
         {
-            TopicType.Custom => this._eventGridPublisherClient.SendEventsAsync(eventGridEvents, cancellationToken),
-            TopicType.Namespace => throw new NotSupportedException("Cannot send EventGridEvents to a namespace topic"),
-            _ => throw new NotSupportedException($"Topic type {topicType} is not supported"),
-        };
+            case TopicType.Custom:
+                break;
+            case TopicType.Namespace:
+                throw new NotSupportedException("Cannot send EventGridEvents to a namespace topic");
+            default:
+                throw new NotSupportedException($"Topic type {topicType} is not supported");
+        }
+
+        foreach (var eventBatch in Chunk(eventGridEvents, EventGridMaxEventsPerBatch))
+        {
+            await this._eventGridPublisherClient.SendEventsAsync(eventBatch, cancellationToken).ConfigureAwait(false);
+        }
     }
 
-    private Task SendCloudEvents(
+    private async Task SendCloudEvents(
         DomainEventWrapperCollection domainEventWrappers,
         CancellationToken cancellationToken)
     {
@@ -133,8 +142,33 @@ internal sealed class EventPropagationClient : IEventPropagationClient
 
         var topicName = this._eventPropagationPublisherOptions.TopicName;
 
-        return this._eventPropagationPublisherOptions.TopicType is TopicType.Namespace
-            ? this._eventGridNamespaceClient.PublishCloudEventsAsync(topicName, cloudEvents, cancellationToken)
-            : this._eventGridPublisherClient.SendEventsAsync(cloudEvents, cancellationToken);
+        foreach (var eventBatch in Chunk(cloudEvents, EventGridMaxEventsPerBatch))
+        {
+            var publishingTask = (Task)(this._eventPropagationPublisherOptions.TopicType is TopicType.Namespace
+                ? this._eventGridNamespaceClient.PublishCloudEventsAsync(topicName, eventBatch, cancellationToken)
+                : this._eventGridPublisherClient.SendEventsAsync(eventBatch, cancellationToken));
+
+            await publishingTask.ConfigureAwait(false);
+        }
+    }
+
+    private static IEnumerable<List<T>> Chunk<T>(IEnumerable<T> source, int chunkSize)
+    {
+        var chunk = new List<T>(chunkSize);
+
+        foreach (var item in source)
+        {
+            chunk.Add(item);
+            if (chunk.Count == chunkSize)
+            {
+                yield return chunk;
+                chunk = new List<T>(chunkSize);
+            }
+        }
+
+        if (chunk.Any())
+        {
+            yield return chunk;
+        }
     }
 }

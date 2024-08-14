@@ -163,6 +163,48 @@ public class EventPropagationClientForCustomTopicTests() : EventPropagationClien
     }
 
     [Fact]
+    public async Task GivenManyEventGridEvents_WhenPublishEvent_ThenCallsPropagationClientInBatches()
+    {
+        // Given
+        var domainEvents = Enumerable.Range(1, 1500).Select(x => new TestEventGridEvent { Text = "Hello world", Number = x });
+
+        // When
+        await this.EventPropagationClient.PublishDomainEventsAsync(domainEvents, CancellationToken.None);
+
+        // Then
+        A.CallTo(() => this.EventGridPublisherClient.SendEventsAsync(
+                A<IEnumerable<EventGridEvent>>.That.Matches(events => events.Count() == 1000),
+                A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
+
+        A.CallTo(() => this.EventGridPublisherClient.SendEventsAsync(
+                A<IEnumerable<EventGridEvent>>.That.Matches(events => events.Count() == 500),
+                A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
+    }
+
+    [Fact]
+    public async Task GivenManyCloudEvents_WhenPublishEvent_ThenCallsPropagationClientInBatches()
+    {
+        // Given
+        var domainEvents = Enumerable.Range(1, 1500).Select(x => new TestCloudEvent { Text = "Hello world", Number = x });
+
+        // When
+        await this.EventPropagationClient.PublishDomainEventsAsync(domainEvents, CancellationToken.None);
+
+        // Then
+        A.CallTo(() => this.EventGridPublisherClient.SendEventsAsync(
+                A<IEnumerable<CloudEvent>>.That.Matches(events => events.Count() == 1000),
+                A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
+
+        A.CallTo(() => this.EventGridPublisherClient.SendEventsAsync(
+                A<IEnumerable<CloudEvent>>.That.Matches(events => events.Count() == 500),
+                A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
+    }
+
+    [Fact]
     public async Task GivenEventGridEvent_WhenPublishEventWithMetadataConfiguration_ThenThrowsException()
     {
         // Given
@@ -250,6 +292,29 @@ public class EventPropagationClientForNamespaceTopicTests() : EventPropagationCl
                 A<IEnumerable<CloudEvent>>.That.Matches(events => IsSingleCloudEvent(events)),
                 A<CancellationToken>._))
             .MustHaveHappened();
+    }
+
+    [Fact]
+    public async Task GivenManyCloudEvents_WhenPublishEvent_ThenCallsPropagationClientInBatches()
+    {
+        // Given
+        var domainEvents = Enumerable.Range(1, 1500).Select(x => new TestCloudEvent { Text = "Hello world", Number = x });
+
+        // When
+        await this.EventPropagationClient.PublishDomainEventsAsync(domainEvents, CancellationToken.None);
+
+        // Then
+        A.CallTo(() => this.EventGridClient.PublishCloudEventsAsync(
+                TopicName,
+                A<IEnumerable<CloudEvent>>.That.Matches(events => events.Count() == 1000),
+                A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
+
+        A.CallTo(() => this.EventGridClient.PublishCloudEventsAsync(
+                TopicName,
+                A<IEnumerable<CloudEvent>>.That.Matches(events => events.Count() == 500),
+                A<CancellationToken>._))
+            .MustHaveHappenedOnceExactly();
     }
 
     [Fact]
