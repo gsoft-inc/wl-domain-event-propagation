@@ -118,7 +118,7 @@ internal sealed class EventPropagationClient : IEventPropagationClient
 
         foreach (var eventBatch in Chunk(eventGridEvents, EventGridMaxEventsPerBatch))
         {
-            await this._eventGridPublisherClient.SendEventsAsync(eventBatch, cancellationToken);
+            await this._eventGridPublisherClient.SendEventsAsync(eventBatch, cancellationToken).ConfigureAwait(false);
         }
     }
 
@@ -144,9 +144,11 @@ internal sealed class EventPropagationClient : IEventPropagationClient
 
         foreach (var eventBatch in Chunk(cloudEvents, EventGridMaxEventsPerBatch))
         {
-            await (Task)(this._eventPropagationPublisherOptions.TopicType is TopicType.Namespace
+            var publishingTask = (Task)(this._eventPropagationPublisherOptions.TopicType is TopicType.Namespace
                 ? this._eventGridNamespaceClient.PublishCloudEventsAsync(topicName, eventBatch, cancellationToken)
                 : this._eventGridPublisherClient.SendEventsAsync(eventBatch, cancellationToken));
+
+            await publishingTask.ConfigureAwait(false);
         }
     }
 
