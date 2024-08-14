@@ -12,6 +12,8 @@ namespace Workleap.DomainEventPropagation.Subscription.PullDelivery.Tests;
 
 public class EventPullerServiceTests : IDisposable
 {
+    private static readonly List<TimeSpan> SupportedReleaseDelays = [TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(600), TimeSpan.FromSeconds(3600)];
+
     private readonly List<EventPullerClient> _clients = [];
     private readonly IServiceScopeFactory _scopeFactory;
     private readonly IEventGridClientWrapperFactory _eventGridClientWrapperFactory;
@@ -93,7 +95,7 @@ public class EventPullerServiceTests : IDisposable
     public async Task GivenMultipleEventsReceivedWithCustomRetryDelays_WhenHandleThrowUnhandledException_ThenEventsAreReleasedWithDelay()
     {
         // Given
-        var client = this.GivenClient(options: GenerateOptions(retryDelays: [TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(4), TimeSpan.FromSeconds(8)]));
+        var client = this.GivenClient(options: GenerateOptions(retryDelays: [TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(75)]));
         var events = this.GivenEventsForClient(client, GenerateEvent(), GenerateEvent(deliveryCount: 3), GenerateEvent(deliveryCount: 4), GenerateEvent(deliveryCount: 5));
         this.GivenClientFailsHandlingEvents(client);
 
@@ -241,11 +243,14 @@ public class EventPullerServiceTests : IDisposable
         {
             if (client.Options.RetryDelays == null)
             {
-                Assert.Contains(client.EventHandlingResult.ReleasedEvents, x => x.LockToken == eventBundle.LockToken && x.ReleaseDelay == TimeSpan.FromSeconds((int)Math.Pow(2, eventBundle.DeliveryCount - 1)));
+                var intendedDelay = TimeSpan.FromSeconds((int)Math.Pow(2, eventBundle.DeliveryCount - 1));
+                var expectedDelay = SupportedReleaseDelays.FirstOrDefault(x => intendedDelay <= x, SupportedReleaseDelays.Last());
+                Assert.Contains(client.EventHandlingResult.ReleasedEvents, x => x.LockToken == eventBundle.LockToken && x.ReleaseDelay == expectedDelay);
             }
             else
             {
-                var expectedDelay = eventBundle.DeliveryCount - 1 < client.Options.RetryDelays.Count ? client.Options.RetryDelays.ElementAt(eventBundle.DeliveryCount - 1) : client.Options.RetryDelays.Last();
+                var intendedDelay = eventBundle.DeliveryCount - 1 < client.Options.RetryDelays.Count ? client.Options.RetryDelays.ElementAt(eventBundle.DeliveryCount - 1) : client.Options.RetryDelays.Last();
+                var expectedDelay = SupportedReleaseDelays.FirstOrDefault(x => intendedDelay <= x, SupportedReleaseDelays.Last());
                 Assert.Contains(client.EventHandlingResult.ReleasedEvents, x => x.LockToken == eventBundle.LockToken && x.ReleaseDelay == expectedDelay);
             }
         }
