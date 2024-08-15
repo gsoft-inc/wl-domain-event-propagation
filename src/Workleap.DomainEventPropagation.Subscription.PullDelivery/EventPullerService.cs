@@ -41,6 +41,10 @@ internal sealed class EventPullerService : BackgroundService
 
     private class EventGridSubscriptionEventPuller
     {
+        // At the moment the Release api only supports these delays
+        // See https://learn.microsoft.com/en-us/dotnet/api/azure.messaging.eventgrid.namespaces.eventgridclient.releasecloudeventsasync?view=azure-dotnet-preview#azure-messaging-eventgrid-namespaces-eventgridclient-releasecloudeventsasync(system-string-system-string-azure-core-requestcontent-system-nullable((system-int32))-azure-requestcontext)
+        private static readonly TimeSpan[] SupportedReleaseDelays = [TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(60), TimeSpan.FromSeconds(600), TimeSpan.FromSeconds(3600)];
+
         private const int OutputChannelSize = 5000;
         private const int MaxEventRequestSize = 100;
 
@@ -226,7 +230,8 @@ internal sealed class EventPullerService : BackgroundService
 
         private TimeSpan GetReleaseDelay(int deliveryCount)
         {
-            return this._retryDelays?.GetValueOrDefault(deliveryCount, this._defaultDelay!.Value) ?? TimeSpan.FromSeconds((int)Math.Min(Math.Pow(2, deliveryCount - 1), int.MaxValue));
+            var delay = this._retryDelays?.GetValueOrDefault(deliveryCount, this._defaultDelay!.Value) ?? TimeSpan.FromSeconds((int)Math.Min(Math.Pow(2, deliveryCount - 1), int.MaxValue));
+            return SupportedReleaseDelays.FirstOrDefault(x => delay <= x, SupportedReleaseDelays.Last());
         }
 
         private static IEnumerable<EventBundle> ReadCurrentContent(Channel<EventBundle> channel)
