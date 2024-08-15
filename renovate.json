@@ -38,7 +38,7 @@
     },
     {
       "matchManagers": ["nuget"],
-      "matchPackageNames": ["Azure.Messaging.EventGrid"],
+      "matchPackageNames": ["Azure.Messaging.EventGrid", "Azure.Messaging.EventGrid.Namespaces"],
       "groupName": "NuGet Azure.Messaging.EventGrid"
     },
     {
