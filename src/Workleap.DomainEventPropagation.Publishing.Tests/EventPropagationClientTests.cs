@@ -15,8 +15,8 @@ public abstract class EventPropagationClientTests
 
     internal readonly EventGridPublisherClient EventGridPublisherClient = A.Fake<EventGridPublisherClient>();
     internal readonly IAzureClientFactory<EventGridPublisherClient> EventGridPublisherClientFactory = A.Fake<IAzureClientFactory<EventGridPublisherClient>>();
-    internal readonly EventGridClient EventGridClient = A.Fake<EventGridClient>();
-    internal readonly IAzureClientFactory<EventGridClient> EventGridClientFactory = A.Fake<IAzureClientFactory<EventGridClient>>();
+    internal readonly EventGridSenderClient EventGridClient = A.Fake<EventGridSenderClient>();
+    internal readonly IAzureClientFactory<EventGridSenderClient> EventGridClientFactory = A.Fake<IAzureClientFactory<EventGridSenderClient>>();
     internal readonly EventPropagationClient EventPropagationClient;
 
     private readonly IOptions<EventPropagationPublisherOptions> _publisherOptions;
@@ -287,8 +287,7 @@ public class EventPropagationClientForNamespaceTopicTests() : EventPropagationCl
         await this.EventPropagationClient.PublishDomainEventAsync(domainEvent, CancellationToken.None);
 
         // Then
-        A.CallTo(() => this.EventGridClient.PublishCloudEventsAsync(
-                TopicName,
+        A.CallTo(() => this.EventGridClient.SendAsync(
                 A<IEnumerable<CloudEvent>>.That.Matches(events => IsSingleCloudEvent(events)),
                 A<CancellationToken>._))
             .MustHaveHappened();
@@ -304,14 +303,12 @@ public class EventPropagationClientForNamespaceTopicTests() : EventPropagationCl
         await this.EventPropagationClient.PublishDomainEventsAsync(domainEvents, CancellationToken.None);
 
         // Then
-        A.CallTo(() => this.EventGridClient.PublishCloudEventsAsync(
-                TopicName,
+        A.CallTo(() => this.EventGridClient.SendAsync(
                 A<IEnumerable<CloudEvent>>.That.Matches(events => events.Count() == 1000),
                 A<CancellationToken>._))
             .MustHaveHappenedOnceExactly();
 
-        A.CallTo(() => this.EventGridClient.PublishCloudEventsAsync(
-                TopicName,
+        A.CallTo(() => this.EventGridClient.SendAsync(
                 A<IEnumerable<CloudEvent>>.That.Matches(events => events.Count() == 500),
                 A<CancellationToken>._))
             .MustHaveHappenedOnceExactly();
@@ -327,8 +324,7 @@ public class EventPropagationClientForNamespaceTopicTests() : EventPropagationCl
         await this.EventPropagationClient.PublishDomainEventAsync(domainEvent, x => x.Subject = "Test subject", CancellationToken.None);
 
         // Then
-        A.CallTo(() => this.EventGridClient.PublishCloudEventsAsync(
-                TopicName,
+        A.CallTo(() => this.EventGridClient.SendAsync(
                 A<IEnumerable<CloudEvent>>.That.Matches(events => IsSingleCloudEvent(events) && events.First().Subject == "Test subject"),
                 A<CancellationToken>._))
             .MustHaveHappened();
@@ -339,7 +335,7 @@ public class EventPropagationClientForNamespaceTopicTests() : EventPropagationCl
     {
         // Given
         var domainEvent = new TestCloudEvent { Text = "Hello world", Number = 2 };
-        A.CallTo(() => this.EventGridClient.PublishCloudEventsAsync(PublisherOptions.Value.TopicName, A<IEnumerable<CloudEvent>>._, A<CancellationToken>._)).Throws<Exception>();
+        A.CallTo(() => this.EventGridClient.SendAsync(A<IEnumerable<CloudEvent>>._, A<CancellationToken>._)).Throws<Exception>();
 
         // When
         var exception = await Assert.ThrowsAsync<EventPropagationPublishingException>(async () => await this.EventPropagationClient.PublishDomainEventAsync(domainEvent, CancellationToken.None));

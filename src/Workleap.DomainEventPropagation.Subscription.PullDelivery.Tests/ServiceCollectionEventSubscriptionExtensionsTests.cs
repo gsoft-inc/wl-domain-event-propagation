@@ -129,8 +129,8 @@ public class ServiceCollectionEventSubscriptionExtensionsTests
         const string sectionName1 = "EventPropagation:Sub1";
         const string sectionName2 = "EventPropagation:Sub2";
         GivenConfigurations(services, sectionName1, sectionName2);
-        var fakeClientFactory = A.Fake<IAzureClientFactory<EventGridClient>>();
-        services.Replace(new ServiceDescriptor(typeof(IAzureClientFactory<EventGridClient>), fakeClientFactory));
+        var fakeClientFactory = A.Fake<IAzureClientFactory<EventGridReceiverClient>>();
+        services.Replace(new ServiceDescriptor(typeof(IAzureClientFactory<EventGridReceiverClient>), fakeClientFactory));
         services.AddTransient<ILogger<EventPullerService>, NullLogger<EventPullerService>>();
         services.AddTransient<ILogger<ICloudEventHandler>, NullLogger<ICloudEventHandler>>();
 

@@ -24,6 +24,7 @@ public class TracingBehaviorFixture : BaseUnitFixture
         services.AddOptions<EventPropagationPublisherOptions>()
             .Configure(opt =>
             {
+                opt.TopicName = "TopicName";
                 opt.TopicEndpoint = "http://topic.entpoint";
                 opt.TopicAccessKey = "AccessKey";
             });

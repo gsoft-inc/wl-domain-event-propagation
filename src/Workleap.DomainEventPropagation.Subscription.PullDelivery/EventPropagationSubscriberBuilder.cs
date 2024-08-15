@@ -56,7 +56,7 @@ internal sealed class EventPropagationSubscriberBuilder : IEventPropagationSubsc
 
         this.Services.AddAzureClients(builder =>
         {
-            builder.AddClient<EventGridClient, EventGridClientOptions>((opts, sp) => EventGridClientFactory(opts, sp, optionsSectionName))
+            builder.AddClient<EventGridReceiverClient, EventGridReceiverClientOptions>((opts, sp) => EventGridClientFactory(opts, sp, optionsSectionName))
                 .WithName(optionsSectionName);
         });
 
@@ -106,14 +106,14 @@ internal sealed class EventPropagationSubscriberBuilder : IEventPropagationSubsc
         section.Bind(options);
     }
 
-    private static EventGridClient EventGridClientFactory(EventGridClientOptions eventGridClientOptions, IServiceProvider serviceProvider, string optionsSectionName)
+    private static EventGridReceiverClient EventGridClientFactory(EventGridReceiverClientOptions eventGridClientOptions, IServiceProvider serviceProvider, string optionsSectionName)
     {
         var subscriberOptions = serviceProvider.GetRequiredService<IOptionsMonitor<EventPropagationSubscriptionOptions>>().Get(optionsSectionName);
         var topicEndpointUri = new Uri(subscriberOptions.TopicEndpoint);
 
         return subscriberOptions.TokenCredential is not null
-            ? new EventGridClient(topicEndpointUri, subscriberOptions.TokenCredential, eventGridClientOptions)
-            : new EventGridClient(topicEndpointUri, new AzureKeyCredential(subscriberOptions.TopicAccessKey), eventGridClientOptions);
+            ? new EventGridReceiverClient(topicEndpointUri, subscriberOptions.TopicName, subscriberOptions.SubscriptionName, subscriberOptions.TokenCredential, eventGridClientOptions)
+            : new EventGridReceiverClient(topicEndpointUri, subscriberOptions.TopicName, subscriberOptions.SubscriptionName, new AzureKeyCredential(subscriberOptions.TopicAccessKey), eventGridClientOptions);
     }
 
     private void EnsureAtLeastOneSubscriberExists()

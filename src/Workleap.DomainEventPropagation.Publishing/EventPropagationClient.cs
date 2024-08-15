@@ -17,7 +17,7 @@ internal sealed class EventPropagationClient : IEventPropagationClient
     private readonly EventPropagationPublisherOptions _eventPropagationPublisherOptions;
     private readonly DomainEventsHandlerDelegate _pipeline;
     private readonly EventGridPublisherClient _eventGridPublisherClient;
-    private readonly EventGridClient _eventGridNamespaceClient;
+    private readonly EventGridSenderClient _eventGridNamespaceClient;
 
     /// <summary>
     /// To support Namespace topic, we need to use the following EventGridClient https://github.com/Azure/azure-sdk-for-net/blob/Azure.Messaging.EventGrid_4.17.0-beta.1/sdk/eventgrid/Azure.Messaging.EventGridV2/src/Generated/EventGridClient.cs
@@ -25,7 +25,7 @@ internal sealed class EventPropagationClient : IEventPropagationClient
     /// </summary>
     public EventPropagationClient(
         IAzureClientFactory<EventGridPublisherClient> eventGridPublisherClientFactory,
-        IAzureClientFactory<EventGridClient> eventGridClientFactory,
+        IAzureClientFactory<EventGridSenderClient> eventGridClientFactory,
         IOptions<EventPropagationPublisherOptions> eventPropagationPublisherOptions,
         IEnumerable<IPublishingDomainEventBehavior> publishingDomainEventBehaviors)
     {
@@ -145,7 +145,7 @@ internal sealed class EventPropagationClient : IEventPropagationClient
         foreach (var eventBatch in Chunk(cloudEvents, EventGridMaxEventsPerBatch))
         {
             var publishingTask = (Task)(this._eventPropagationPublisherOptions.TopicType is TopicType.Namespace
-                ? this._eventGridNamespaceClient.PublishCloudEventsAsync(topicName, eventBatch, cancellationToken)
+                ? this._eventGridNamespaceClient.SendAsync(eventBatch, cancellationToken)
                 : this._eventGridPublisherClient.SendEventsAsync(eventBatch, cancellationToken));
 
             await publishingTask.ConfigureAwait(false);
