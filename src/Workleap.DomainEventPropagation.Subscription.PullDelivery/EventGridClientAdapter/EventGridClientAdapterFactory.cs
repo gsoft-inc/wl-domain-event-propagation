@@ -5,9 +5,9 @@ namespace Workleap.DomainEventPropagation.EventGridClientAdapter;
 
 internal sealed class EventGridClientAdapterFactory : IEventGridClientWrapperFactory
 {
-    private readonly IAzureClientFactory<EventGridClient> _factory;
+    private readonly IAzureClientFactory<EventGridReceiverClient> _factory;
 
-    public EventGridClientAdapterFactory(IAzureClientFactory<EventGridClient> factory)
+    public EventGridClientAdapterFactory(IAzureClientFactory<EventGridReceiverClient> factory)
     {
         this._factory = factory;
     }

@@ -45,7 +45,7 @@ internal sealed class EventPropagationPublisherBuilder : IEventPropagationPublis
             .WithName(EventPropagationPublisherOptions.EventGridClientName)
             .ConfigureOptions(ConfigureClientOptions);
 
-        builder.AddClient<EventGridClient, EventGridClientOptions>(EventGridClientFactory)
+        builder.AddClient<EventGridSenderClient, EventGridSenderClientOptions>(EventGridClientFactory)
             .WithName(EventPropagationPublisherOptions.EventGridClientName)
             .ConfigureOptions(ConfigureClientOptions);
     }
@@ -60,14 +60,14 @@ internal sealed class EventPropagationPublisherBuilder : IEventPropagationPublis
             : new EventGridPublisherClient(topicEndpointUri, new AzureKeyCredential(publisherOptions.TopicAccessKey), clientOptions);
     }
 
-    private static EventGridClient EventGridClientFactory(EventGridClientOptions clientOptions, IServiceProvider serviceProvider)
+    private static EventGridSenderClient EventGridClientFactory(EventGridSenderClientOptions clientOptions, IServiceProvider serviceProvider)
     {
         var publisherOptions = serviceProvider.GetRequiredService<IOptions<EventPropagationPublisherOptions>>().Value;
         var topicEndpointUri = new Uri(publisherOptions.TopicEndpoint);
 
         return publisherOptions.TokenCredential is not null
-            ? new EventGridClient(topicEndpointUri, publisherOptions.TokenCredential, clientOptions)
-            : new EventGridClient(topicEndpointUri, new AzureKeyCredential(publisherOptions.TopicAccessKey), clientOptions);
+            ? new EventGridSenderClient(topicEndpointUri, publisherOptions.TopicName, publisherOptions.TokenCredential, clientOptions)
+            : new EventGridSenderClient(topicEndpointUri, publisherOptions.TopicName, new AzureKeyCredential(publisherOptions.TopicAccessKey), clientOptions);
     }
 
     private static void ConfigureClientOptions(ClientOptions options)
