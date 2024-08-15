@@ -8,12 +8,6 @@
   "packageRules": [
     {
       "matchManagers": ["nuget"],
-      "excludePackageNames": ["xunit"],
-      "description": "We want to avoid updates to xunit versions given that the current version is highest non-breaking version for this project.",
-      "enabled": false
-    },
-    {
-      "matchManagers": ["nuget"],
       "matchPackageNames": ["Azure.Messaging.EventGrid", "Azure.Messaging.EventGrid.Namespaces"],
       "groupName": "NuGet Azure.Messaging.EventGrid"
     }
