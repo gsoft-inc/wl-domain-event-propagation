@@ -2,7 +2,7 @@
 using Workleap.DomainEventPropagation.Subscription.Tests;
 using Workleap.DomainEventPropagation.Subscription.Tests.OfficevibeMigration;
 
-// ReSharper disable CheckNamespace
+#pragma warning disable IDE0130 // Namespace does not match folder structure
 namespace Officevibe.DomainEvents;
 
 [DomainEvent("officevibe-event")]
