@@ -59,7 +59,7 @@ public sealed class EventDomainAttributeUsageAnalyzer : DiagnosticAnalyzer
 
     private sealed class AnalyzerImplementation
     {
-        private static readonly HashSet<string> AllowedProductNames = ["workleap", "officevice", "lms", "skills", "onboarding", "sharegate"];
+        private static readonly HashSet<string> AllowedProductNames = ["workleap", "officevibe", "lms", "skills", "onboarding", "sharegate"];
         private readonly INamedTypeSymbol? _domainEventInterfaceType;
         private readonly INamedTypeSymbol? _domainEventAttributeType;
         private readonly ConcurrentDictionary<string, bool> _existingAttributes = new ConcurrentDictionary<string, bool>(StringComparer.OrdinalIgnoreCase);
