@@ -1,28 +1,6 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "platform": "github",
-  "labels": ["renovate"],
-  "extends": [
-    "github>gsoft-inc/renovate-config"
-  ],
-  "packageRules": [
-    {
-      "matchManagers": ["nuget"],
-      "matchPackageNames": ["Azure.Messaging.EventGrid", "Azure.Messaging.EventGrid.Namespaces"],
-      "groupName": "NuGet Azure.Messaging.EventGrid"
-    }
-  ],
-  "customManagers": [
-    {
-      "description": "Custom manager for renovating docker image versions listed in .cs files",
-      "customType": "regex",
-      "fileMatch": ["\\.cs$"],
-      "matchStringsStrategy": "any",
-      "matchStrings": [
-        "(?<depName>workleap\\/eventgridemulator):(?<currentValue>[0-9]+\\.[0-9]+\\.[0-9]+(-[-a-zA-Z0-9.]+)?)"
-      ],
-      "datasourceTemplate": "docker",
-      "versioningTemplate": "docker"
-    }
-  ]
-}
+    "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+    "extends": [
+      "github>gsoft-inc/renovate-config"
+    ]
+  }
