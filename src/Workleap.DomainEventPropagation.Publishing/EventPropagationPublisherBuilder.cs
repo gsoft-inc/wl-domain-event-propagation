@@ -20,6 +20,16 @@ internal sealed class EventPropagationPublisherBuilder : IEventPropagationPublis
 
     public IServiceCollection Services { get; }
 
+    public IEventPropagationPublisherBuilder UseResilientEventPropagationPublisher<TEventStore>()
+        where TEventStore : class, IEventStore
+    {
+        this.Services.TryAddSingleton<IEventStore, TEventStore>();
+        this.Services.TryAddSingleton<EventStoreEventPropagationDispatcher>();
+        this.Services.TryAddSingleton<IResilientEventPropagationClient, EventPropagationClient<EventStoreEventPropagationDispatcher>>();
+
+        return this;
+    }
+
     private void AddRegistrations(Action<EventPropagationPublisherOptions> configure)
     {
         this.Services
@@ -27,7 +37,8 @@ internal sealed class EventPropagationPublisherBuilder : IEventPropagationPublis
             .Configure<IConfiguration>(BindFromWellKnownConfigurationSection)
             .Configure(configure);
 
-        this.Services.TryAddSingleton<IEventPropagationClient, EventPropagationClient>();
+        this.Services.TryAddSingleton<EventGridEventPropagationDispatcher>();
+        this.Services.TryAddSingleton<IEventPropagationClient, EventPropagationClient<EventGridEventPropagationDispatcher>>();
         this.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IValidateOptions<EventPropagationPublisherOptions>, EventPropagationPublisherOptionsValidator>());
         this.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IPublishingDomainEventBehavior, TracingPublishingDomainEventBehavior>());
 

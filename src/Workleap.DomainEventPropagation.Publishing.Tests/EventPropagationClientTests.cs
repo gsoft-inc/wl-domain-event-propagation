@@ -17,7 +17,7 @@ public abstract class EventPropagationClientTests
     internal readonly IAzureClientFactory<EventGridPublisherClient> EventGridPublisherClientFactory = A.Fake<IAzureClientFactory<EventGridPublisherClient>>();
     internal readonly EventGridSenderClient EventGridClient = A.Fake<EventGridSenderClient>();
     internal readonly IAzureClientFactory<EventGridSenderClient> EventGridClientFactory = A.Fake<IAzureClientFactory<EventGridSenderClient>>();
-    internal readonly EventPropagationClient EventPropagationClient;
+    internal readonly EventPropagationClient<EventGridEventPropagationDispatcher> EventPropagationClient;
 
     private readonly IOptions<EventPropagationPublisherOptions> _publisherOptions;
 
@@ -27,10 +27,9 @@ public abstract class EventPropagationClientTests
         A.CallTo(() => this.EventGridPublisherClientFactory.CreateClient(EventPropagationPublisherOptions.EventGridClientName)).Returns(this.EventGridPublisherClient);
         A.CallTo(() => this.EventGridClientFactory.CreateClient(EventPropagationPublisherOptions.EventGridClientName)).Returns(this.EventGridClient);
 
-        this.EventPropagationClient = new EventPropagationClient(
-            this.EventGridPublisherClientFactory,
-            this.EventGridClientFactory,
+        this.EventPropagationClient = new EventPropagationClient<EventGridEventPropagationDispatcher>(
             publisherOptions,
+            new EventGridEventPropagationDispatcher(this.EventGridPublisherClientFactory, this.EventGridClientFactory, publisherOptions),
             Array.Empty<IPublishingDomainEventBehavior>());
     }
 
@@ -68,10 +67,9 @@ public abstract class EventPropagationClientTests
         var domainEvent = new TestEventGridEvent { Text = "Hello world", Number = 1 };
         var publisherBehavior = A.Fake<IPublishingDomainEventBehavior>();
 
-        var propagationClient = new EventPropagationClient(
-            this.EventGridPublisherClientFactory,
-            this.EventGridClientFactory,
+        var propagationClient = new EventPropagationClient<EventGridEventPropagationDispatcher>(
             this._publisherOptions,
+            new EventGridEventPropagationDispatcher(this.EventGridPublisherClientFactory, this.EventGridClientFactory, this._publisherOptions),
             new[] { publisherBehavior });
 
         // When
@@ -88,10 +86,9 @@ public abstract class EventPropagationClientTests
         var domainEvent = new TestCloudEvent { Text = "Hello world", Number = 2 };
         var publisherBehavior = A.Fake<IPublishingDomainEventBehavior>();
 
-        var propagationClient = new EventPropagationClient(
-            this.EventGridPublisherClientFactory,
-            this.EventGridClientFactory,
+        var propagationClient = new EventPropagationClient<EventGridEventPropagationDispatcher>(
             this._publisherOptions,
+            new EventGridEventPropagationDispatcher(this.EventGridPublisherClientFactory, this.EventGridClientFactory, this._publisherOptions),
             new[] { publisherBehavior });
 
         // When

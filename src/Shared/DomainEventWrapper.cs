@@ -7,6 +7,8 @@ namespace Workleap.DomainEventPropagation;
 
 internal sealed class DomainEventWrapper
 {
+    private const string DomainEventDefaultVersion = "1.0";
+
     public DomainEventWrapper(EventGridEvent eventGridEvent)
     {
         this.Data = eventGridEvent.Data.ToObjectFromJson<JsonObject>();
@@ -59,6 +61,23 @@ internal sealed class DomainEventWrapper
     }
 
     public BinaryData ToBinaryData() => BinaryData.FromObjectAsJson(this.Data);
+
+    public CloudEvent ToCloudEvent(string source)
+    {
+        return new CloudEvent(
+            type: this.DomainEventName,
+            source: source,
+            jsonSerializableData: this.Data);
+    }
+
+    public EventGridEvent ToEventGridEvent()
+    {
+        return new EventGridEvent(
+            subject: this.DomainEventName,
+            eventType: this.DomainEventName,
+            dataVersion: DomainEventDefaultVersion,
+            data: new BinaryData(this.Data));
+    }
 
     public static DomainEventWrapper Wrap<T>(T domainEvent)
         where T : IDomainEvent

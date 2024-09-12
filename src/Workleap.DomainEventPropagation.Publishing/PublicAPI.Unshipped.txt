@@ -1,1 +1,6 @@
 #nullable enable
+Workleap.DomainEventPropagation.IEventPropagationPublisherBuilder.UseResilientEventPropagationPublisher<TEventStore>() -> Workleap.DomainEventPropagation.IEventPropagationPublisherBuilder!
+Workleap.DomainEventPropagation.IEventStore
+Workleap.DomainEventPropagation.IEventStore.ReadEvents(System.Threading.CancellationToken cancellationToken) -> System.Collections.Generic.IAsyncEnumerable<Azure.Messaging.CloudEvent!>!
+Workleap.DomainEventPropagation.IEventStore.RemoveEvents(System.Collections.Generic.IEnumerable<string!>! cloudEventIds, System.Threading.CancellationToken cancellationToken) -> void
+Workleap.DomainEventPropagation.IEventStore.SaveEvents(System.Collections.Generic.IEnumerable<Azure.Messaging.CloudEvent!>! cloudEvents, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task!

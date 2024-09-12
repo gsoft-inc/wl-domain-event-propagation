@@ -1,4 +1,6 @@
 using System.Collections;
+using Azure.Messaging;
+using Azure.Messaging.EventGrid;
 
 namespace Workleap.DomainEventPropagation;
 
@@ -39,5 +41,24 @@ internal sealed class DomainEventWrapperCollection : IReadOnlyCollection<DomainE
     IEnumerator IEnumerable.GetEnumerator()
     {
         return this.GetEnumerator();
+    }
+
+    public IEnumerable<EventGridEvent> ToEventGridEvents()
+    {
+        return this._domainEventWrappers.Select(wrapper => wrapper.ToEventGridEvent());
+    }
+
+    public IEnumerable<CloudEvent> ToCloudEvents(string topicEndpoint)
+    {
+        var cloudEvents = this._domainEventWrappers.Select(wrapper =>
+        {
+            var cloudEvent = wrapper.ToCloudEvent(topicEndpoint);
+
+            this.ConfigureDomainEventMetadata?.Invoke(new DomainEventMetadataWrapper(cloudEvent));
+
+            return cloudEvent;
+        });
+
+        return cloudEvents;
     }
 }
