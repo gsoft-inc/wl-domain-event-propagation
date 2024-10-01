@@ -88,7 +88,7 @@ internal sealed class InMemoryActivityTracker : IDisposable
     {
         lock (this._activitiesLock)
         {
-            Assert.NotEmpty(this._activities.Where(activity => activity.OperationName == activityName));
+            Assert.Contains(this._activities, activity => activity.OperationName == activityName);
             Assert.All(
                 this._activities.Where(activity => activity.OperationName == activityName),
                 activity =>
