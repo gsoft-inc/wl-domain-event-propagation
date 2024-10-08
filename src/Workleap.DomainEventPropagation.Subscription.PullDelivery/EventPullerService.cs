@@ -159,7 +159,7 @@ internal sealed class EventPullerService : BackgroundService
                         await this._rejectEventChannel.Writer.WriteAsync(eventBundle, cancellationToken).ConfigureAwait(false);
                         break;
                     default:
-                        this._logger.EventWillBeReleased(eventBundle.Event.Id, eventBundle.Event.Type, ex);
+                        this._logger.EventWillBeReleased(eventBundle.Event.Id, eventBundle.Event.Type, ex!);
                         await this._releaseEventChannel.Writer.WriteAsync(eventBundle, cancellationToken).ConfigureAwait(false);
                         break;
                 }
