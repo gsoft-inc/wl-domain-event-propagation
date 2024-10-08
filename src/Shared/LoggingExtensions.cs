@@ -23,4 +23,7 @@ internal static partial class LoggingExtensions
 
     [LoggerMessage(6, LogLevel.Warning, "Failed to handle CloudEvents from the Event Grid topic {topicName} on subscription {subscription}")]
     public static partial void CloudEventCouldNotBeHandled(this ILogger logger, string topicName, string subscription, Exception ex);
+
+    [LoggerMessage(7, LogLevel.Information, "The event with {eventId} {EventName} will be rejected since it exceed the max retries count.")]
+    public static partial void EventWillBeRejectedDueToMaxRetries(this ILogger logger, string eventId, string eventName, Exception ex);
 }

@@ -186,7 +186,7 @@ Now, follow this [Microsoft documentation](https://learn.microsoft.com/en-us/azu
 
 ### Subscribe to domain events with pull delivery
 
-Install the package [Workleap.DomainEventPropagation.Subscription.PullDelivery](fixme) in your ASP.NET Core project that wants to receive events from Event Grid topics.
+Install the package [Workleap.DomainEventPropagation.Subscription.PullDelivery](https://www.nuget.org/packages/Workleap.DomainEventPropagation.Subscription.PullDelivery) in your ASP.NET Core project that wants to receive events from Event Grid topics.
 First, you will need to use one of the following methods to register the required services.
 
 ```csharp
@@ -202,6 +202,7 @@ services.AddPullDeliverySubscription()
       "TopicName": "<namespace_topic_to_listen_to>"
       "SubscriptionName": "<subscription_name_under_specified_topic>",
       "MaxDegreeOfParallelism": 10,
+      "MaxRetries": 3,
       "TopicAccessKey": "<secret_value>", // Can be omitted to use Azure Identity (RBAC)
     }
   }
@@ -220,6 +221,7 @@ services.AddPullDeliverySubscription()
       "TopicName": "<namespace_topic_to_listen_to>"
       "SubscriptionName": "<subscription_name_under_specified_topic>",
       "MaxDegreeOfParallelism": 10,
+      "MaxRetries": 3,
       "TopicAccessKey": "<secret_value>", // Can be omitted to use Azure Identity (RBAC)
     },
     "TopicSub2": {
@@ -227,6 +229,7 @@ services.AddPullDeliverySubscription()
       "TopicName": "<namespace_topic_to_listen_to>"
       "SubscriptionName": "<subscription_name_under_specified_topic>",
       "MaxDegreeOfParallelism": 10,
+      "MaxRetries": 10,
       "TopicAccessKey": "<secret_value>", // Can be omitted to use Azure Identity (RBAC)
     }
   }
@@ -246,6 +249,9 @@ services.AddPullDeliverySubscription()
 
     // Maximum degree of parallelism for processing events
     options.MaxDegreeOfParallelism = 10;
+    
+    // Client side max number of retries before being sent to the Dead Letter Queue
+    options.MaxRetries = 10;
 
     // Using an access key        
     options.TopicAccessKey = "<secret_value>";
@@ -282,6 +288,13 @@ public class ExampleDomainEventHandler : IDomainEventHandler<ExampleDomainEvent>
     }
 }
 ```
+
+#### Client Side Max Retries Count
+
+The client side max retries count can be configured by setting the `MaxRetries` property in the `EventGridSubscriptionClientOptions` object. The default value is 3.
+
+o ensure that messages end up in the Dead Letter Queue, a client-side retry count is required. Otherwise, when a message is requeued (released), Event Grid ignores the subscription max retries count, and if the event exceeds its time-to-live, it is silently dropped.
+
 
 ## Configure the underlying Event Grid clients options
 

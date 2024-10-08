@@ -27,6 +27,7 @@ internal sealed class EventPullerService : BackgroundService
                         optionsMonitor.Get(descriptor.Name).TopicName,
                         optionsMonitor.Get(descriptor.Name).SubscriptionName,
                         optionsMonitor.Get(descriptor.Name).MaxDegreeOfParallelism,
+                        optionsMonitor.Get(descriptor.Name).MaxRetries,
                         optionsMonitor.Get(descriptor.Name).RetryDelays?.ToList(),
                         eventGridClientWrapperFactory.CreateClient(descriptor.Name)),
                     serviceScopeFactory,
@@ -153,6 +154,10 @@ internal sealed class EventPullerService : BackgroundService
                         this._logger.EventWillBeRejected(eventBundle.Event.Id, eventBundle.Event.Type, ex);
                         await this._rejectEventChannel.Writer.WriteAsync(eventBundle, cancellationToken).ConfigureAwait(false);
                         break;
+                    case not null when eventBundle.DeliveryCount > this._eventGridTopicSubscription.MaxRetriesCount:
+                        this._logger.EventWillBeRejectedDueToMaxRetries(eventBundle.Event.Id, eventBundle.Event.Type, ex);
+                        await this._rejectEventChannel.Writer.WriteAsync(eventBundle, cancellationToken).ConfigureAwait(false);
+                        break;
                     default:
                         this._logger.EventWillBeReleased(eventBundle.Event.Id, eventBundle.Event.Type, ex);
                         await this._releaseEventChannel.Writer.WriteAsync(eventBundle, cancellationToken).ConfigureAwait(false);
@@ -251,5 +256,5 @@ internal sealed class EventPullerService : BackgroundService
         }
     }
 
-    private record EventGridTopicSubscription(string TopicName, string SubscriptionName, int MaxHandlerDop, List<TimeSpan>? RetryDelays, IEventGridClientAdapter Client);
+    private record EventGridTopicSubscription(string TopicName, string SubscriptionName, int MaxHandlerDop, int MaxRetriesCount, List<TimeSpan>? RetryDelays, IEventGridClientAdapter Client);
 }
