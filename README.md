@@ -291,10 +291,9 @@ public class ExampleDomainEventHandler : IDomainEventHandler<ExampleDomainEvent>
 
 #### Client Side Max Retries Count
 
-The client side max retries count can be configured by setting the `MaxRetries` property in the `EventGridSubscriptionClientOptions` object. The default value is 3.
+To ensure that messages end up in the Dead Letter Queue, a client-side retry count is required. Otherwise, when a message is requeued (released), Event Grid ignores the subscription retry count, and if the event exceeds its time-to-live, it is silently dropped.
 
-o ensure that messages end up in the Dead Letter Queue, a client-side retry count is required. Otherwise, when a message is requeued (released), Event Grid ignores the subscription max retries count, and if the event exceeds its time-to-live, it is silently dropped.
-
+It can be configured by setting the `MaxRetries` property in the `EventGridSubscriptionClientOptions`. The default value is 3.
 
 ## Configure the underlying Event Grid clients options
 
