@@ -80,8 +80,11 @@ public class EventPullerServiceTests : IDisposable
     public async Task GivenTwoEventsReceived_WhenHandleThrowUnhandledException_ThenEventsAreReleased()
     {
         // Given
-        var client = this.GivenClient();
-        var events = this.GivenEventsForClient(client, GenerateEvent(), GenerateEvent(deliveryCount: 3));
+        var maxRetries = 3;
+        var client = this.GivenClient(options: GenerateOptions(
+            maxRetries: maxRetries
+        ));
+        var events = this.GivenEventsForClient(client, GenerateEvent(), GenerateEvent(deliveryCount: maxRetries));
         this.GivenClientFailsHandlingEvents(client);
 
         // When
@@ -95,7 +98,10 @@ public class EventPullerServiceTests : IDisposable
     public async Task GivenMultipleEventsReceivedWithCustomRetryDelays_WhenHandleThrowUnhandledException_ThenEventsAreReleasedWithDelay()
     {
         // Given
-        var client = this.GivenClient(options: GenerateOptions(retryDelays: [TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(75)]));
+        var client = this.GivenClient(options: GenerateOptions(
+            maxRetries: 10,
+            retryDelays: [TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(2), TimeSpan.FromSeconds(20), TimeSpan.FromSeconds(75)])
+        );
         var events = this.GivenEventsForClient(client, GenerateEvent(), GenerateEvent(deliveryCount: 3), GenerateEvent(deliveryCount: 4), GenerateEvent(deliveryCount: 5));
         this.GivenClientFailsHandlingEvents(client);
 
@@ -114,6 +120,24 @@ public class EventPullerServiceTests : IDisposable
         var client = this.GivenClient();
         var events = this.GivenEventsForClient(client, GenerateEvent(), GenerateEvent());
         this.GivenClientFailsHandlingEvents(client, exception);
+
+        // When
+        await this.WhenRunningPullerService();
+
+        // Then
+        this.ThenClientRejectedEvents(client, events);
+    }
+
+    [Fact]
+    public async Task GivenEventsReceivedWithDeliveryCountHigherThanMaxRetries_WhenHandleThrowException_ThenEventsAreRejected()
+    {
+        // Given
+        var maxRetries = 3;
+        var client = this.GivenClient(options: GenerateOptions(
+            maxRetries: maxRetries
+        ));
+        var events = this.GivenEventsForClient(client, GenerateEvent(deliveryCount: maxRetries + 1));
+        this.GivenClientFailsHandlingEvents(client, new Exception());
 
         // When
         await this.WhenRunningPullerService();
@@ -261,13 +285,14 @@ public class EventPullerServiceTests : IDisposable
         Assert.True(events.All(x => client.EventHandlingResult.RejectedEvents.Contains(x.LockToken)));
     }
 
-    private static EventPropagationSubscriptionOptions GenerateOptions(string id = "id", TimeSpan[]? retryDelays = null)
+    private static EventPropagationSubscriptionOptions GenerateOptions(string id = "id", TimeSpan[]? retryDelays = null, int maxRetries = 3)
     {
         return new EventPropagationSubscriptionOptions
         {
             TopicName = $"topic-{id}",
             SubscriptionName = $"subscription-{id}",
             MaxDegreeOfParallelism = 10,
+            MaxRetries = maxRetries,
             RetryDelays = retryDelays,
         };
     }

@@ -18,5 +18,10 @@ public class EventPropagationSubscriptionOptions
 
     public int MaxDegreeOfParallelism { get; set; } = 1;
 
+    /// <summary>
+    /// Client side maximum retry count before sending the message to the dead-letter queue.
+    /// </summary>
+    public int MaxRetries { get; set; } = 3;
+
     public IReadOnlyCollection<TimeSpan>? RetryDelays { get; set; }
 }

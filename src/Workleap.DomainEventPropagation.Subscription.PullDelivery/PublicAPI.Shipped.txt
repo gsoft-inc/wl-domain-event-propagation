@@ -16,6 +16,8 @@ Workleap.DomainEventPropagation.EventPropagationSubscriptionOptions.MaxDegreeOfP
 Workleap.DomainEventPropagation.EventPropagationSubscriptionOptions.MaxDegreeOfParallelism.set -> void
 Workleap.DomainEventPropagation.EventPropagationSubscriptionOptions.RetryDelays.get -> System.Collections.Generic.IReadOnlyCollection<System.TimeSpan>?
 Workleap.DomainEventPropagation.EventPropagationSubscriptionOptions.RetryDelays.set -> void
+Workleap.DomainEventPropagation.EventPropagationSubscriptionOptions.MaxRetries.get -> int
+Workleap.DomainEventPropagation.EventPropagationSubscriptionOptions.MaxRetries.set -> void
 Workleap.DomainEventPropagation.EventPropagationSubscriptionOptionsValidator
 Workleap.DomainEventPropagation.EventPropagationSubscriptionOptionsValidator.EventPropagationSubscriptionOptionsValidator() -> void
 Workleap.DomainEventPropagation.EventPropagationSubscriptionOptionsValidator.Validate(string! name, Workleap.DomainEventPropagation.EventPropagationSubscriptionOptions! options) -> Microsoft.Extensions.Options.ValidateOptionsResult!

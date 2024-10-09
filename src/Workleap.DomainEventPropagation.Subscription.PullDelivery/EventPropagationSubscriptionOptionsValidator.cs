@@ -31,6 +31,11 @@ public class EventPropagationSubscriptionOptionsValidator : IValidateOptions<Eve
             return ValidateOptionsResult.Fail("A topic endpoint is required");
         }
 
+        if (options.MaxRetries is < 0 or > 10)
+        {
+            return ValidateOptionsResult.Fail("MaxRetries must be between 0 and 10. The upper limit ensures the event's time-to-live does not expire.");
+        }
+
         return ValidateOptionsResult.Success;
     }
 }
