@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   title: Workleap Domain Event Propagation
-  description: .NET library offering a way for your service to publish domain events to EventGrid as well as listen to events published by other services.
+  description: .NET library offering a way for your service to publish domain events to EventGrid as well as to listen to events published by other services.
   x-cortex-git:
     github:
       alias: gsoft-inc
