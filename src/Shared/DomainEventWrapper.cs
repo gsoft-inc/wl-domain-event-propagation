@@ -9,14 +9,14 @@ internal sealed class DomainEventWrapper
 {
     public DomainEventWrapper(EventGridEvent eventGridEvent)
     {
-        this.Data = eventGridEvent.Data.ToObjectFromJson<JsonObject>();
+        this.Data = eventGridEvent.Data.ToObjectFromJson<JsonObject>()!;
         this.DomainEventName = eventGridEvent.EventType;
         this.DomainEventSchema = EventSchema.EventGridEvent;
     }
 
     public DomainEventWrapper(CloudEvent cloudEvent)
     {
-        this.Data = cloudEvent.Data!.ToObjectFromJson<JsonObject>();
+        this.Data = cloudEvent.Data!.ToObjectFromJson<JsonObject>()!;
         this.DomainEventName = cloudEvent.Type;
         this.DomainEventSchema = EventSchema.CloudEvent;
     }
