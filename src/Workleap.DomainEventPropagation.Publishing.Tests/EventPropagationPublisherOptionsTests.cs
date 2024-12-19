@@ -16,7 +16,7 @@ public class EventPropagationPublisherOptionsTests
         };
 
         var configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(myConfiguration)
+            .AddInMemoryCollection(myConfiguration!)
             .Build();
 
         var services = new ServiceCollection();
