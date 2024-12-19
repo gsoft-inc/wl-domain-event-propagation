@@ -4,7 +4,7 @@ namespace Workleap.DomainEventPropagation;
 
 internal sealed class EventPropagationPublisherOptionsValidator : IValidateOptions<EventPropagationPublisherOptions>
 {
-    public ValidateOptionsResult Validate(string name, EventPropagationPublisherOptions options)
+    public ValidateOptionsResult Validate(string? name, EventPropagationPublisherOptions options)
     {
         if (options.TokenCredential is null && string.IsNullOrWhiteSpace(options.TopicAccessKey))
         {
