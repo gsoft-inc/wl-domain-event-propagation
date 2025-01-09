@@ -4,7 +4,7 @@ namespace Workleap.DomainEventPropagation;
 
 public class EventPropagationSubscriptionOptionsValidator : IValidateOptions<EventPropagationSubscriptionOptions>
 {
-    public ValidateOptionsResult Validate(string name, EventPropagationSubscriptionOptions options)
+    public ValidateOptionsResult Validate(string? name, EventPropagationSubscriptionOptions options)
     {
         if (options.TokenCredential is null && string.IsNullOrWhiteSpace(options.TopicAccessKey))
         {
