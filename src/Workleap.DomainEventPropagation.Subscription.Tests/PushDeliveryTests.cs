@@ -62,21 +62,18 @@ public class PushDeliveryTests(ITestOutputHelper testOutputHelper)
     private IHost BuildHost(string eventGridUrl)
     {
         var builder = WebApplication.CreateBuilder();
-        builder.WebHost.ConfigureServices(services =>
+        builder.Services.AddSingleton(Channel.CreateUnbounded<TestEventGridEvent>());
+        builder.Services.AddSingleton(Channel.CreateUnbounded<TestCloudEvent>());
+        builder.Services.AddEventPropagationPublisher(options =>
         {
-            services.AddSingleton(Channel.CreateUnbounded<TestEventGridEvent>());
-            services.AddSingleton(Channel.CreateUnbounded<TestCloudEvent>());
-            services.AddEventPropagationPublisher(options =>
-            {
-                options.TopicEndpoint = $"{eventGridUrl}{TopicName}/api/events";
-                options.TopicName = TopicName;
-                options.TopicAccessKey = "noop";
-                options.TopicType = TopicType.Custom;
-            });
-            services.AddEventPropagationSubscriber()
-                .AddDomainEventHandler<TestEventGridEvent, TestDomainEventHandler>()
-                .AddDomainEventHandler<TestCloudEvent, TestDomainEventHandler>();
+            options.TopicEndpoint = $"{eventGridUrl}{TopicName}/api/events";
+            options.TopicName = TopicName;
+            options.TopicAccessKey = "noop";
+            options.TopicType = TopicType.Custom;
         });
+        builder.Services.AddEventPropagationSubscriber()
+            .AddDomainEventHandler<TestEventGridEvent, TestDomainEventHandler>()
+            .AddDomainEventHandler<TestCloudEvent, TestDomainEventHandler>();
 
         var webApp = builder.Build();
 
