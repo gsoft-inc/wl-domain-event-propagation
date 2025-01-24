@@ -26,7 +26,7 @@ global using Workleap.DomainEventPropagation;";
     {
         this.TestState.Sources.Add(CSharp10GlobalUsings);
         this.TestState.Sources.Add(DomainEventPropagationGlobalUsings);
-        this.TestState.ReferenceAssemblies = ReferenceAssemblies.Net.Net60;
+        this.TestState.ReferenceAssemblies = ReferenceAssemblies.Net.Net80;
         this.TestState.AdditionalReferences.Add(typeof(IDomainEvent).Assembly);
     }
 
