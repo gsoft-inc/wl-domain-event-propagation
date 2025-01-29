@@ -27,7 +27,7 @@ jobs:
         with:
           source-url: ${{ secrets.NUGET_GSOFTDEV_FEED_URL }}
         env:
-          NUGET_AUTH_TOKEN: ${{ secrets.GSOFT_NUGET_API_KEY }}
+          NUGET_AUTH_TOKEN: ${{ secrets.WORKLEAP_NUGET_API_KEY }}
 
       - uses: actions/setup-dotnet@v4
         with:
@@ -37,7 +37,7 @@ jobs:
         shell: pwsh
         env:
           NUGET_SOURCE: ${{ secrets.NUGET_GSOFTDEV_FEED_URL }}
-          NUGET_API_KEY: ${{ secrets.GSOFT_NUGET_API_KEY }}
+          NUGET_API_KEY: ${{ secrets.WORKLEAP_NUGET_API_KEY }}
 
   linearb:
     needs: [ci]
