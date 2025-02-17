@@ -1,6 +1,6 @@
 # Workleap.DomainEventPropagation
 
-[![build](https://img.shields.io/github/actions/workflow/status/gsoft-inc/workleap-domain-event-propagation/publish.yml?logo=github&branch=main)](https://github.com/workleap/workleap-domain-event-propagation/actions/workflows/publish.yml)
+[![build](https://img.shields.io/github/actions/workflow/status/workleap/workleap-domain-event-propagation/publish.yml?logo=github&branch=main)](https://github.com/workleap/workleap-domain-event-propagation/actions/workflows/publish.yml)
 
 | Package                                                          | Download Link                                                                                                                                                                                                               | Description                                                                                 |
 |------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------|
