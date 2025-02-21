@@ -100,13 +100,13 @@ internal sealed class EventPullerService : BackgroundService
             using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             // Start the tasks that will process events and handle the completion callback
-            var eventProcessingTasks = new []
-                {
-                    this.ProcessEvents(cancellationTokenSource.Token),
+            Task[] eventProcessingTasks =
+            [
+                this.ProcessEvents(cancellationTokenSource.Token),
                     this.AcknowledgeEvents(cancellationToken),
                     this.ReleaseEvents(cancellationToken),
                     this.RejectEvents(cancellationToken)
-                };
+            ];
 
             await Task.WhenAny(eventProcessingTasks).ConfigureAwait(false);
 
