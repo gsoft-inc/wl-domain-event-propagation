@@ -36,6 +36,7 @@ internal sealed class TracingSubscriptionDomainEventBehavior : ISubscriptionDoma
     {
         try
         {
+            AddEventActivityTags(domainEventWrapper);
             await next(domainEventWrapper, cancellationToken).ConfigureAwait(false);
 
             TracingHelper.MarkAsSuccessful(activity);
@@ -53,4 +54,19 @@ internal sealed class TracingSubscriptionDomainEventBehavior : ISubscriptionDoma
         EventSchema.CloudEvent => TracingHelper.GetCloudEventsSubscriberActivityName(domainEventWrappers.DomainEventName),
         _ => TracingHelper.GetEventGridEventsSubscriberActivityName(domainEventWrappers.DomainEventName),
     };
+
+    private static void AddEventActivityTags(DomainEventWrapper domainEventWrapper)
+    {
+        switch (domainEventWrapper.DomainEventSchema)
+        {
+            case EventSchema.CloudEvent:
+                TracingHelper.AddCloudEventActivityTags(domainEventWrapper.Id!, domainEventWrapper.Source!, domainEventWrapper.DomainEventName);
+                break;
+            case EventSchema.EventGridEvent:
+                TracingHelper.AddEventGridEventActivityTags(domainEventWrapper.Id!, domainEventWrapper.DomainEventName);
+                break;
+            default:
+                return;
+        }
+    }
 }

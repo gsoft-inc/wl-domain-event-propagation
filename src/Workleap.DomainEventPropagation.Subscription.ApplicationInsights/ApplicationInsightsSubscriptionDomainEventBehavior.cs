@@ -1,5 +1,7 @@
 ﻿using System.Diagnostics;
 using Microsoft.ApplicationInsights;
+using Microsoft.ApplicationInsights.DataContracts;
+using Microsoft.ApplicationInsights.Extensibility;
 
 namespace Workleap.DomainEventPropagation;
 
@@ -25,11 +27,10 @@ internal sealed class ApplicationInsightsSubscriptionDomainEventBehavior : ISubs
 
         if (domainEventWrapper.TryGetMetadata(ApplicationInsightsConstants.ParentOperationIdField, out var parentOperationId))
         {
-            if (!operation.Telemetry.Properties.ContainsKey(ApplicationInsightsConstants.LinkedOperation))
-            {
-                operation.Telemetry.Properties.Add(ApplicationInsightsConstants.LinkedOperation, parentOperationId);
-            }
+            operation.Telemetry.Properties.TryAdd(ApplicationInsightsConstants.LinkedOperation, parentOperationId);
         }
+
+        AddEventTelemetryProperties(domainEventWrapper, operation);
 
         // Originating activity must be captured AFTER that the operation is created
         // Because ApplicationInsights SDK creates another intermediate Activity
@@ -64,6 +65,24 @@ internal sealed class ApplicationInsightsSubscriptionDomainEventBehavior : ISubs
                 // Attach the telemetry to the originating activity
                 originatingActivity.ExecuteAsCurrentActivity(operation, static x => x.Dispose());
             }
+        }
+    }
+
+    private static void AddEventTelemetryProperties(DomainEventWrapper domainEventWrapper, IOperationHolder<DependencyTelemetry> operation)
+    {
+        switch (domainEventWrapper.DomainEventSchema)
+        {
+            case EventSchema.CloudEvent:
+                operation.Telemetry.Properties.Add(TracingHelper.CloudEventsEventIdTag, domainEventWrapper.Id!);
+                operation.Telemetry.Properties.Add(TracingHelper.CloudEventsEventSourceTag, domainEventWrapper.Source!);
+                operation.Telemetry.Properties.Add(TracingHelper.CloudEventsEventTypeTag, domainEventWrapper.DomainEventName);
+                break;
+            case EventSchema.EventGridEvent:
+                operation.Telemetry.Properties.Add(TracingHelper.EventgridEventsEventIdTag, domainEventWrapper.Id!);
+                operation.Telemetry.Properties.Add(TracingHelper.EventgridEventsEventTypeTag, domainEventWrapper.DomainEventName);
+                break;
+            default:
+                return;
         }
     }
 }

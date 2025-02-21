@@ -23,6 +23,15 @@ internal static class TracingHelper
     internal const string CloudEventsPublisherActivityType = "CloudEvents create";
     internal const string CloudEventsSubscriberActivityType = "CloudEvents process";
 
+    // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/cloudevents/cloudevents-spans.md
+    internal const string CloudEventsEventIdTag = "cloudevents.event_id";
+    internal const string CloudEventsEventSourceTag = "cloudevents.event_source";
+    internal const string CloudEventsEventTypeTag = "cloudevents.event_type";
+
+    internal const string EventgridEventsEventIdTag = "eventgridevents.event_id";
+    internal const string EventgridEventsEventSourceTag = "eventgridevents.event_source";
+    internal const string EventgridEventsEventTypeTag = "eventgridevents.event_type";
+
     private static readonly Assembly Assembly = typeof(TracingHelper).Assembly;
     private static readonly AssemblyName AssemblyName = Assembly.GetName();
     private static readonly string AssemblyVersion = Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? AssemblyName.Version!.ToString();
@@ -38,6 +47,16 @@ internal static class TracingHelper
     {
         var activityLinks = linkedActivityContext == default ? Enumerable.Empty<ActivityLink>() : [new ActivityLink(linkedActivityContext)];
         return ActivitySource.StartActivity(activityName, ActivityKind.Consumer, default(ActivityContext), links: activityLinks);
+    }
+
+    public static void AddCloudEventActivityTags(string id, string source, string type)
+    {
+
+    }
+
+    public static void AddEventGridEventActivityTags(string id, string type)
+    {
+
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
