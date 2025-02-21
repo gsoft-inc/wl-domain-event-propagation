@@ -97,10 +97,10 @@ internal sealed class EventPullerService : BackgroundService
         public async Task StartReceivingEventsAsync(CancellationToken cancellationToken)
         {
             // Use a local cancellation token source to allow stopping the events reception/processing if a callback task crashes
-            var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            using var cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 
             // Start the tasks that will process events and handle the completion callback
-            var eventProcessingTasks = new List<Task>
+            var eventProcessingTasks = new []
                 {
                     this.ProcessEvents(cancellationTokenSource.Token),
                     this.AcknowledgeEvents(cancellationToken),
