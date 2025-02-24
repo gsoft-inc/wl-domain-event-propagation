@@ -60,13 +60,13 @@ internal sealed class TracingSubscriptionDomainEventBehavior : ISubscriptionDoma
         switch (domainEventWrapper.DomainEventSchema)
         {
             case EventSchema.CloudEvent:
-                activity.AddTag(TracingHelper.CloudEventsIdTag, domainEventWrapper.Id!);
-                activity.AddTag(TracingHelper.CloudEventsSourceTag, domainEventWrapper.Source!);
+                activity.AddTag(TracingHelper.CloudEventsIdTag, domainEventWrapper.Id);
+                activity.AddTag(TracingHelper.CloudEventsSourceTag, domainEventWrapper.Source);
                 activity.AddTag(TracingHelper.CloudEventsTypeTag, domainEventWrapper.DomainEventName);
                 break;
             case EventSchema.EventGridEvent:
-                activity.AddTag(TracingHelper.EventgridEventsIdTag, domainEventWrapper.Id!);
-                activity.AddTag(TracingHelper.EventgridEventsSourceTag, domainEventWrapper.Source!);
+                activity.AddTag(TracingHelper.EventgridEventsIdTag, domainEventWrapper.Id);
+                activity.AddTag(TracingHelper.EventgridEventsSourceTag, domainEventWrapper.Source);
                 activity.AddTag(TracingHelper.EventgridEventsTypeTag, domainEventWrapper.DomainEventName);
                 break;
             default:
