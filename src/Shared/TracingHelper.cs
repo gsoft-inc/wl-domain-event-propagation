@@ -23,7 +23,7 @@ internal static class TracingHelper
     internal const string CloudEventsPublisherActivityType = "CloudEvents create";
     internal const string CloudEventsSubscriberActivityType = "CloudEvents process";
 
-    // https://github.com/open-telemetry/semantic-conventions/blob/main/docs/cloudevents/cloudevents-spans.md
+    // https://github.com/open-telemetry/semantic-conventions/blob/0d80f21f77447edc97b12350ebe8bf2b2c5582ae/docs/cloudevents/cloudevents-spans.md
     internal const string CloudEventsIdTag = "cloudevents.event_id";
     internal const string CloudEventsSourceTag = "cloudevents.event_source";
     internal const string CloudEventsTypeTag = "cloudevents.event_type";
