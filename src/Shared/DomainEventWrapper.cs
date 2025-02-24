@@ -10,6 +10,7 @@ internal sealed class DomainEventWrapper
     public DomainEventWrapper(EventGridEvent eventGridEvent)
     {
         this.Id = eventGridEvent.Id;
+        this.Source = eventGridEvent.Topic;
         this.Data = eventGridEvent.Data.ToObjectFromJson<JsonObject>()!;
         this.DomainEventName = eventGridEvent.EventType;
         this.DomainEventSchema = EventSchema.EventGridEvent;

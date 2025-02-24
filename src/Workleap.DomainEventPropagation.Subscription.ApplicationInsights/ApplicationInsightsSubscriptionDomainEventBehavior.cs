@@ -73,13 +73,14 @@ internal sealed class ApplicationInsightsSubscriptionDomainEventBehavior : ISubs
         switch (domainEventWrapper.DomainEventSchema)
         {
             case EventSchema.CloudEvent:
-                operation.Telemetry.Properties.Add(TracingHelper.CloudEventsEventIdTag, domainEventWrapper.Id!);
-                operation.Telemetry.Properties.Add(TracingHelper.CloudEventsEventSourceTag, domainEventWrapper.Source!);
-                operation.Telemetry.Properties.Add(TracingHelper.CloudEventsEventTypeTag, domainEventWrapper.DomainEventName);
+                operation.Telemetry.Properties.Add(TracingHelper.CloudEventsIdTag, domainEventWrapper.Id!);
+                operation.Telemetry.Properties.Add(TracingHelper.CloudEventsSourceTag, domainEventWrapper.Source!);
+                operation.Telemetry.Properties.Add(TracingHelper.CloudEventsTypeTag, domainEventWrapper.DomainEventName);
                 break;
             case EventSchema.EventGridEvent:
-                operation.Telemetry.Properties.Add(TracingHelper.EventgridEventsEventIdTag, domainEventWrapper.Id!);
-                operation.Telemetry.Properties.Add(TracingHelper.EventgridEventsEventTypeTag, domainEventWrapper.DomainEventName);
+                operation.Telemetry.Properties.Add(TracingHelper.EventgridEventsIdTag, domainEventWrapper.Id!);
+                operation.Telemetry.Properties.Add(TracingHelper.EventgridEventsSourceTag, domainEventWrapper.Id!);
+                operation.Telemetry.Properties.Add(TracingHelper.EventgridEventsTypeTag, domainEventWrapper.DomainEventName);
                 break;
             default:
                 return;
