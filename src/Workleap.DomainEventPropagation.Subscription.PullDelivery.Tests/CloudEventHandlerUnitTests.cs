@@ -56,7 +56,7 @@ public class CloudEventHandlerUnitTests
         var domainEventTypeRegistry = new DomainEventTypeRegistry();
         domainEventTypeRegistry.RegisterDomainEvent(typeof(SampleEvent));
         services.Replace(new ServiceDescriptor(typeof(IDomainEventTypeRegistry), domainEventTypeRegistry));
-        var handler = new CloudEventHandler(new ServiceCollection().BuildServiceProvider(), domainEventTypeRegistry, Enumerable.Empty<ISubscriptionDomainEventBehavior>(), new NullLogger<CloudEventHandler>());
+        var handler = new CloudEventHandler(new ServiceCollection().BuildServiceProvider(), domainEventTypeRegistry, []);
 
         // When
         await Assert.ThrowsAsync<DomainEventHandlerNotRegisteredException>(() => handler.HandleCloudEventAsync(cloudEvent, CancellationToken.None));
