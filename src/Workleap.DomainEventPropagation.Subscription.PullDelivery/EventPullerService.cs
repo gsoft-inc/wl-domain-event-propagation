@@ -37,8 +37,9 @@ internal sealed class EventPullerService : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        using var taskCancellationSource = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
         var subscriptionTasks = this._eventGridSubscriptionPullers
-            .Select(puller => Task.Run(() => puller.StartReceivingEventsAsync(stoppingToken), stoppingToken))
+            .Select(puller => Task.Run(() => puller.StartReceivingEventsAsync(taskCancellationSource.Token), taskCancellationSource.Token))
             .ToList();
 
         while (subscriptionTasks.Any())
@@ -47,8 +48,19 @@ internal sealed class EventPullerService : BackgroundService
 
             subscriptionTasks.Remove(task);
 
-            // This will rethrow the exception if there ever is one, otherwise we'll continue until all tasks are done
-            await task.ConfigureAwait(false);
+            try
+            {
+                // This will throw the exception if there is one, otherwise we'll continue until all tasks are done
+                await task.ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                // To prevent unobserved exceptions, we cancel the tasks and wait for them to complete before throwing
+                await taskCancellationSource.CancelAsync().ConfigureAwait(false);
+                await Task.WhenAll(subscriptionTasks).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+
+                throw;
+            }
         }
     }
 
