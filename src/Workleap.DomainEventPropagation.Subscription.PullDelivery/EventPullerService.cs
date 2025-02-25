@@ -115,9 +115,9 @@ internal sealed class EventPullerService : BackgroundService
             Task[] eventProcessingTasks =
             [
                 this.ProcessEvents(cancellationTokenSource.Token),
-                    this.AcknowledgeEvents(cancellationToken),
-                    this.ReleaseEvents(cancellationToken),
-                    this.RejectEvents(cancellationToken)
+                this.AcknowledgeEvents(cancellationToken),
+                this.ReleaseEvents(cancellationToken),
+                this.RejectEvents(cancellationToken)
             ];
 
             await Task.WhenAny(eventProcessingTasks).ConfigureAwait(false);
